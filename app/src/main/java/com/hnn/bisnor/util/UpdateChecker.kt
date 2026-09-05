@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
 object UpdateChecker {
 
     private const val GITHUB_OWNER = "nikan48g"
-    private const val GITHUB_REPO = "Bisnor-autoupdate"
+    private const val GITHUB_REPO = "Bisnor"
 
     // Dynamically retrieve the real app version from BuildConfig
     val currentAppVersionName: String

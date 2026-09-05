@@ -122,7 +122,6 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
 
-> فایل `local.properties` نباید Commit شود. اطلاعات خصوصی، Service Role Key، Database Password یا سایر Secretها را داخل سورس قرار ندهید.
 
 ### Build روی Linux / macOS
 

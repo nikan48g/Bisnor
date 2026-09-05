@@ -38,6 +38,20 @@ class PlaylistsManager(context: Context) {
         _playlistsFlow.value = list
     }
 
+    fun getPlaylistsRawJson(): String {
+        return prefs.getString("playlists_json", "[]") ?: "[]"
+    }
+
+    fun setPlaylistsFromRawJson(rawJson: String) {
+        try {
+            val type = object : TypeToken<List<CustomPlaylist>>() {}.type
+            val list: List<CustomPlaylist> = gson.fromJson(rawJson, type) ?: emptyList()
+            save(list)
+        } catch (e: Exception) {
+            // Ignore parse error
+        }
+    }
+
     fun createPlaylist(name: String) {
         val current = _playlistsFlow.value.toMutableList()
         val uniqueId = "pl_${System.currentTimeMillis()}"
@@ -59,18 +73,32 @@ class PlaylistsManager(context: Context) {
         return false
     }
 
-    fun removeFromPlaylist(playlistId: String, mediaId: Int) {
+    fun removeFromPlaylist(playlistId: String, mediaId: Int): Boolean {
         val current = _playlistsFlow.value.toMutableList()
         val index = current.indexOfFirst { it.id == playlistId }
         if (index != -1) {
-            current[index].items.removeAll { it.id == mediaId }
-            save(current)
+            val list = current[index].items
+            val removed = list.removeAll { it.id == mediaId }
+            if (removed) {
+                save(current)
+                return true
+            }
         }
+        return false
     }
 
     fun deletePlaylist(playlistId: String) {
         val current = _playlistsFlow.value.toMutableList()
         current.removeAll { it.id == playlistId }
         save(current)
+    }
+
+    fun renamePlaylist(playlistId: String, newName: String) {
+        val current = _playlistsFlow.value.toMutableList()
+        val index = current.indexOfFirst { it.id == playlistId }
+        if (index != -1) {
+            current[index] = current[index].copy(name = newName)
+            save(current)
+        }
     }
 }

@@ -16,20 +16,26 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.radiobutton.MaterialRadioButton
+import com.google.android.material.textfield.TextInputEditText
 import com.hnn.bisnor.MainActivity
 import com.hnn.bisnor.R
+import com.hnn.bisnor.data.remote.AuthManager
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.databinding.FragmentSettingsBinding
 import com.hnn.bisnor.ui.downloads.DownloadsActivity
 import com.hnn.bisnor.util.PlayerLauncherHelper
 import com.hnn.bisnor.util.UpdateChecker
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var historyManager: PlaybackHistoryManager
+    private lateinit var authManager: AuthManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -41,6 +47,9 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         historyManager = PlaybackHistoryManager(requireContext())
+        authManager = AuthManager(requireContext())
+
+        setupUserProfileSection()
 
         // Light / Dark / System Themes
         when (historyManager.themeMode) {
@@ -105,6 +114,122 @@ class SettingsFragment : Fragment() {
                 UpdateChecker.checkForUpdates(requireContext(), showToastIfLatest = true)
             }
         }
+    }
+
+    private fun setupUserProfileSection() {
+        if (authManager.isLoggedIn) {
+            binding.tvProfileUsername.text = "کاربر: ${authManager.currentUsername}"
+            if (authManager.lastSyncTime > 0L) {
+                val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(authManager.lastSyncTime))
+                binding.tvProfileSyncStatus.text = "✓ لیست‌ها همگام‌سازی شده (آخرین سینک: $timeStr)"
+            } else {
+                binding.tvProfileSyncStatus.text = "✓ متصل به فضای ابری"
+            }
+            binding.btnProfileAction.text = "همگام‌سازی 🔄"
+            binding.btnProfileAction.setOnClickListener {
+                lifecycleScope.launch {
+                    Toast.makeText(requireContext(), "در حال همگام‌سازی لیست‌ها با سرور...", Toast.LENGTH_SHORT).show()
+                    val ok = authManager.syncUp(requireContext())
+                    if (ok) {
+                        setupUserProfileSection()
+                        Toast.makeText(requireContext(), "لیست‌ها و نشان‌شده‌ها با موفقیت در ابری ذخیره شدند!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), "خطا در همگام‌سازی. لطفاً اتصال اینترنت را چک کنید.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            binding.cardUserProfile.setOnLongClickListener {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("خروج از حساب")
+                    .setMessage("آیا مایل به خروج از حساب کاربری «${authManager.currentUsername}» هستید؟")
+                    .setPositiveButton("خروج") { _, _ ->
+                        authManager.logout()
+                        setupUserProfileSection()
+                        Toast.makeText(requireContext(), "از حساب خارج شدید.", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("انصراف", null)
+                    .show()
+                true
+            }
+        } else {
+            binding.tvProfileUsername.text = "کاربر مهمان"
+            binding.tvProfileSyncStatus.text = "جهت ذخیره و سینک لیست‌ها وارد شوید"
+            binding.btnProfileAction.text = "ورود / ثبت‌نام"
+            binding.btnProfileAction.setOnClickListener {
+                showAuthDialog()
+            }
+            binding.cardUserProfile.setOnLongClickListener(null)
+        }
+    }
+
+    private fun showAuthDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_auth, null)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tv_auth_dialog_title)
+        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tv_auth_dialog_subtitle)
+        val etUser = dialogView.findViewById<TextInputEditText>(R.id.et_auth_username)
+        val etPass = dialogView.findViewById<TextInputEditText>(R.id.et_auth_password)
+        val btnSubmit = dialogView.findViewById<MaterialButton>(R.id.btn_auth_submit)
+        val btnSwitch = dialogView.findViewById<MaterialButton>(R.id.btn_auth_switch_mode)
+
+        var isRegisterMode = false
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        fun updateUI() {
+            if (isRegisterMode) {
+                tvTitle.text = "ثبت‌نام در بیسنور"
+                tvSubtitle.text = "برای ایجاد حساب و سینک همیشگی فیلم‌ها، یک نام کاربری و رمز عبور تعیین کنید."
+                btnSubmit.text = "ایجاد حساب کاربری"
+                btnSwitch.text = "حساب دارید؟ وارد شوید"
+            } else {
+                tvTitle.text = "ورود به حساب کاربری"
+                tvSubtitle.text = "با وارد کردن اطلاعات، لیست‌ها و نشان‌شده‌های ذخیره شده شما لود می‌شوند."
+                btnSubmit.text = "ورود به حساب"
+                btnSwitch.text = "حساب کاربری ندارید؟ ثبت‌نام کنید"
+            }
+        }
+
+        btnSwitch.setOnClickListener {
+            isRegisterMode = !isRegisterMode
+            updateUI()
+        }
+
+        btnSubmit.setOnClickListener {
+            val username = etUser.text?.toString()?.trim() ?: ""
+            val password = etPass.text?.toString()?.trim() ?: ""
+
+            if (username.isEmpty() || password.isEmpty()) {
+                Toast.makeText(requireContext(), "لطفاً تمامی فیلدها را پر کنید.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            lifecycleScope.launch {
+                btnSubmit.isEnabled = false
+                btnSubmit.text = "در حال ارتباط با سرور..."
+
+                val (success, message) = if (isRegisterMode) {
+                    authManager.register(username, password)
+                } else {
+                    authManager.login(username, password)
+                }
+
+                btnSubmit.isEnabled = true
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+
+                if (success) {
+                    dialog.dismiss()
+                    setupUserProfileSection()
+                } else {
+                    updateUI()
+                }
+            }
+        }
+
+        updateUI()
+        dialog.show()
     }
 
     private fun updatePlayerLabel() {

@@ -1,4 +1,4 @@
-﻿package com.hnn.bisnor.data.repository
+package com.hnn.bisnor.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -30,6 +30,20 @@ class FavoritesManager(context: Context) {
         val json = gson.toJson(list)
         prefs.edit().putString("favs", json).apply()
         _favoritesFlow.value = list
+    }
+
+    fun getFavoritesRawJson(): String {
+        return prefs.getString("favs", "[]") ?: "[]"
+    }
+
+    fun setFavoritesFromRawJson(rawJson: String) {
+        try {
+            val type = object : TypeToken<List<RealMedia>>() {}.type
+            val list: List<RealMedia> = gson.fromJson(rawJson, type) ?: emptyList()
+            saveFavorites(list)
+        } catch (e: Exception) {
+            // Ignore parse error
+        }
     }
 
     fun isFavorite(id: Int): Boolean = _favoritesFlow.value.any { it.id == id }

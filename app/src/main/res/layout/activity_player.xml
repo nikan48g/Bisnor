@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:keepScreenOn="true">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/player_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:resize_mode="fit"
+        app:show_buffering="when_playing"
+        app:show_timeout="4000"
+        app:use_controller="true" />
+
+    <!-- Center Indicator Overlay for Brightness / Volume / Seek / Resize / Lock -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_gesture_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/surface_container"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="16dp">
+
+            <TextView
+                android:id="@+id/tv_indicator_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:textColor="@color/primary"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tv_indicator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Floating Screen Lock Unlock Button (Shown when screen is locked) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_unlock_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/surface_container_high"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="6dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeColor="@color/primary"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_bookmark"
+                app:tint="@color/primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="قفل صفحه (لمس کنید تا باز شود)"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Next Episode Countdown Card Overlay (Bottom End) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_next_episode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="90dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/surface_container_high"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:strokeColor="@color/primary"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_next_episode_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/vazirmatn_bold"
+                    android:text="قسمت بعدی"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tv_next_countdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:text="پخش خودکار تا ۱۰ ثانیه..."
+                    android:textColor="@color/secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_play_next_now"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="16dp"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="پخش سریع"
+                android:textSize="12sp"
+                app:backgroundTint="@color/primary"
+                app:cornerRadius="10dp"
+                app:icon="@drawable/ic_play"
+                app:iconTint="@color/on_primary" />
+
+            <ImageView
+                android:id="@+id/btn_close_next_card"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp"
+                android:src="@drawable/ic_refresh"
+                app:tint="@color/on_surface_variant" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Top Controls Overlay -->
+    <LinearLayout
+        android:id="@+id/top_player_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/scrim_top_gradient"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/btn_player_back"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/tv_player_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+
+        <!-- Screen Lock Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_lock_screen"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_bookmark"
+            app:iconTint="@color/white" />
+
+        <!-- Aspect Ratio Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_aspect_ratio"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="Fit"
+            android:textSize="11sp"
+            app:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="10dp" />
+
+        <!-- PiP Mode Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_pip"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_play"
+            app:iconTint="@color/white" />
+
+        <!-- Playback Speed Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_speed"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="1.0x"
+            android:textSize="11sp"
+            app:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="10dp" />
+
+        <!-- Track Selection (Audio / Subtitles) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_tracks"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:text="صوت/زیرنویس"
+            android:textSize="11sp"
+            app:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="10dp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">بیسنور</string>
+    <string name="app_name_en">Bisnor</string>
+    <string name="nav_home">خانه</string>
+    <string name="nav_explore">کاوش و جستجو</string>
+    <string name="nav_favorites">نشان‌شده‌ها</string>
+    <string name="nav_downloads">دانلودها</string>
+    <string name="nav_settings">تنظیمات</string>
+
+    <string name="search_hint">جستجوی فیلم، سریال، انیمیشن یا بازیگر...</string>
+    <string name="section_latest_movies">جدیدترین فیلم‌ها</string>
+    <string name="section_popular_series">سریال‌های پرطرفدار</string>
+    <string name="section_top_rated">برترین آثار IMDb</string>
+    <string name="section_persian_dub">دوبله فارسی اختصاصی</string>
+    <string name="section_animations">انیمیشن و کارتون</string>
+    <string name="section_trending">داغ‌ترین‌های هفته</string>
+    <string name="section_continue_watching">در حال تماشا (ادامه پخش)</string>
+
+    <string name="btn_watch_now">تماشای آنلاین</string>
+    <string name="btn_watch_trailer">پخش تیزر / تریلر</string>
+    <string name="btn_download">دانلود مستقیم</string>
+    <string name="btn_favorite_add">افزودن به علاقه‌مندی‌ها</string>
+    <string name="btn_favorite_remove">حذف از نشان‌شده‌ها</string>
+    <string name="btn_retry">تلاش مجدد</string>
+
+    <string name="label_seasons">فصل‌ها و قسمت‌ها</string>
+    <string name="label_storyline">خلاصه داستان</string>
+    <string name="label_actors">بازیگران و عوامل</string>
+    <string name="label_genres">ژانرها</string>
+    <string name="label_similar">آثار و پیشنهادات مشابه</string>
+    <string name="label_select_quality">کیفیت‌های پخش و تماشا</string>
+    <string name="label_empty_favorites">هنوز فیلم یا سریالی را نشان نکرده‌اید.</string>
+    <string name="label_empty_downloads">هیچ فیلم یا سریالی دانلود نشده است.</string>
+    <string name="label_empty_search">نتیجه‌ای برای جستجوی شما یافت نشد.</string>
+    <string name="error_network">خطا در برقراری ارتباط با سرور. لطفا اتصال اینترنت را بررسی کنید.</string>
+    <string name="loading">در حال بارگذاری...</string>
+
+    <string name="settings_title">تنظیمات</string>
+    <string name="settings_appearance">ظاهر و فونت</string>
+    <string name="settings_player">تنظیمات پلیر و ویدیو</string>
+    <string name="settings_downloads">مدیریت حافظه و دانلودها</string>
+    <string name="settings_about">درباره بیسنور</string>
+    <string name="settings_version">نسخه ۱.۱.۰ - پریمیوم خانوادگی</string>
+</resources>

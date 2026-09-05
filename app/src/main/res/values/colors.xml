@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Primary Colors -->
+    <color name="primary">#B85D00</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#FFDDB8</color>
+    <color name="on_primary_container">#2A1700</color>
+
+    <!-- Secondary -->
+    <color name="secondary">#006874</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#9DF1F7</color>
+    <color name="on_secondary_container">#001F24</color>
+
+    <!-- Tertiary -->
+    <color name="tertiary">#BA1A1A</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#FFDAD6</color>
+    <color name="on_tertiary_container">#410002</color>
+
+    <!-- Surface & Background Light Tokens -->
+    <color name="background">#F8F9FA</color>
+    <color name="on_background">#1A1B20</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#1A1B20</color>
+    <color name="surface_variant">#EAECEF</color>
+    <color name="on_surface_variant">#495057</color>
+    <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="surface_container_low">#F1F3F5</color>
+    <color name="surface_container">#E9ECEF</color>
+    <color name="surface_container_high">#DEE2E6</color>
+    <color name="surface_container_highest">#CED4DA</color>
+
+    <color name="outline">#6C757D</color>
+    <color name="outline_variant">#ADB5BD</color>
+
+    <!-- Accents & Functional -->
+    <color name="rating_gold">#E6A100</color>
+    <color name="error">#BA1A1A</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
+    <color name="overlay_scrim">#80000000</color>
+    <color name="shimmer_base">#E9ECEF</color>
+    <color name="shimmer_highlight">#F8F9FA</color>
+</resources>

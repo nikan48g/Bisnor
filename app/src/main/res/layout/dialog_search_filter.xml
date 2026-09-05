@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="فیلترهای پیشرفته جستجو"
+            android:textColor="@color/on_surface"
+            android:textSize="20sp" />
+
+        <!-- 1. Category: Movie / Series / Any -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="دسته:"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_type"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="مهم نیست"
+                android:textSize="12sp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- 2. Content Type: Dubbed / Sub / Any -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="محتوا:"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_content"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="مهم نیست"
+                android:textSize="12sp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- 3. Multiple Genres Selector with Checkboxes Modal -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="ژانرها:"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_genres"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="مهم نیست"
+                android:textSize="12sp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- 4. Country Selector -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="کشورها:"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_country"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="مهم نیست"
+                android:textSize="12sp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- 5. Min IMDb Rating Slider -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_dialog_imdb_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="امتیاز IMDb: مهم نیست"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_imdb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stepSize="0.5"
+                android:value="0.0"
+                android:valueFrom="0.0"
+                android:valueTo="9.0" />
+        </LinearLayout>
+
+        <!-- 6. Year Range Selector -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="سال انتشار:"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_year"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="مهم نیست"
+                android:textSize="12sp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- 7. Sort By Selector -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="ترتیب بر اساس:"
+                android:textColor="@color/on_surface"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_filter_sort"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="جدیدترین"
+                android:textSize="12sp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="12dp" />
+        </LinearLayout>
+
+        <!-- Action Buttons: Apply / Reset -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_dialog_reset"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="حذف فیلترها"
+                android:textColor="@color/outline" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_dialog_apply"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="12dp"
+                android:layout_weight="2"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="جستجو کن"
+                app:backgroundTint="@color/primary"
+                app:cornerRadius="14dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

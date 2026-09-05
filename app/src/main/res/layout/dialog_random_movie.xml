@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="20dp"
+    app:cardBackgroundColor="@color/surface_container"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="8dp"
+    app:strokeColor="@color/outline_variant"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Movie Backdrop / Poster Preview -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="180dp">
+
+            <ImageView
+                android:id="@+id/img_random_preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/scrim_bottom_gradient" />
+
+            <TextView
+                android:id="@+id/tv_random_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="12dp"
+                android:background="@drawable/badge_background"
+                android:drawableStart="@drawable/ic_star"
+                android:drawablePadding="4dp"
+                android:drawableTint="@color/rating_gold"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:textColor="@color/on_surface"
+                android:textSize="12sp" />
+        </FrameLayout>
+
+        <!-- Movie Info Details -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/tv_random_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:textColor="@color/on_surface"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/tv_random_genre_year"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_random_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:maxLines="3"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Bottom Controller Bar with Previous, Watch Now, and Next buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp">
+
+            <!-- Previous Suggestion Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_random_prev"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="14dp"
+                app:icon="@drawable/ic_arrow_back"
+                app:iconTint="@color/white" />
+
+            <!-- Watch Now Primary Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_random_watch"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="تماشای این اثر"
+                android:textSize="13sp"
+                app:backgroundTint="@color/primary"
+                app:cornerRadius="14dp"
+                app:icon="@drawable/ic_play"
+                app:iconTint="@color/on_primary" />
+
+            <!-- Next Suggestion Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_random_next"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:backgroundTint="@color/surface_container_high"
+                app:cornerRadius="14dp"
+                app:icon="@drawable/ic_arrow_back"
+                android:rotation="180"
+                app:iconTint="@color/white" />
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

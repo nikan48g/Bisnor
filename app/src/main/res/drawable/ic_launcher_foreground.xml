@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Stylized "B" and Cinematic Play emblem in Glowing Amber -->
+    <path
+        android:pathData="M34,26 L58,26 C68,26 74,32 74,40 C74,46 70,51 63,53 C72,55 77,61 77,69 C77,78 70,84 57,84 L34,84 Z M44,36 L44,49 L56,49 C61,49 64,46 64,42.5 C64,39 61,36 56,36 Z M44,59 L44,74 L57,74 C62,74 66,71 66,66.5 C66,62 62,59 57,59 Z"
+        android:fillColor="#FFB86B" />
+
+    <!-- Play Icon Triangle inside the loop in Electric Cyan -->
+    <path
+        android:pathData="M49,48 L65,56 L49,64 Z"
+        android:fillColor="#80D5DB" />
+</vector>

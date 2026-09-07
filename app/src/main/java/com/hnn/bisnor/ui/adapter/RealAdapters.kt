@@ -49,8 +49,11 @@ class RealHeroBannerAdapter(
 
 class RealMediaAdapter(
     private var items: List<RealMedia>,
-    private val onItemClick: (RealMedia) -> Unit
-) : RecyclerView.Adapter<RealMediaAdapter.MediaViewHolder>() {
+    private val onItemClick: (RealMedia) -> Unit,
+    private val isGrid: Boolean = false
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    constructor(items: List<RealMedia>, onItemClick: (RealMedia) -> Unit) : this(items, onItemClick, false)
 
     fun updateData(newItems: List<RealMedia>) {
         items = newItems
@@ -95,15 +98,64 @@ class RealMediaAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
-        val binding = ItemMediaCardBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return MediaViewHolder(binding)
+    inner class GridMediaViewHolder(val binding: com.hnn.bisnor.databinding.ItemMediaCardGridBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: RealMedia) {
+            binding.imgPoster.load(item.image) {
+                crossfade(true)
+            }
+            binding.tvRating.text = String.format("%.1f", item.imdb)
+            binding.tvTitle.text = item.title
+            val genre = item.genres.firstOrNull()?.title ?: ""
+            binding.tvGenreYear.text = "${if (item.year > 0) item.year else ""} • $genre"
+
+            val titleLower = item.title.lowercase()
+            val descLower = item.description.lowercase()
+            val hasDubbed = titleLower.contains("دوبله") || descLower.contains("دوبله")
+            val hasSub = titleLower.contains("زیرنویس") || descLower.contains("زیرنویس")
+
+            binding.tvBadgeDubbed.visibility = View.VISIBLE
+            when {
+                hasDubbed -> {
+                    binding.tvBadgeDubbed.text = "دوبله"
+                    binding.tvBadgeDubbed.setBackgroundResource(com.hnn.bisnor.R.drawable.badge_background)
+                }
+                item.type == "serie" -> {
+                    binding.tvBadgeDubbed.text = "سریال"
+                }
+                hasSub -> {
+                    binding.tvBadgeDubbed.text = "زیرنویس"
+                }
+                else -> {
+                    binding.tvBadgeDubbed.text = "1080p"
+                }
+            }
+
+            binding.root.setOnClickListener { onItemClick(item) }
+        }
     }
 
-    override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
-        holder.bind(items[position])
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (isGrid) {
+            val binding = com.hnn.bisnor.databinding.ItemMediaCardGridBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false
+            )
+            GridMediaViewHolder(binding)
+        } else {
+            val binding = ItemMediaCardBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false
+            )
+            MediaViewHolder(binding)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val item = items[position]
+        if (holder is GridMediaViewHolder) {
+            holder.bind(item)
+        } else if (holder is MediaViewHolder) {
+            holder.bind(item)
+        }
     }
 
     override fun getItemCount(): Int = items.size

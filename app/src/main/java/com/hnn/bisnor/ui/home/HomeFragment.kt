@@ -54,10 +54,6 @@ class HomeFragment : Fragment() {
             (activity as? MainActivity)?.selectExploreTab()
         }
 
-        binding.btnRandomMovie.setOnClickListener {
-            showRandomMovieDialog()
-        }
-
         loadData()
     }
 

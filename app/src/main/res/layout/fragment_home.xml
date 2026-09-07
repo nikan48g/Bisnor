@@ -36,19 +36,6 @@
                     android:textColor="@color/primary"
                     android:textSize="24sp" />
 
-                <!-- Random Movie Button ("امشب چی ببینم؟") -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_random_movie"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="8dp"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="🎲 امشب چی ببینم؟"
-                    android:textSize="12sp"
-                    app:backgroundTint="@color/surface_container_high"
-                    app:cornerRadius="12dp" />
-
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_quick_search"
                     style="@style/Widget.Material3.Button.IconButton"

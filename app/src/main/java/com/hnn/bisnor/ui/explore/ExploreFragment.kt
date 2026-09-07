@@ -64,12 +64,12 @@ class ExploreFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         historyManager = PlaybackHistoryManager(requireContext())
 
-        adapter = RealMediaAdapter(emptyList()) { item ->
+        adapter = RealMediaAdapter(emptyList(), onItemClick = { item ->
             val intent = Intent(requireContext(), DetailActivity::class.java).apply {
                 putExtra("real_media", item)
             }
             startActivity(intent)
-        }
+        }, isGrid = true)
 
         val spanCount = resources.getInteger(R.integer.grid_columns_count)
         binding.recyclerSearchResults.layoutManager = GridLayoutManager(requireContext(), spanCount)

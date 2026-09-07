@@ -54,12 +54,12 @@ class PlaylistDetailActivity : AppCompatActivity() {
             } else false
         }
 
-        adapter = RealMediaAdapter(emptyList()) { item ->
+        adapter = RealMediaAdapter(emptyList(), onItemClick = { item ->
             val intent = Intent(this, DetailActivity::class.java).apply {
                 putExtra("real_media", item)
             }
             startActivity(intent)
-        }
+        }, isGrid = true)
 
         val spanCount = resources.getInteger(R.integer.grid_columns_count)
         binding.recyclerPlaylistDetailGrid.layoutManager = GridLayoutManager(this, spanCount)

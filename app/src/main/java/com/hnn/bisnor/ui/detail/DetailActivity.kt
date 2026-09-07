@@ -81,13 +81,14 @@ class DetailActivity : AppCompatActivity() {
     private fun checkContentWarning(item: RealMedia) {
         if (!historyManager.isContentWarningEnabled || isFinishing || isDestroyed) return
 
-        val desc = item.description
-        val isAdultOr16 = desc.contains("16") || desc.contains("18") || desc.contains("بزرگسال") || desc.contains("+16") || desc.contains("+18")
-        if (isAdultOr16) {
+        val isAnim = item.genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("کارتون") || g.title.contains("انیمه") } ||
+                item.title.contains("انیمه") || item.title.contains("انیمیشن")
+        val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb, isAnim)
+        if (meta.isAdultOr18) {
             try {
                 MaterialAlertDialogBuilder(this)
                     .setTitle("⚠️ هشدار رده‌بندی سنی")
-                    .setMessage("این اثر ممکن است شامل صحنه‌ها یا موضوعات مناسب افراد بالای ۱۶ یا ۱۸ سال باشد.\nآیا مایل به ادامه هستید؟")
+                    .setMessage("این اثر ممکن است شامل صحنه‌ها یا موضوعات مناسب افراد بالای ۱۸ سال باشد.\nآیا مایل به ادامه هستید؟")
                     .setPositiveButton("ادامه و تماشا") { dialog, _ -> dialog.dismiss() }
                     .setNegativeButton("بازگشت") { _, _ -> finish() }
                     .setCancelable(false)
@@ -276,12 +277,46 @@ class DetailActivity : AppCompatActivity() {
                 val banner = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawBanner)
                 b.imgHeaderBackdrop.load(banner) { crossfade(true) }
 
+                val isAnim = item.genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("کارتون") || g.title.contains("انیمه") } ||
+                        item.title.contains("انیمه") || item.title.contains("انیمیشن")
+                val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb, isAnim)
+                val displayImdb = meta.extractedImdb ?: item.imdb
+
                 b.tvHeaderTitle.text = item.title
                 b.tvHeaderGenres.text = item.genres.joinToString("، ") { it.title }
-                b.tvHeaderRating.text = String.format("%.1f", item.imdb)
+                b.tvHeaderRating.text = if (displayImdb > 0.0) String.format("%.1f", displayImdb) else "—"
                 b.tvHeaderYear.text = if (item.year > 0) item.year.toString() else "نامشخص"
                 b.tvHeaderType.text = item.duration ?: if (item.type == "serie") "سریال" else "سینمایی"
-                b.tvHeaderStoryline.text = if (item.description.isNotEmpty()) item.description else "توضیحاتی موجود نیست."
+
+                // Age rating badge
+                if (!meta.ageRating.isNullOrEmpty()) {
+                    b.tvHeaderAgeRating.text = meta.ageRating
+                    b.tvHeaderAgeRating.visibility = View.VISIBLE
+                } else {
+                    b.tvHeaderAgeRating.visibility = View.GONE
+                }
+
+                // Storyline & Cast/Crew
+                b.tvHeaderStoryline.text = if (meta.cleanStoryline.isNotEmpty()) meta.cleanStoryline else "توضیحاتی موجود نیست."
+
+                if (!meta.director.isNullOrEmpty() || !meta.actors.isNullOrEmpty()) {
+                    b.layoutHeaderCastCrew.visibility = View.VISIBLE
+                    if (!meta.director.isNullOrEmpty()) {
+                        b.tvHeaderDirector.text = "🎬 کارگردان: ${meta.director}"
+                        b.tvHeaderDirector.visibility = View.VISIBLE
+                    } else {
+                        b.tvHeaderDirector.visibility = View.GONE
+                    }
+                    if (!meta.actors.isNullOrEmpty()) {
+                        b.tvHeaderActors.text = "🎭 بازیگران: ${meta.actors}"
+                        b.tvHeaderActors.visibility = View.VISIBLE
+                    } else {
+                        b.tvHeaderActors.visibility = View.GONE
+                    }
+                } else {
+                    b.layoutHeaderCastCrew.visibility = View.GONE
+                }
+
                 b.tvHeaderSectionTitle.text = sectionTitle
 
                 val isFav = favoritesManager.isFavorite(item.id)

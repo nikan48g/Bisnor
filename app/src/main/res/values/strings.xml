@@ -2,7 +2,8 @@
     <string name="app_name">بیسنور</string>
     <string name="app_name_en">Bisnor</string>
     <string name="nav_home">خانه</string>
-    <string name="nav_explore">کاوش و جستجو</string>
+    <string name="nav_explore">کاوش</string>
+    <string name="nav_chat">چت و دوستان</string>
     <string name="nav_favorites">نشان‌شده‌ها</string>
     <string name="nav_downloads">دانلودها</string>
     <string name="nav_settings">تنظیمات</string>
@@ -40,5 +41,5 @@
     <string name="settings_player">تنظیمات پلیر و ویدیو</string>
     <string name="settings_downloads">مدیریت حافظه و دانلودها</string>
     <string name="settings_about">درباره بیسنور</string>
-    <string name="settings_version">نسخه ۱.۱.۰ - پریمیوم خانوادگی</string>
+    <string name="settings_version">نسخه ۲.۰.۰ - بیسنور سینما (نسل جدید)</string>
 </resources>

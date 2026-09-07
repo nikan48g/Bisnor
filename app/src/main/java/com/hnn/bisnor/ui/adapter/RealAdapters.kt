@@ -63,8 +63,11 @@ class RealMediaAdapter(
     inner class MediaViewHolder(val binding: ItemMediaCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
-            binding.imgPoster.load(item.image) {
+            val imgUrl = if (item.image.isNotEmpty()) item.image else item.cover
+            binding.imgPoster.load(imgUrl) {
                 crossfade(true)
+                placeholder(com.hnn.bisnor.R.drawable.badge_background)
+                error(com.hnn.bisnor.R.drawable.badge_background)
             }
             binding.tvRating.text = String.format("%.1f", item.imdb)
             binding.tvTitle.text = item.title
@@ -101,8 +104,11 @@ class RealMediaAdapter(
     inner class GridMediaViewHolder(val binding: com.hnn.bisnor.databinding.ItemMediaCardGridBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
-            binding.imgPoster.load(item.image) {
+            val imgUrl = if (item.image.isNotEmpty()) item.image else item.cover
+            binding.imgPoster.load(imgUrl) {
                 crossfade(true)
+                placeholder(com.hnn.bisnor.R.drawable.badge_background)
+                error(com.hnn.bisnor.R.drawable.badge_background)
             }
             binding.tvRating.text = String.format("%.1f", item.imdb)
             binding.tvTitle.text = item.title

@@ -359,20 +359,29 @@ class ExploreFragment : Fragment() {
             filtered = filtered.filter { it.title.contains("زیرنویس") || it.description.contains("زیرنویس") }
         }
 
-        // 3. Multi Genres
+        // 3. Multi Genres (matches genre list, title, or description)
         if (selectedGenres.isNotEmpty()) {
             filtered = filtered.filter { item ->
-                selectedGenres.any { sg -> item.genres.any { g -> g.title.contains(sg, ignoreCase = true) } }
+                val titleLower = item.title.lowercase()
+                val descLower = item.description.lowercase()
+                selectedGenres.any { sg ->
+                    val sgLower = sg.lowercase()
+                    item.genres.any { g -> g.title.contains(sg, ignoreCase = true) } ||
+                            titleLower.contains(sgLower) ||
+                            descLower.contains(sgLower) ||
+                            (sg == "انیمه" && (item.genres.any { it.title.contains("انیمیشن") || it.title.contains("انیمه") } || titleLower.contains("انیمه"))) ||
+                            (sg == "انیمیشن" && (item.genres.any { it.title.contains("انیمیشن") || it.title.contains("کارتون") } || titleLower.contains("انیمیشن")))
+                }
             }
         }
 
         // 4. Country
         if (filterCountry.contains("کره")) {
-            filtered = filtered.filter { it.country.any { c -> c.title.contains("کره") } || it.title.contains("کره") }
+            filtered = filtered.filter { it.country.any { c -> c.title.contains("کره") } || it.title.contains("کره") || it.description.contains("کره") }
         } else if (filterCountry.contains("ژاپن")) {
-            filtered = filtered.filter { it.country.any { c -> c.title.contains("ژاپن") } || it.genres.any { g -> g.title.contains("انیمه") } }
+            filtered = filtered.filter { it.country.any { c -> c.title.contains("ژاپن") } || it.genres.any { g -> g.title.contains("انیمه") || g.title.contains("ژاپن") } || it.title.contains("انیمه") || it.title.contains("ژاپن") }
         } else if (filterCountry.contains("ترکیه")) {
-            filtered = filtered.filter { it.country.any { c -> c.title.contains("ترکیه") } || it.title.contains("ترکی") }
+            filtered = filtered.filter { it.country.any { c -> c.title.contains("ترکیه") } || it.title.contains("ترکی") || it.description.contains("ترکیه") }
         }
 
         // 5. Min IMDb

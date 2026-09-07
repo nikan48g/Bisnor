@@ -181,6 +181,10 @@ object RealMediaRepository {
                 if (isAdvertisement(title, desc)) continue
 
                 val sources = parseSources(obj.optJSONArray("sources"))
+                val genres = parseGenres(obj.optJSONArray("genres"))
+                val isAnim = genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("کارتون") || g.title.contains("انیمه") } || title.contains("انیمه") || title.contains("انیمیشن")
+                val parsedMeta = com.hnn.bisnor.util.MediaMetadataHelper.parse(desc, obj.optDouble("imdb", 0.0), isAnim)
+                val finalImdb = parsedMeta.extractedImdb ?: obj.optDouble("imdb", 0.0)
 
                 list.add(
                     RealMedia(
@@ -189,12 +193,12 @@ object RealMediaRepository {
                         title = title,
                         description = desc,
                         year = obj.optInt("year", 0),
-                        imdb = obj.optDouble("imdb", 0.0),
+                        imdb = finalImdb,
                         rating = obj.optDouble("rating", 0.0),
                         duration = obj.optString("duration", null).takeIf { it != "null" && it != "N/A" },
                         image = obj.optString("image", ""),
                         cover = obj.optString("cover", ""),
-                        genres = parseGenres(obj.optJSONArray("genres")),
+                        genres = genres,
                         sources = sources,
                         country = parseCountries(obj.optJSONArray("country"))
                     )

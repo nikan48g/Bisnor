@@ -83,6 +83,17 @@
                 android:fontFamily="@font/vazirmatn_medium"
                 android:textColor="@color/secondary"
                 android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_header_age_rating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/badge_background"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:textColor="@color/tertiary"
+                android:textSize="12sp"
+                android:visibility="gone" />
         </LinearLayout>
 
         <LinearLayout
@@ -160,6 +171,36 @@
             android:lineSpacingExtra="3dp"
             android:textColor="@color/on_surface_variant"
             android:textSize="13sp" />
+
+        <LinearLayout
+            android:id="@+id/layout_header_cast_crew"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/badge_background"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tv_header_director"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:textColor="@color/on_surface"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_header_actors"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <!-- Season Selector Tabs for Series -->
         <HorizontalScrollView

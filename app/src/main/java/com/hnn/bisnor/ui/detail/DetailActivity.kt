@@ -218,42 +218,14 @@ class DetailActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showShareToFriendDialog(media: RealMedia) {
-        val authManager = com.hnn.bisnor.data.remote.AuthManager(this)
-        if (!authManager.isLoggedIn) {
-            Toast.makeText(this, "برای ارسال فیلم به دوستان ابتدا وارد حساب کاربری خود شوید.", Toast.LENGTH_LONG).show()
-            return
+    private fun showShareMovieDialog(media: RealMedia) {
+        val shareText = "🎬 فیلم «${media.title}»\n⭐ نمره IMDb: ${media.imdb}\nدر اپلیکیشن بیسنور سینما"
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, media.title)
+            putExtra(Intent.EXTRA_TEXT, shareText)
         }
-
-        val input = com.google.android.material.textfield.TextInputEditText(this).apply {
-            hint = "نام کاربری بیسنور دوستتان..."
-            layoutDirection = View.LAYOUT_DIRECTION_LTR
-        }
-        val til = com.google.android.material.textfield.TextInputLayout(this).apply {
-            setPadding(48, 16, 48, 8)
-            addView(input)
-        }
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle("ارسال فیلم به دوستان 💬")
-            .setMessage("نام کاربری دوست خود را وارد کنید تا «${media.title}» مستقیماً در چت برایش ارسال شود:")
-            .setView(til)
-            .setPositiveButton("ارسال") { _, _ ->
-                val target = input.text?.toString()?.trim()?.lowercase() ?: ""
-                if (target.isNotEmpty()) {
-                    if (target == authManager.currentUsername.lowercase()) {
-                        Toast.makeText(this, "نمی‌توانید به خودتان فیلم بفرستید!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        val intent = Intent(this, com.hnn.bisnor.ui.chat.ChatActivity::class.java).apply {
-                            putExtra("target_username", target)
-                            putExtra("share_media", media)
-                        }
-                        startActivity(intent)
-                    }
-                }
-            }
-            .setNegativeButton("انصراف", null)
-            .show()
+        startActivity(Intent.createChooser(intent, "اشتراک‌گذاری «${media.title}»"))
     }
 
     inner class DetailRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -300,7 +272,8 @@ class DetailActivity : AppCompatActivity() {
         inner class HeaderViewHolder(val b: ItemDetailHeaderBinding) : RecyclerView.ViewHolder(b.root) {
             fun bind() {
                 val item = mediaItem ?: return
-                val banner = if (item.cover.isNotEmpty()) item.cover else item.image
+                val rawBanner = if (item.cover.isNotEmpty()) item.cover else item.image
+                val banner = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawBanner)
                 b.imgHeaderBackdrop.load(banner) { crossfade(true) }
 
                 b.tvHeaderTitle.text = item.title
@@ -320,7 +293,7 @@ class DetailActivity : AppCompatActivity() {
                 }
 
                 b.btnHeaderShareChat.setOnClickListener {
-                    showShareToFriendDialog(item)
+                    showShareMovieDialog(item)
                 }
 
                 // Season Selector Tabs

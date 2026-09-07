@@ -8,10 +8,20 @@ import com.hnn.bisnor.data.model.RealMedia
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+data class MediaReview(
+    val mediaId: Int,
+    val userRating: Float = 0f, // 1.0 to 10.0
+    val reviewText: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
+
 data class CustomPlaylist(
     val id: String = System.currentTimeMillis().toString(),
     val name: String,
-    val items: MutableList<RealMedia> = mutableListOf()
+    val items: MutableList<RealMedia> = mutableListOf(),
+    val isPublic: Boolean = false,
+    val creatorUsername: String = "",
+    val reviews: MutableMap<String, MediaReview> = mutableMapOf() // key: mediaId.toString()
 )
 
 class PlaylistsManager(context: Context) {
@@ -52,12 +62,37 @@ class PlaylistsManager(context: Context) {
         }
     }
 
-    fun createPlaylist(name: String): String {
+    fun createPlaylist(name: String, isPublic: Boolean = false, creator: String = ""): String {
         val current = _playlistsFlow.value.toMutableList()
         val uniqueId = "pl_${System.currentTimeMillis()}"
-        current.add(CustomPlaylist(id = uniqueId, name = name))
+        current.add(CustomPlaylist(id = uniqueId, name = name, isPublic = isPublic, creatorUsername = creator))
         save(current)
         return uniqueId
+    }
+
+    fun setPlaylistPublic(playlistId: String, isPublic: Boolean) {
+        val current = _playlistsFlow.value.toMutableList()
+        val index = current.indexOfFirst { it.id == playlistId }
+        if (index != -1) {
+            current[index] = current[index].copy(isPublic = isPublic)
+            save(current)
+        }
+    }
+
+    fun addReview(playlistId: String, mediaId: Int, rating: Float, review: String) {
+        val current = _playlistsFlow.value.toMutableList()
+        val index = current.indexOfFirst { it.id == playlistId }
+        if (index != -1) {
+            val pl = current[index]
+            val reviewObj = MediaReview(mediaId, rating, review)
+            pl.reviews[mediaId.toString()] = reviewObj
+            save(current)
+        }
+    }
+
+    fun getReview(playlistId: String, mediaId: Int): MediaReview? {
+        val pl = _playlistsFlow.value.find { it.id == playlistId }
+        return pl?.reviews?.get(mediaId.toString())
     }
 
     fun addToPlaylist(playlistId: String, media: RealMedia): Boolean {

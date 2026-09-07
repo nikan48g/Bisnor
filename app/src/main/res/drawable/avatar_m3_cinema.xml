@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <path
+        android:fillColor="#31313C"
+        android:pathData="M48,0A48,48 0 1,0 48,96A48,48 0 1,0 48,0Z" />
+    <!-- 3D Glasses Frame -->
+    <path
+        android:fillColor="#E6E1E5"
+        android:pathData="M22,38 L74,38 C76,38 77,40 77,42 L73,58 C72,61 69,63 66,63 L53,63 C50,63 48,60 48,58 C48,60 46,63 43,63 L30,63 C27,63 24,61 23,58 L19,42 C19,40 20,38 22,38 Z" />
+    <!-- Left Lens Red/Crimson -->
+    <path
+        android:fillColor="#BA1A1A"
+        android:pathData="M25,44 L44,44 L42,56 C41,58 39,59 37,59 L30,59 C28,59 26,58 26,56 Z" />
+    <!-- Right Lens Cyan -->
+    <path
+        android:fillColor="#006874"
+        android:pathData="M52,44 L71,44 L70,56 C70,58 68,59 66,59 L59,59 C57,59 55,58 54,56 Z" />
+    <!-- Cool Smile -->
+    <path
+        android:fillColor="#FFB86B"
+        android:pathData="M41,71 C44,75 52,75 55,71 Z" />
+</vector>

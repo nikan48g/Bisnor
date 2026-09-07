@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <path
+        android:fillColor="#BA1A1A"
+        android:pathData="M48,0A48,48 0 1,0 48,96A48,48 0 1,0 48,0Z" />
+    <!-- Golden Star Badge -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M48,22 L55,37 L72,39 L59,51 L63,68 L48,59 L33,68 L37,51 L24,39 L41,37 Z" />
+    <!-- Center Smiley on Star -->
+    <path
+        android:fillColor="#410002"
+        android:pathData="M42,44 A2,2 0 1,1 42,40 A2,2 0 1,1 42,44 Z M54,44 A2,2 0 1,1 54,40 A2,2 0 1,1 54,44 Z" />
+    <path
+        android:fillColor="#410002"
+        android:pathData="M44,48 C46,52 50,52 52,48 Z" />
+</vector>

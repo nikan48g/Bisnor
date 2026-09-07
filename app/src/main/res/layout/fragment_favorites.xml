@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/vazirmatn_bold"
-            android:text="لیست‌ها و کالکشن‌ها"
+            android:text="واچ‌لیست‌های من"
             android:textColor="@color/on_surface"
             android:textSize="22sp" />
 
@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/vazirmatn_medium"
-            android:text="+ ایجاد لیست"
+            android:text="+ ایجاد واچ‌لیست"
             android:textSize="12sp"
             app:backgroundTint="@color/surface_container_high"
             app:cornerRadius="12dp" />

@@ -20,7 +20,6 @@ class MainActivity : AppCompatActivity() {
 
     private val homeFragment = HomeFragment()
     private val exploreFragment = ExploreFragment()
-    private val chatListFragment = com.hnn.bisnor.ui.chat.ChatListFragment()
     private val favoritesFragment = FavoritesFragment()
     private val settingsFragment = SettingsFragment()
 
@@ -40,7 +39,6 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_home -> switchFragment(homeFragment)
                 R.id.nav_explore -> switchFragment(exploreFragment)
-                R.id.nav_chat -> switchFragment(chatListFragment)
                 R.id.nav_favorites -> switchFragment(favoritesFragment)
                 R.id.nav_settings -> switchFragment(settingsFragment)
                 else -> false
@@ -101,21 +99,6 @@ class MainActivity : AppCompatActivity() {
                             }
                             .setNegativeButton("انصراف", null)
                             .show()
-                    }
-                }
-            } else if (path.contains("chat") || host.contains("chat")) {
-                // Scheme: bisnor://app/chat?user=...
-                val targetUser = uri.getQueryParameter("user")
-                if (!targetUser.isNullOrEmpty()) {
-                    val authManager = com.hnn.bisnor.data.remote.AuthManager(this)
-                    if (authManager.isLoggedIn) {
-                        val chatIntent = android.content.Intent(this, com.hnn.bisnor.ui.chat.ChatActivity::class.java).apply {
-                            putExtra("target_username", targetUser)
-                        }
-                        startActivity(chatIntent)
-                    } else {
-                        android.widget.Toast.makeText(this, "برای چت با $targetUser ابتدا وارد حساب شوید.", android.widget.Toast.LENGTH_LONG).show()
-                        binding.bottomNavigation.selectedItemId = R.id.nav_settings
                     }
                 }
             }

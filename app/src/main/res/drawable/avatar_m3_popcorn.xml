@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <path
+        android:fillColor="#006874"
+        android:pathData="M48,0A48,48 0 1,0 48,96A48,48 0 1,0 48,0Z" />
+    <!-- Popcorn Tub -->
+    <path
+        android:fillColor="#FFDAD6"
+        android:pathData="M32,44 L64,44 L59,76 L37,76 Z" />
+    <path
+        android:fillColor="#BA1A1A"
+        android:pathData="M42,44 L46,44 L45,76 L41,76 Z M50,44 L54,44 L53,76 L49,76 Z" />
+    <!-- Popcorn Puffs -->
+    <path
+        android:fillColor="#FFDDB8"
+        android:pathData="M32,40 C30,36 34,30 39,33 C42,28 49,28 51,32 C55,29 62,32 61,37 C65,39 65,45 60,45 C55,46 51,44 48,44 C44,44 40,46 36,44 C31,44 30,42 32,40 Z" />
+    <!-- Popcorn Eyes & Smile -->
+    <path
+        android:fillColor="#2A1700"
+        android:pathData="M42,56 A2,2 0 1,1 42,52 A2,2 0 1,1 42,56 Z M54,56 A2,2 0 1,1 54,52 A2,2 0 1,1 54,56 Z" />
+    <path
+        android:fillColor="#2A1700"
+        android:pathData="M44,62 C46,65 50,65 52,62 Z" />
+</vector>

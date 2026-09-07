@@ -51,15 +51,15 @@
                 android:layout_height="64dp"
                 android:background="@drawable/badge_background"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_godfather_cat" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_android" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:fontFamily="@font/vazirmatn_medium"
-                android:text="پدرخوانده"
+                android:text="اندروید"
                 android:textColor="@color/on_surface"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -82,15 +82,15 @@
                 android:layout_height="64dp"
                 android:background="@drawable/badge_background"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_funny_director" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_popcorn" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:fontFamily="@font/vazirmatn_medium"
-                android:text="کارگردان"
+                android:text="پاپ‌کورن"
                 android:textColor="@color/on_surface"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -113,15 +113,15 @@
                 android:layout_height="64dp"
                 android:background="@drawable/badge_background"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_popcorn_pug" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_cinema" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:fontFamily="@font/vazirmatn_medium"
-                android:text="پاگ پاپ‌کورن"
+                android:text="عینک سه‌بعدی"
                 android:textColor="@color/on_surface"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -144,15 +144,15 @@
                 android:layout_height="64dp"
                 android:background="@drawable/badge_background"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_heisenberg_hamster" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_star" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:fontFamily="@font/vazirmatn_medium"
-                android:text="هایزنبرگ"
+                android:text="ستاره طلایی"
                 android:textColor="@color/on_surface"
                 android:textSize="11sp" />
         </LinearLayout>

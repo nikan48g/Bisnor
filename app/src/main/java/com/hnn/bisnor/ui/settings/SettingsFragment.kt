@@ -154,16 +154,6 @@ class SettingsFragment : Fragment() {
             }
             binding.imgAvatarBadgeEdit.visibility = View.VISIBLE
 
-            // QR Code Dialog
-            binding.btnProfileQrCode.setOnClickListener {
-                showQrCodeDialog()
-            }
-
-            // Chat / Friends Dialog
-            binding.btnProfileOpenChat.setOnClickListener {
-                showOpenChatDialog()
-            }
-
             binding.cardUserProfile.setOnLongClickListener {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("خروج از حساب")
@@ -206,10 +196,10 @@ class SettingsFragment : Fragment() {
 
         var selected = authManager.userAvatarId
         val items = listOf(
-            opt1 to (img1 to "godfather_cat"),
-            opt2 to (img2 to "funny_director"),
-            opt3 to (img3 to "popcorn_pug"),
-            opt4 to (img4 to "heisenberg_hamster")
+            opt1 to (img1 to "m3_android"),
+            opt2 to (img2 to "m3_popcorn"),
+            opt3 to (img3 to "m3_cinema"),
+            opt4 to (img4 to "m3_star")
         )
 
         fun updateSelection() {
@@ -252,71 +242,6 @@ class SettingsFragment : Fragment() {
         dialog.show()
     }
 
-    private fun showQrCodeDialog() {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_qr_code, null)
-        val tvUser = dialogView.findViewById<TextView>(R.id.tv_qr_username)
-        val imgQr = dialogView.findViewById<ImageView>(R.id.img_qr_code)
-        val btnShare = dialogView.findViewById<MaterialButton>(R.id.btn_share_my_code)
-
-        val username = authManager.currentUsername
-        tvUser.text = "@$username"
-
-        // Deep link format that opens directly in Bisnor
-        val link = "bisnor://app/chat?user=$username"
-        val qrBitmap = com.hnn.bisnor.util.QrCodeHelper.generateQrCode(link, 512)
-        if (qrBitmap != null) {
-            imgQr.setImageBitmap(qrBitmap)
-        }
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogView)
-            .create()
-
-        btnShare.setOnClickListener {
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_SUBJECT, "بیسنور - ارتباط با من")
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "سلام! در اپلیکیشن بیسنور به من پیام بده یا فیلم به اشتراک بذار:\n$link"
-                )
-            }
-            startActivity(Intent.createChooser(shareIntent, "ارسال به..."))
-        }
-
-        dialog.show()
-    }
-
-    private fun showOpenChatDialog() {
-        val input = TextInputEditText(requireContext()).apply {
-            hint = "نام کاربری دوست خود را وارد کنید"
-            layoutDirection = View.LAYOUT_DIRECTION_LTR
-        }
-        val til = com.google.android.material.textfield.TextInputLayout(requireContext()).apply {
-            setPadding(48, 16, 48, 8)
-            addView(input)
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("شروع گفتگو")
-            .setMessage("برای ارسال فیلم و چت، آیدی بیسنور دوستتان را وارد کنید:")
-            .setView(til)
-            .setPositiveButton("ورود به چت") { _, _ ->
-                val target = input.text?.toString()?.trim()?.lowercase() ?: ""
-                if (target.isNotEmpty()) {
-                    if (target == authManager.currentUsername.lowercase()) {
-                        Toast.makeText(requireContext(), "نمی‌توانید به خودتان پیام دهید!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        val intent = Intent(requireContext(), com.hnn.bisnor.ui.chat.ChatActivity::class.java).apply {
-                            putExtra("target_username", target)
-                        }
-                        startActivity(intent)
-                    }
-                }
-            }
-            .setNegativeButton("انصراف", null)
-            .show()
-    }
 
     private fun showAuthDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_auth, null)
@@ -335,10 +260,10 @@ class SettingsFragment : Fragment() {
         var selectedAvatarId = authManager.userAvatarId
 
         val avatarViews = listOf(
-            imgAvatar1 to "godfather_cat",
-            imgAvatar2 to "funny_director",
-            imgAvatar3 to "popcorn_pug",
-            imgAvatar4 to "heisenberg_hamster"
+            imgAvatar1 to "m3_android",
+            imgAvatar2 to "m3_popcorn",
+            imgAvatar3 to "m3_cinema",
+            imgAvatar4 to "m3_star"
         )
 
         fun updateAvatarSelection() {

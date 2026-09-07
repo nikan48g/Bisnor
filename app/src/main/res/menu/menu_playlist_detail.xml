@@ -1,9 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_sort_playlist"
+        android:icon="@drawable/ic_filter"
+        android:title="رتبه‌بندی و مرتب‌سازی"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_toggle_privacy"
+        android:icon="@drawable/ic_bookmark"
+        android:title="عمومی / خصوصی"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_share_playlist"
         android:icon="@drawable/ic_share"
-        android:title="اشتراک‌گذاری لینک اختصاصی"
+        android:title="اشتراک‌گذاری"
         app:showAsAction="always" />
 </menu>

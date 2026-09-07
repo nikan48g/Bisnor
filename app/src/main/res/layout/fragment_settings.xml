@@ -132,42 +132,13 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_profile_change_avatar"
                 style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="42dp"
-                android:layout_weight="1"
                 android:fontFamily="@font/vazirmatn_medium"
-                android:text="تغییر آواتار"
+                android:text="تغییر عکس پروفایل (آواتار)"
                 android:textSize="12sp"
                 app:cornerRadius="12dp"
                 app:icon="@drawable/ic_star"
-                app:iconSize="18dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_profile_qr_code"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="کد من"
-                android:textSize="12sp"
-                app:cornerRadius="12dp"
-                app:icon="@drawable/ic_qr_code"
-                app:iconSize="18dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_profile_open_chat"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="چت و فیلم"
-                android:textSize="12sp"
-                app:cornerRadius="12dp"
-                app:icon="@drawable/ic_chat"
                 app:iconSize="18dp" />
         </LinearLayout>
 

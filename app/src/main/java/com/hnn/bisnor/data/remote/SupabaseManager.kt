@@ -7,7 +7,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hnn.bisnor.BuildConfig
 import com.hnn.bisnor.R
-import com.hnn.bisnor.data.model.ChatMessage
 import com.hnn.bisnor.data.model.RealMedia
 import com.hnn.bisnor.data.repository.FavoritesManager
 import com.hnn.bisnor.data.repository.PlaylistsManager
@@ -39,14 +38,20 @@ class AuthManager(private val context: Context) {
 
     companion object {
         val FUNNY_AVATARS = listOf(
-            FunnyAvatar("godfather_cat", "پدرخوانده (پیشی مافیایی)", R.drawable.avatar_godfather_cat),
-            FunnyAvatar("funny_director", "کارگردان دیوانه", R.drawable.avatar_funny_director),
-            FunnyAvatar("popcorn_pug", "پاگ شیفته پاپ‌کورن", R.drawable.avatar_popcorn_pug),
-            FunnyAvatar("heisenberg_hamster", "هایزنبرگ (همستر آزمایشگاهی)", R.drawable.avatar_heisenberg_hamster)
+            FunnyAvatar("m3_android", "ربات اندروید", R.drawable.avatar_m3_android),
+            FunnyAvatar("m3_popcorn", "پاپ‌کورن سینمایی", R.drawable.avatar_m3_popcorn),
+            FunnyAvatar("m3_cinema", "عینک سه‌بعدی", R.drawable.avatar_m3_cinema),
+            FunnyAvatar("m3_star", "ستاره طلایی", R.drawable.avatar_m3_star)
         )
 
         fun getAvatarDrawable(id: String): Int {
-            return FUNNY_AVATARS.find { it.id == id }?.drawableRes ?: R.drawable.avatar_godfather_cat
+            return FUNNY_AVATARS.find { it.id == id }?.drawableRes ?: when (id) {
+                "godfather_cat" -> R.drawable.avatar_m3_android
+                "funny_director" -> R.drawable.avatar_m3_popcorn
+                "popcorn_pug" -> R.drawable.avatar_m3_cinema
+                "heisenberg_hamster" -> R.drawable.avatar_m3_star
+                else -> R.drawable.avatar_m3_android
+            }
         }
     }
 
@@ -299,130 +304,6 @@ object SupabaseManager {
             }
         } catch (e: Exception) {
             false
-        }
-    }
-
-    // --- Chat & Film Sharing APIs ---
-    suspend fun sendMessage(
-        sender: String,
-        receiver: String,
-        messageText: String,
-        media: RealMedia? = null
-    ): Boolean = withContext(Dispatchers.IO) {
-        if (PROJECT_URL.isEmpty() || ANON_KEY.isEmpty()) return@withContext false
-        try {
-            val mediaJson = if (media != null) Gson().toJson(media) else null
-            val compressedMedia = if (mediaJson != null) compressString(mediaJson) else ""
-
-            val payload = JSONObject().apply {
-                put("sender", sender)
-                put("receiver", receiver)
-                put("message_text", messageText)
-                put("media_data", compressedMedia)
-                put("timestamp", System.currentTimeMillis())
-            }.toString()
-
-            val url = "$PROJECT_URL/rest/v1/messages"
-            val body = payload.toRequestBody("application/json; charset=utf-8".toMediaType())
-            val request = Request.Builder()
-                .url(url)
-                .addHeader("apikey", ANON_KEY)
-                .addHeader("Authorization", "Bearer $ANON_KEY")
-                .addHeader("Content-Type", "application/json")
-                .addHeader("Prefer", "return=minimal")
-                .post(body)
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                response.isSuccessful
-            }
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    suspend fun getMessagesBetween(user1: String, user2: String): List<ChatMessage> = withContext(Dispatchers.IO) {
-        if (PROJECT_URL.isEmpty() || ANON_KEY.isEmpty()) return@withContext emptyList()
-        try {
-            val filter = "or=(and(sender.eq.$user1,receiver.eq.$user2),and(sender.eq.$user2,receiver.eq.$user1))"
-            val url = "$PROJECT_URL/rest/v1/messages?$filter&order=timestamp.asc&limit=100"
-            val request = Request.Builder()
-                .url(url)
-                .addHeader("apikey", ANON_KEY)
-                .addHeader("Authorization", "Bearer $ANON_KEY")
-                .get()
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val body = response.body?.string() ?: return@withContext emptyList()
-                    val array = JSONArray(body)
-                    val result = mutableListOf<ChatMessage>()
-                    for (i in 0 until array.length()) {
-                        val obj = array.getJSONObject(i)
-                        val id = obj.optString("id", i.toString())
-                        val sender = obj.optString("sender", "")
-                        val receiver = obj.optString("receiver", "")
-                        val text = obj.optString("message_text", "")
-                        val compMedia = obj.optString("media_data", "")
-                        val time = obj.optLong("timestamp", System.currentTimeMillis())
-
-                        var decompMedia: String? = null
-                        if (compMedia.isNotEmpty()) {
-                            try {
-                                decompMedia = decompressString(compMedia)
-                            } catch (e: Exception) {
-                                // Ignore
-                            }
-                        }
-
-                        result.add(
-                            ChatMessage(
-                                id = id,
-                                sender = sender,
-                                receiver = receiver,
-                                messageText = text,
-                                sharedMediaJson = decompMedia,
-                                timestamp = time
-                            )
-                        )
-                    }
-                    result
-                } else emptyList()
-            }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    suspend fun getRecentChatUsers(currentUser: String): List<String> = withContext(Dispatchers.IO) {
-        if (PROJECT_URL.isEmpty() || ANON_KEY.isEmpty()) return@withContext emptyList()
-        try {
-            val url = "$PROJECT_URL/rest/v1/messages?or=(sender.eq.$currentUser,receiver.eq.$currentUser)&order=timestamp.desc&limit=60"
-            val request = Request.Builder()
-                .url(url)
-                .addHeader("apikey", ANON_KEY)
-                .addHeader("Authorization", "Bearer $ANON_KEY")
-                .get()
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    val body = response.body?.string() ?: return@withContext emptyList()
-                    val array = JSONArray(body)
-                    val users = linkedSetOf<String>()
-                    for (i in 0 until array.length()) {
-                        val obj = array.getJSONObject(i)
-                        val s = obj.optString("sender", "")
-                        val r = obj.optString("receiver", "")
-                        if (s != currentUser && s.isNotEmpty()) users.add(s)
-                        if (r != currentUser && r.isNotEmpty()) users.add(r)
-                    }
-                    users.toList()
-                } else emptyList()
-            }
-        } catch (e: Exception) {
-            emptyList()
         }
     }
 }

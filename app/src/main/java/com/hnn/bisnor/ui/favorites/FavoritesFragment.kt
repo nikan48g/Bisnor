@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -88,19 +89,31 @@ class FavoritesFragment : Fragment() {
     }
 
     private fun showCreatePlaylistDialog() {
-        val input = EditText(requireContext()).apply {
-            hint = "نام لیست جدید (مثلا: انیمه‌ها یا فیلم‌های ماندگار)"
-            setPadding(48, 32, 48, 32)
+        val layout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 16)
         }
+        val input = EditText(requireContext()).apply {
+            hint = "نام واچ‌لیست (مثلا: انیمه‌ها یا فیلم‌های برتر)"
+        }
+        val switchPublic = com.google.android.material.materialswitch.MaterialSwitch(requireContext()).apply {
+            text = "واچ‌لیست عمومی باشد (قابل اشتراک و جستجو)"
+            isChecked = false
+            textSize = 13f
+        }
+        layout.addView(input)
+        layout.addView(switchPublic)
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("ایجاد لیست اختصاصی جدید")
-            .setView(input)
+            .setTitle("ایجاد واچ‌لیست جدید")
+            .setView(layout)
             .setPositiveButton("ایجاد") { _, _ ->
                 val name = input.text.toString().trim()
                 if (name.isNotEmpty()) {
-                    playlistsManager.createPlaylist(name)
-                    Toast.makeText(requireContext(), "لیست «$name» ایجاد شد", Toast.LENGTH_SHORT).show()
+                    val authManager = com.hnn.bisnor.data.remote.AuthManager(requireContext())
+                    val isPub = switchPublic.isChecked
+                    playlistsManager.createPlaylist(name, isPublic = isPub, creator = authManager.currentUsername)
+                    Toast.makeText(requireContext(), "واچ‌لیست «$name» ایجاد شد", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("انصراف", null)
@@ -111,7 +124,7 @@ class FavoritesFragment : Fragment() {
 
         private fun getDisplayPlaylists(): List<CustomPlaylist> {
             val favs = favoritesManager.favoritesFlow.value
-            val mainFavPlaylist = CustomPlaylist(id = "fav", name = "❤️ نشان‌شده‌ها (علاقه‌مندی‌ها)", items = favs.toMutableList())
+            val mainFavPlaylist = CustomPlaylist(id = "fav", name = "⭐ واچ‌لیست اصلی (نشان‌شده‌ها)", items = favs.toMutableList())
             val userPlaylists = playlistsManager.playlistsFlow.value
             return listOf(mainFavPlaylist) + userPlaylists
         }

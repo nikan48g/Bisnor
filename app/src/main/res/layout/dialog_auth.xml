@@ -49,8 +49,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_godfather_cat" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_android" />
 
             <ImageView
                 android:id="@+id/img_avatar_opt_2"
@@ -61,8 +61,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_funny_director" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_popcorn" />
 
             <ImageView
                 android:id="@+id/img_avatar_opt_3"
@@ -73,8 +73,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_popcorn_pug" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_cinema" />
 
             <ImageView
                 android:id="@+id/img_avatar_opt_4"
@@ -85,8 +85,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar_heisenberg_hamster" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/avatar_m3_star" />
         </LinearLayout>
     </LinearLayout>
 

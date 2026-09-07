@@ -3,8 +3,8 @@
     <string name="app_name_en">Bisnor</string>
     <string name="nav_home">خانه</string>
     <string name="nav_explore">کاوش</string>
-    <string name="nav_chat">چت و دوستان</string>
-    <string name="nav_favorites">نشان‌شده‌ها</string>
+    <string name="nav_watchlist">واچ‌لیست</string>
+    <string name="nav_favorites">واچ‌لیست</string>
     <string name="nav_downloads">دانلودها</string>
     <string name="nav_settings">تنظیمات</string>
 
@@ -30,7 +30,7 @@
     <string name="label_genres">ژانرها</string>
     <string name="label_similar">آثار و پیشنهادات مشابه</string>
     <string name="label_select_quality">کیفیت‌های پخش و تماشا</string>
-    <string name="label_empty_favorites">هنوز فیلم یا سریالی را نشان نکرده‌اید.</string>
+    <string name="label_empty_favorites">هنوز فیلم یا سریالی را به واچ‌لیست اضافه نکرده‌اید.</string>
     <string name="label_empty_downloads">هیچ فیلم یا سریالی دانلود نشده است.</string>
     <string name="label_empty_search">نتیجه‌ای برای جستجوی شما یافت نشد.</string>
     <string name="error_network">خطا در برقراری ارتباط با سرور. لطفا اتصال اینترنت را بررسی کنید.</string>
@@ -41,5 +41,5 @@
     <string name="settings_player">تنظیمات پلیر و ویدیو</string>
     <string name="settings_downloads">مدیریت حافظه و دانلودها</string>
     <string name="settings_about">درباره بیسنور</string>
-    <string name="settings_version">نسخه ۲.۰.۰ - بیسنور سینما (نسل جدید)</string>
+    <string name="settings_version">نسخه ۲.۵.۰ - بیسنور سینما (واچ‌لیست و طراحی نوین)</string>
 </resources>

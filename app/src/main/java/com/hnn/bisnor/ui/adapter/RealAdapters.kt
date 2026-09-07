@@ -19,7 +19,8 @@ class RealHeroBannerAdapter(
     inner class HeroViewHolder(val binding: ItemHeroBannerBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
-            val bannerUrl = if (item.cover.isNotEmpty()) item.cover else item.image
+            val rawBanner = if (item.cover.isNotEmpty()) item.cover else item.image
+            val bannerUrl = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawBanner)
             binding.imgBackdrop.load(bannerUrl) {
                 crossfade(true)
             }
@@ -63,7 +64,8 @@ class RealMediaAdapter(
     inner class MediaViewHolder(val binding: ItemMediaCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
-            val imgUrl = if (item.image.isNotEmpty()) item.image else item.cover
+            val rawImg = if (item.image.isNotEmpty()) item.image else item.cover
+            val imgUrl = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawImg)
             binding.imgPoster.load(imgUrl) {
                 crossfade(true)
                 placeholder(com.hnn.bisnor.R.drawable.badge_background)
@@ -104,7 +106,8 @@ class RealMediaAdapter(
     inner class GridMediaViewHolder(val binding: com.hnn.bisnor.databinding.ItemMediaCardGridBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
-            val imgUrl = if (item.image.isNotEmpty()) item.image else item.cover
+            val rawImg = if (item.image.isNotEmpty()) item.image else item.cover
+            val imgUrl = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawImg)
             binding.imgPoster.load(imgUrl) {
                 crossfade(true)
                 placeholder(com.hnn.bisnor.R.drawable.badge_background)

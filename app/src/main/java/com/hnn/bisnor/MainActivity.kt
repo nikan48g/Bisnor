@@ -61,6 +61,65 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             UpdateChecker.checkForUpdates(this@MainActivity, showToastIfLatest = false)
         }
+
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: android.content.Intent?) {
+        val uri = intent?.data ?: return
+        try {
+            val host = uri.host ?: ""
+            val path = uri.path ?: ""
+
+            // Scheme: bisnor://app/playlist?data=... OR https://bisnor.app/playlist?data=...
+            if (path.contains("playlist") || host.contains("playlist")) {
+                val compressedData = uri.getQueryParameter("data")
+                if (!compressedData.isNullOrEmpty()) {
+                    val decoded = java.net.URLDecoder.decode(compressedData, "UTF-8")
+                    val json = com.hnn.bisnor.data.remote.SupabaseManager.decompressString(decoded)
+                    val payload = com.hnn.bisnor.data.model.SharedPlaylistPayload.fromJson(json)
+                    if (payload != null && payload.items.isNotEmpty()) {
+                        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                            .setTitle("دریافت لیست «${payload.name}»")
+                            .setMessage("آیا می‌خواهید این لیست شامل ${payload.items.size} فیلم به لیست‌های شخصی شما اضافه شود؟")
+                            .setPositiveButton("ذخیره در لیست‌ها") { _, _ ->
+                                val playlistsManager = com.hnn.bisnor.data.repository.PlaylistsManager(this)
+                                val newId = playlistsManager.createPlaylist("${payload.name} (اشتراکی)")
+                                for (item in payload.items) {
+                                    playlistsManager.addToPlaylist(newId, item)
+                                }
+                                android.widget.Toast.makeText(this, "لیست با موفقیت ذخیره شد!", android.widget.Toast.LENGTH_SHORT).show()
+                                selectFavoritesTab()
+                            }
+                            .setNegativeButton("انصراف", null)
+                            .show()
+                    }
+                }
+            } else if (path.contains("chat") || host.contains("chat")) {
+                // Scheme: bisnor://app/chat?user=...
+                val targetUser = uri.getQueryParameter("user")
+                if (!targetUser.isNullOrEmpty()) {
+                    val authManager = com.hnn.bisnor.data.remote.AuthManager(this)
+                    if (authManager.isLoggedIn) {
+                        val chatIntent = android.content.Intent(this, com.hnn.bisnor.ui.chat.ChatActivity::class.java).apply {
+                            putExtra("target_username", targetUser)
+                        }
+                        startActivity(chatIntent)
+                    } else {
+                        android.widget.Toast.makeText(this, "برای چت با $targetUser ابتدا وارد حساب شوید.", android.widget.Toast.LENGTH_LONG).show()
+                        binding.bottomNavigation.selectedItemId = R.id.nav_settings
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun selectExploreTab() {

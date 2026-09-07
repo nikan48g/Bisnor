@@ -52,11 +52,12 @@ class PlaylistsManager(context: Context) {
         }
     }
 
-    fun createPlaylist(name: String) {
+    fun createPlaylist(name: String): String {
         val current = _playlistsFlow.value.toMutableList()
         val uniqueId = "pl_${System.currentTimeMillis()}"
         current.add(CustomPlaylist(id = uniqueId, name = name))
         save(current)
+        return uniqueId
     }
 
     fun addToPlaylist(playlistId: String, media: RealMedia): Boolean {

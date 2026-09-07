@@ -20,6 +20,25 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Deep link for opening shared playlists and friend chat -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="bisnor"
+                    android:host="app" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="bisnor.app" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -34,6 +53,11 @@
 
         <activity
             android:name=".ui.favorites.PlaylistDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Bisnor" />
+
+        <activity
+            android:name=".ui.chat.ChatActivity"
             android:exported="false"
             android:theme="@style/Theme.Bisnor" />
 

@@ -46,6 +46,13 @@ class PlaylistDetailActivity : AppCompatActivity() {
 
         binding.toolbarPlaylistDetail.title = playlistName
         binding.toolbarPlaylistDetail.setNavigationOnClickListener { finish() }
+        binding.toolbarPlaylistDetail.inflateMenu(R.menu.menu_playlist_detail)
+        binding.toolbarPlaylistDetail.setOnMenuItemClickListener { menuItem ->
+            if (menuItem.itemId == R.id.action_share_playlist) {
+                sharePlaylistLink()
+                true
+            } else false
+        }
 
         adapter = RealMediaAdapter(emptyList()) { item ->
             val intent = Intent(this, DetailActivity::class.java).apply {
@@ -117,5 +124,30 @@ class PlaylistDetailActivity : AppCompatActivity() {
 
         adapter.updateData(result)
         binding.tvEmptyPlaylistDetail.visibility = if (result.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun sharePlaylistLink() {
+        if (allPlaylistItems.isEmpty()) {
+            android.widget.Toast.makeText(this, "لیست خالی قابل اشتراک‌گذاری نیست.", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val payload = com.hnn.bisnor.data.model.SharedPlaylistPayload(
+            name = playlistName,
+            items = allPlaylistItems
+        )
+        val json = payload.toJson()
+        val compressedBase64 = com.hnn.bisnor.data.remote.SupabaseManager.compressString(json)
+        val urlSafeBase64 = java.net.URLEncoder.encode(compressedBase64, "UTF-8")
+
+        val shareLink = "bisnor://app/playlist?data=$urlSafeBase64"
+        val message = "🎬 لیست «$playlistName» در بیسنور شامل ${allPlaylistItems.size} فیلم و سریال:\n$shareLink\n\n(با لمس این لینک، لیست مستقیماً در اپلیکیشن بیسنور باز می‌شود)"
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "اشتراک‌گذاری لیست «$playlistName» در بیسنور")
+            putExtra(Intent.EXTRA_TEXT, message)
+        }
+        startActivity(Intent.createChooser(intent, "اشتراک‌گذاری لینک لیست با دوستان:"))
     }
 }

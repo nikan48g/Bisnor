@@ -218,6 +218,44 @@ class DetailActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showShareToFriendDialog(media: RealMedia) {
+        val authManager = com.hnn.bisnor.data.remote.AuthManager(this)
+        if (!authManager.isLoggedIn) {
+            Toast.makeText(this, "برای ارسال فیلم به دوستان ابتدا وارد حساب کاربری خود شوید.", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val input = com.google.android.material.textfield.TextInputEditText(this).apply {
+            hint = "نام کاربری بیسنور دوستتان..."
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
+        }
+        val til = com.google.android.material.textfield.TextInputLayout(this).apply {
+            setPadding(48, 16, 48, 8)
+            addView(input)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("ارسال فیلم به دوستان 💬")
+            .setMessage("نام کاربری دوست خود را وارد کنید تا «${media.title}» مستقیماً در چت برایش ارسال شود:")
+            .setView(til)
+            .setPositiveButton("ارسال") { _, _ ->
+                val target = input.text?.toString()?.trim()?.lowercase() ?: ""
+                if (target.isNotEmpty()) {
+                    if (target == authManager.currentUsername.lowercase()) {
+                        Toast.makeText(this, "نمی‌توانید به خودتان فیلم بفرستید!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val intent = Intent(this, com.hnn.bisnor.ui.chat.ChatActivity::class.java).apply {
+                            putExtra("target_username", target)
+                            putExtra("share_media", media)
+                        }
+                        startActivity(intent)
+                    }
+                }
+            }
+            .setNegativeButton("انصراف", null)
+            .show()
+    }
+
     inner class DetailRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         private val TYPE_HEADER = 0
@@ -279,6 +317,10 @@ class DetailActivity : AppCompatActivity() {
 
                 b.btnHeaderAddPlaylist.setOnClickListener {
                     showAddToPlaylistDialog(item)
+                }
+
+                b.btnHeaderShareChat.setOnClickListener {
+                    showShareToFriendDialog(item)
                 }
 
                 // Season Selector Tabs

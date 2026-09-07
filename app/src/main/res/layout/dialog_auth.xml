@@ -5,26 +5,90 @@
     android:layout_height="wrap_content"
     android:background="@color/surface"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="20dp">
 
     <TextView
         android:id="@+id/tv_auth_dialog_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/vazirmatn_bold"
-        android:text="حساب کاربری بیسنور"
+        android:text="ورود به حساب"
         android:textColor="@color/on_surface"
         android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/tv_auth_dialog_subtitle"
+    <!-- Avatar Selection Section (Shown during Register) -->
+    <LinearLayout
+        android:id="@+id/layout_avatar_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/vazirmatn_regular"
-        android:text="برای همگام‌سازی و ذخیره ابری لیست‌ها و نشان‌شده‌های خود، وارد شوید."
-        android:textColor="@color/on_surface_variant"
-        android:textSize="12sp" />
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:text="انتخاب آواتار سینمایی طنز:"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/img_avatar_opt_1"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/badge_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/avatar_godfather_cat" />
+
+            <ImageView
+                android:id="@+id/img_avatar_opt_2"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/badge_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/avatar_funny_director" />
+
+            <ImageView
+                android:id="@+id/img_avatar_opt_3"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/badge_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/avatar_popcorn_pug" />
+
+            <ImageView
+                android:id="@+id/img_avatar_opt_4"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/badge_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/avatar_heisenberg_hamster" />
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- Username Input -->
     <com.google.android.material.textfield.TextInputLayout
@@ -32,8 +96,8 @@
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="نام کاربری (انگلیسی)">
+        android:layout_marginTop="12dp"
+        android:hint="نام کاربری">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_auth_username"
@@ -50,7 +114,7 @@
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:hint="رمز عبور"
         app:passwordToggleEnabled="true">
 
@@ -68,12 +132,12 @@
         android:id="@+id/btn_auth_submit"
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="20dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/vazirmatn_bold"
-        android:text="ورود به حساب"
+        android:text="ورود"
         app:backgroundTint="@color/primary"
-        app:cornerRadius="14dp" />
+        app:cornerRadius="12dp" />
 
     <!-- Toggle Mode Button (Register / Login) -->
     <com.google.android.material.button.MaterialButton
@@ -81,9 +145,9 @@
         style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:fontFamily="@font/vazirmatn_medium"
-        android:text="حساب کاربری ندارید؟ ثبت‌نام کنید"
+        android:text="حساب کاربری ندارید؟ ثبت‌نام"
         android:textColor="@color/secondary" />
 
 </LinearLayout>

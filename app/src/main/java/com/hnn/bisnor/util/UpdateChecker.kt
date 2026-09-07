@@ -120,7 +120,8 @@ object UpdateChecker {
 
         tvCurrentVersion.text = "v$currentAppVersionName"
         tvNewVersion.text = "v$newVersion"
-        tvChangelog.text = if (notes.isNotBlank()) notes else "بهینه‌سازی کلی، رفع باگ‌ها و ارتقای سرعت پخش استریم."
+        val formattedNotes = formatChangelog(notes)
+        tvChangelog.text = if (formattedNotes.isNotBlank()) formattedNotes else "بهینه‌سازی کلی، رفع باگ‌ها و ارتقای سرعت پخش استریم."
 
         btnDownload.setOnClickListener {
             dialog.dismiss()
@@ -135,5 +136,50 @@ object UpdateChecker {
 
         dialog.setCancelable(true)
         dialog.show()
+    }
+
+    private fun formatChangelog(raw: String): CharSequence {
+        if (raw.isBlank()) return ""
+
+        val lines = raw.lines()
+        val cleanedLines = mutableListOf<String>()
+
+        for (line in lines) {
+            val trimmed = line.trim()
+            // Remove raw markdown images: ![alt](url)
+            if (trimmed.startsWith("![") && trimmed.contains("](")) continue
+            // Remove HTML image tags
+            if (trimmed.startsWith("<img") && trimmed.endsWith(">")) continue
+            if (trimmed.contains("<img") && trimmed.contains("src=")) continue
+
+            // Clean markdown headers
+            var cleanLine = trimmed
+            if (cleanLine.startsWith("###")) {
+                cleanLine = "🔸 " + cleanLine.removePrefix("###").trim()
+            } else if (cleanLine.startsWith("##")) {
+                cleanLine = "🔹 " + cleanLine.removePrefix("##").trim()
+            } else if (cleanLine.startsWith("#")) {
+                cleanLine = "💎 " + cleanLine.removePrefix("#").trim()
+            }
+
+            // Clean bullet points
+            if (cleanLine.startsWith("- ") || cleanLine.startsWith("* ")) {
+                cleanLine = "• " + cleanLine.substring(2).trim()
+            }
+
+            // Remove markdown links: [text](url) -> text
+            cleanLine = cleanLine.replace(Regex("\\[([^\\]]+)\\]\\([^\\)]+\\)")) { match ->
+                match.groupValues[1]
+            }
+
+            // Remove bold/italic symbols
+            cleanLine = cleanLine.replace("**", "").replace("__", "").replace("`", "")
+
+            if (cleanLine.isNotBlank()) {
+                cleanedLines.add(cleanLine)
+            }
+        }
+
+        return cleanedLines.joinToString("\n")
     }
 }

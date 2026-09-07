@@ -146,6 +146,14 @@ class SettingsFragment : Fragment() {
                 }
             }
 
+            binding.imgProfileAvatar.setOnClickListener {
+                showAvatarPickerDialog()
+            }
+            binding.btnProfileChangeAvatar.setOnClickListener {
+                showAvatarPickerDialog()
+            }
+            binding.imgAvatarBadgeEdit.visibility = View.VISIBLE
+
             // QR Code Dialog
             binding.btnProfileQrCode.setOnClickListener {
                 showQrCodeDialog()
@@ -172,6 +180,8 @@ class SettingsFragment : Fragment() {
         } else {
             binding.tvProfileUsername.text = "کاربر مهمان"
             binding.imgProfileAvatar.setImageResource(R.drawable.ic_account_circle)
+            binding.imgProfileAvatar.setOnClickListener(null)
+            binding.imgAvatarBadgeEdit.visibility = View.GONE
             binding.layoutProfileExtraActions.visibility = View.GONE
             binding.tvProfileSyncStatus.text = "جهت ذخیره و سینک لیست‌ها وارد شوید"
             binding.btnProfileAction.text = "ورود / ثبت‌نام"
@@ -180,6 +190,66 @@ class SettingsFragment : Fragment() {
             }
             binding.cardUserProfile.setOnLongClickListener(null)
         }
+    }
+
+    private fun showAvatarPickerDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_select_avatar, null)
+        val opt1 = dialogView.findViewById<View>(R.id.btn_pick_avatar_1)
+        val opt2 = dialogView.findViewById<View>(R.id.btn_pick_avatar_2)
+        val opt3 = dialogView.findViewById<View>(R.id.btn_pick_avatar_3)
+        val opt4 = dialogView.findViewById<View>(R.id.btn_pick_avatar_4)
+        val img1 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_1)
+        val img2 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_2)
+        val img3 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_3)
+        val img4 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_4)
+        val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.btn_confirm_avatar)
+
+        var selected = authManager.userAvatarId
+        val items = listOf(
+            opt1 to (img1 to "godfather_cat"),
+            opt2 to (img2 to "funny_director"),
+            opt3 to (img3 to "popcorn_pug"),
+            opt4 to (img4 to "heisenberg_hamster")
+        )
+
+        fun updateSelection() {
+            items.forEach { (_, pair) ->
+                val (iv, id) = pair
+                if (id == selected) {
+                    iv.alpha = 1.0f
+                    iv.scaleX = 1.15f
+                    iv.scaleY = 1.15f
+                } else {
+                    iv.alpha = 0.5f
+                    iv.scaleX = 0.92f
+                    iv.scaleY = 0.92f
+                }
+            }
+        }
+
+        updateSelection()
+
+        items.forEach { (view, pair) ->
+            view.setOnClickListener {
+                selected = pair.second
+                updateSelection()
+            }
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        btnConfirm.setOnClickListener {
+            dialog.dismiss()
+            lifecycleScope.launch {
+                authManager.updateAvatar(selected)
+                setupUserProfileSection()
+                Toast.makeText(requireContext(), "آواتار شما با موفقیت تغییر کرد!", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        dialog.show()
     }
 
     private fun showQrCodeDialog() {

@@ -119,6 +119,9 @@ class SettingsFragment : Fragment() {
     private fun setupUserProfileSection() {
         if (authManager.isLoggedIn) {
             binding.tvProfileUsername.text = "کاربر: ${authManager.currentUsername}"
+            binding.imgProfileAvatar.setImageResource(AuthManager.getAvatarDrawable(authManager.userAvatarId))
+            binding.layoutProfileExtraActions.visibility = View.VISIBLE
+
             if (authManager.lastSyncTime > 0L) {
                 val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(authManager.lastSyncTime))
                 binding.tvProfileSyncStatus.text = "✓ لیست‌ها همگام‌سازی شده (آخرین سینک: $timeStr)"
@@ -139,6 +142,16 @@ class SettingsFragment : Fragment() {
                 }
             }
 
+            // QR Code Dialog
+            binding.btnProfileQrCode.setOnClickListener {
+                showQrCodeDialog()
+            }
+
+            // Chat / Friends Dialog
+            binding.btnProfileOpenChat.setOnClickListener {
+                showOpenChatDialog()
+            }
+
             binding.cardUserProfile.setOnLongClickListener {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("خروج از حساب")
@@ -154,6 +167,8 @@ class SettingsFragment : Fragment() {
             }
         } else {
             binding.tvProfileUsername.text = "کاربر مهمان"
+            binding.imgProfileAvatar.setImageResource(R.drawable.ic_account_circle)
+            binding.layoutProfileExtraActions.visibility = View.GONE
             binding.tvProfileSyncStatus.text = "جهت ذخیره و سینک لیست‌ها وارد شوید"
             binding.btnProfileAction.text = "ورود / ثبت‌نام"
             binding.btnProfileAction.setOnClickListener {
@@ -163,16 +178,116 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private fun showQrCodeDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_qr_code, null)
+        val tvUser = dialogView.findViewById<TextView>(R.id.tv_qr_username)
+        val imgQr = dialogView.findViewById<ImageView>(R.id.img_qr_code)
+        val btnShare = dialogView.findViewById<MaterialButton>(R.id.btn_share_my_code)
+
+        val username = authManager.currentUsername
+        tvUser.text = "@$username"
+
+        // Deep link format that opens directly in Bisnor
+        val link = "bisnor://app/chat?user=$username"
+        val qrBitmap = com.hnn.bisnor.util.QrCodeHelper.generateQrCode(link, 512)
+        if (qrBitmap != null) {
+            imgQr.setImageBitmap(qrBitmap)
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        btnShare.setOnClickListener {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, "بیسنور - ارتباط با من")
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "سلام! در اپلیکیشن بیسنور به من پیام بده یا فیلم به اشتراک بذار:\n$link"
+                )
+            }
+            startActivity(Intent.createChooser(shareIntent, "ارسال به..."))
+        }
+
+        dialog.show()
+    }
+
+    private fun showOpenChatDialog() {
+        val input = TextInputEditText(requireContext()).apply {
+            hint = "نام کاربری دوست خود را وارد کنید"
+            layoutDirection = View.LAYOUT_DIRECTION_LTR
+        }
+        val til = com.google.android.material.textfield.TextInputLayout(requireContext()).apply {
+            setPadding(48, 16, 48, 8)
+            addView(input)
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("شروع گفتگو")
+            .setMessage("برای ارسال فیلم و چت، آیدی بیسنور دوستتان را وارد کنید:")
+            .setView(til)
+            .setPositiveButton("ورود به چت") { _, _ ->
+                val target = input.text?.toString()?.trim()?.lowercase() ?: ""
+                if (target.isNotEmpty()) {
+                    if (target == authManager.currentUsername.lowercase()) {
+                        Toast.makeText(requireContext(), "نمی‌توانید به خودتان پیام دهید!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val intent = Intent(requireContext(), com.hnn.bisnor.ui.chat.ChatActivity::class.java).apply {
+                            putExtra("target_username", target)
+                        }
+                        startActivity(intent)
+                    }
+                }
+            }
+            .setNegativeButton("انصراف", null)
+            .show()
+    }
+
     private fun showAuthDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_auth, null)
         val tvTitle = dialogView.findViewById<TextView>(R.id.tv_auth_dialog_title)
-        val tvSubtitle = dialogView.findViewById<TextView>(R.id.tv_auth_dialog_subtitle)
+        val layoutAvatarPicker = dialogView.findViewById<LinearLayout>(R.id.layout_avatar_picker)
+        val imgAvatar1 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_1)
+        val imgAvatar2 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_2)
+        val imgAvatar3 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_3)
+        val imgAvatar4 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_4)
         val etUser = dialogView.findViewById<TextInputEditText>(R.id.et_auth_username)
         val etPass = dialogView.findViewById<TextInputEditText>(R.id.et_auth_password)
         val btnSubmit = dialogView.findViewById<MaterialButton>(R.id.btn_auth_submit)
         val btnSwitch = dialogView.findViewById<MaterialButton>(R.id.btn_auth_switch_mode)
 
         var isRegisterMode = false
+        var selectedAvatarId = authManager.userAvatarId
+
+        val avatarViews = listOf(
+            imgAvatar1 to "godfather_cat",
+            imgAvatar2 to "funny_director",
+            imgAvatar3 to "popcorn_pug",
+            imgAvatar4 to "heisenberg_hamster"
+        )
+
+        fun updateAvatarSelection() {
+            avatarViews.forEach { (iv, id) ->
+                if (id == selectedAvatarId) {
+                    iv.alpha = 1.0f
+                    iv.scaleX = 1.15f
+                    iv.scaleY = 1.15f
+                } else {
+                    iv.alpha = 0.5f
+                    iv.scaleX = 0.95f
+                    iv.scaleY = 0.95f
+                }
+            }
+        }
+
+        avatarViews.forEach { (iv, id) ->
+            iv.setOnClickListener {
+                selectedAvatarId = id
+                authManager.userAvatarId = id
+                updateAvatarSelection()
+            }
+        }
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setView(dialogView)
@@ -181,14 +296,15 @@ class SettingsFragment : Fragment() {
         fun updateUI() {
             if (isRegisterMode) {
                 tvTitle.text = "ثبت‌نام در بیسنور"
-                tvSubtitle.text = "برای ایجاد حساب و سینک همیشگی فیلم‌ها، یک نام کاربری و رمز عبور تعیین کنید."
+                layoutAvatarPicker.visibility = View.VISIBLE
+                updateAvatarSelection()
                 btnSubmit.text = "ایجاد حساب کاربری"
                 btnSwitch.text = "حساب دارید؟ وارد شوید"
             } else {
                 tvTitle.text = "ورود به حساب کاربری"
-                tvSubtitle.text = "با وارد کردن اطلاعات، لیست‌ها و نشان‌شده‌های ذخیره شده شما لود می‌شوند."
+                layoutAvatarPicker.visibility = View.GONE
                 btnSubmit.text = "ورود به حساب"
-                btnSwitch.text = "حساب کاربری ندارید؟ ثبت‌نام کنید"
+                btnSwitch.text = "حساب کاربری ندارید؟ ثبت‌نام"
             }
         }
 

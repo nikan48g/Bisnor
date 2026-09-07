@@ -302,7 +302,7 @@ class PlayerActivity : AppCompatActivity() {
                     binding.tvNextEpisodeTitle.text = "قسمت بعدی: ${nextSrc.quality}"
                     binding.cardNextEpisode.visibility = View.VISIBLE
                     binding.cardNextEpisode.animate().alpha(1f).setDuration(300).start()
-                    countdownSeconds = 10
+                    countdownSeconds = historyManager.autoNextCountdownSeconds
                     handler.post(countdownRunnable)
                 }
             }

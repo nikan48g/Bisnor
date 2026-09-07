@@ -71,7 +71,7 @@
             android:layout_marginStart="8dp"
             app:backgroundTint="@color/surface_container_high"
             app:cornerRadius="16dp"
-            app:icon="@drawable/ic_star"
+            app:icon="@drawable/ic_filter"
             app:iconTint="@color/primary" />
     </LinearLayout>
 
@@ -86,14 +86,15 @@
             android:id="@+id/btn_explore_random_movie"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
-            android:layout_height="44dp"
+            android:layout_height="46dp"
             android:fontFamily="@font/vazirmatn_bold"
-            android:text="🎲 امشب چی ببینم؟ (پیشنهاد هوشمند بر اساس ژانرهای موردعلاقه شما)"
-            android:textSize="12sp"
-            app:backgroundTint="@color/surface_container"
+            android:text="🎲 امشب چی ببینم؟"
+            android:textColor="@color/on_surface"
+            android:textSize="13sp"
+            app:backgroundTint="@color/surface_container_high"
             app:cornerRadius="14dp"
             app:icon="@drawable/ic_play"
-            app:iconTint="@color/secondary" />
+            app:iconTint="@color/primary" />
     </LinearLayout>
 
     <!-- Recent Searches Chips Container -->

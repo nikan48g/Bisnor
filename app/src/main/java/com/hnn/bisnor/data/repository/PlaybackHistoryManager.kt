@@ -37,6 +37,7 @@ class PlaybackHistoryManager(context: Context) {
     companion object {
         const val PREF_CONTENT_WARNING = "pref_content_warning"
         const val PREF_AUTO_NEXT_MINUTES = "pref_auto_next_minutes"
+        const val PREF_AUTO_NEXT_COUNTDOWN_SECONDS = "pref_auto_next_countdown_seconds"
         const val PREF_AUTO_NEXT_ENABLED = "pref_auto_next_enabled"
         const val PREF_RECENT_SEARCHES = "pref_recent_searches"
         const val PREF_THEME_MODE = "pref_theme_mode" // system, light, dark
@@ -54,6 +55,10 @@ class PlaybackHistoryManager(context: Context) {
     var autoNextMinutes: Int
         get() = prefs.getInt(PREF_AUTO_NEXT_MINUTES, 2)
         set(value) = prefs.edit().putInt(PREF_AUTO_NEXT_MINUTES, value).apply()
+
+    var autoNextCountdownSeconds: Int
+        get() = prefs.getInt(PREF_AUTO_NEXT_COUNTDOWN_SECONDS, 10)
+        set(value) = prefs.edit().putInt(PREF_AUTO_NEXT_COUNTDOWN_SECONDS, value).apply()
 
     var themeMode: String
         get() = prefs.getString(PREF_THEME_MODE, "system") ?: "system"

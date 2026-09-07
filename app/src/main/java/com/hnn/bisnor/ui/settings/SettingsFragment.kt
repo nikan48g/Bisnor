@@ -100,6 +100,10 @@ class SettingsFragment : Fragment() {
             showAutoNextTimeDialog()
         }
 
+        binding.btnSettingAutoNextCountdown.setOnClickListener {
+            showAutoNextCountdownDialog()
+        }
+
         binding.btnSettingDownloads.setOnClickListener {
             startActivity(Intent(requireContext(), DownloadsActivity::class.java))
         }
@@ -118,15 +122,15 @@ class SettingsFragment : Fragment() {
 
     private fun setupUserProfileSection() {
         if (authManager.isLoggedIn) {
-            binding.tvProfileUsername.text = "کاربر: ${authManager.currentUsername}"
+            binding.tvProfileUsername.text = "@${authManager.currentUsername}"
             binding.imgProfileAvatar.setImageResource(AuthManager.getAvatarDrawable(authManager.userAvatarId))
             binding.layoutProfileExtraActions.visibility = View.VISIBLE
 
             if (authManager.lastSyncTime > 0L) {
                 val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(authManager.lastSyncTime))
-                binding.tvProfileSyncStatus.text = "✓ لیست‌ها همگام‌سازی شده (آخرین سینک: $timeStr)"
+                binding.tvProfileSyncStatus.text = "همگام‌سازی ابری فعال (آخرین: $timeStr)"
             } else {
-                binding.tvProfileSyncStatus.text = "✓ متصل به فضای ابری"
+                binding.tvProfileSyncStatus.text = "متصل به فضای ابری"
             }
             binding.btnProfileAction.text = "همگام‌سازی 🔄"
             binding.btnProfileAction.setOnClickListener {
@@ -429,6 +433,8 @@ class SettingsFragment : Fragment() {
     private fun updateAutoNextLabel() {
         val mins = historyManager.autoNextMinutes
         binding.tvAutoNextMinutesLabel.text = "$mins دقیقه مانده به پایان"
+        val secs = historyManager.autoNextCountdownSeconds
+        binding.tvAutoNextCountdownLabel.text = "$secs ثانیه"
     }
 
     private fun showAutoNextTimeDialog() {
@@ -437,9 +443,24 @@ class SettingsFragment : Fragment() {
         val currentIndex = values.indexOf(historyManager.autoNextMinutes).coerceAtLeast(0)
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("زمان پیشنهاد قسمت بعدی")
+            .setTitle("زمان شروع پیشنهاد قسمت بعدی")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
                 historyManager.autoNextMinutes = values[which]
+                updateAutoNextLabel()
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun showAutoNextCountdownDialog() {
+        val options = arrayOf("۵ ثانیه", "۱۰ ثانیه", "۱۵ ثانیه", "۲۰ ثانیه", "۳۰ ثانیه")
+        val values = intArrayOf(5, 10, 15, 20, 30)
+        val currentIndex = values.indexOf(historyManager.autoNextCountdownSeconds).coerceAtLeast(0)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("مدت زمان شمارش معکوس")
+            .setSingleChoiceItems(options, currentIndex) { dialog, which ->
+                historyManager.autoNextCountdownSeconds = values[which]
                 updateAutoNextLabel()
                 dialog.dismiss()
             }

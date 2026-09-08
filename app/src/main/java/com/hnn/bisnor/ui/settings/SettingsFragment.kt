@@ -154,7 +154,8 @@ class SettingsFragment : Fragment() {
             }
             binding.imgAvatarBadgeEdit.visibility = View.VISIBLE
 
-            binding.cardUserProfile.setOnLongClickListener {
+            binding.btnProfileLogout.visibility = View.VISIBLE
+            binding.btnProfileLogout.setOnClickListener {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("خروج از حساب")
                     .setMessage("آیا مایل به خروج از حساب کاربری «${authManager.currentUsername}» هستید؟")
@@ -165,6 +166,10 @@ class SettingsFragment : Fragment() {
                     }
                     .setNegativeButton("انصراف", null)
                     .show()
+            }
+
+            binding.cardUserProfile.setOnLongClickListener {
+                binding.btnProfileLogout.performClick()
                 true
             }
         } else {
@@ -173,6 +178,8 @@ class SettingsFragment : Fragment() {
             binding.imgProfileAvatar.setOnClickListener(null)
             binding.imgAvatarBadgeEdit.visibility = View.GONE
             binding.layoutProfileExtraActions.visibility = View.GONE
+            binding.btnProfileLogout.visibility = View.GONE
+            binding.btnProfileLogout.setOnClickListener(null)
             binding.tvProfileSyncStatus.text = "جهت ذخیره و سینک لیست‌ها وارد شوید"
             binding.btnProfileAction.text = "ورود / ثبت‌نام"
             binding.btnProfileAction.setOnClickListener {

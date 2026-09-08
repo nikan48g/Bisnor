@@ -201,10 +201,6 @@ class PlayerActivity : AppCompatActivity() {
             showIndicator("⚡ سرعت پخش", speedLabels[currentSpeedIndex])
         }
 
-        binding.btnPip.setOnClickListener {
-            enterPictureInPicture()
-        }
-
         binding.btnTracks.setOnClickListener {
             showTrackSelectionDialog()
         }

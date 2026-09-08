@@ -14,10 +14,8 @@ object ImageUrlHelper {
         if (cleaned.contains("server-hi-speed-iran.info") || 
             cleaned.contains("hostinnegar.com") || 
             cleaned.contains("windowsdiba.info")) {
-            val stripped = cleaned
-                .replace("https://", "")
-                .replace("http://", "")
-            return "https://wsrv.nl/?url=$stripped&output=webp&q=85"
+            val encoded = java.net.URLEncoder.encode(cleaned, java.nio.charset.StandardCharsets.UTF_8.toString())
+            return "https://wsrv.nl/?url=$encoded&output=webp&q=85"
         }
 
         return cleaned

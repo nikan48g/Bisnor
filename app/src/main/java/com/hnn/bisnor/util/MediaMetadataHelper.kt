@@ -104,33 +104,36 @@ object MediaMetadataHelper {
     }
 
     private fun cleanStorylineText(text: String): String {
-        val lines = text.lines()
+        val metaPatterns = listOf(
+            Regex("""(?i)(?:IMDb|نمره|امتیاز)\s*[:：\-]?\s*[0-9]+(?:\.[0-9]+)?(?:\s*(?:از|/)\s*10)?"""),
+            Regex("""(?i)(?:رده|محدودیت|گروه|درجه)\s*سنی\s*[:：\-]?\s*(\+?\s*\d{1,2}\s*\+?|PG-13|TV-MA|R|G|NC-17|بزرگسال)"""),
+            Regex("""(?i)(?:مناسب\s*برای)\s*[:：\-]?\s*[^\n\r,،]+"""),
+            Regex("""(?i)(?:کارگردان|کارگردانی|سازنده)\s*[:：\-]?\s*[^\n\r]+"""),
+            Regex("""(?i)(?:بازیگران|ستارگان|با\s*حضور)\s*[:：\-]?\s*[^\n\r]+"""),
+            Regex("""(?i)(?:کیفیت|فرمت|مدت\s*زمان|محصول|زبان|کشور|ژانر|نویسنده|تهیه‌کننده|شبکه)\s*[:：\-]?\s*[^\n\r]+"""),
+            Regex("""(?i)(?:جوایز|رتبه|افتخارات)\s*[:：\-]?\s*[^\n\r]+""")
+        )
+
+        var processed = text
+        for (pattern in metaPatterns) {
+            processed = pattern.replace(processed, "")
+        }
+
+        val lines = processed.lines()
         val filteredLines = mutableListOf<String>()
 
         for (line in lines) {
-            val l = line.trim()
+            var l = line.trim()
             if (l.isEmpty()) continue
 
-            if (l.startsWith("IMDb", ignoreCase = true) ||
-                l.startsWith("رده سنی") ||
-                l.startsWith("محدودیت سنی") ||
-                l.startsWith("کارگردان") ||
-                l.startsWith("بازیگران") ||
-                l.startsWith("ستارگان") ||
-                l.startsWith("کیفیت") ||
-                l.startsWith("فرمت") ||
-                l.startsWith("مدت زمان") ||
-                l.startsWith("محصول") ||
-                l.startsWith("زبان") ||
-                l.startsWith("کشور") ||
-                l.startsWith("ژانر")
-            ) {
-                continue
-            }
+            // Remove label prefixes
+            l = l.replace(Regex("""^(?:خلاصه داستان|درباره فیلم|داستان|توضیحات|خلاصه)\s*[:：\-]?\s*"""), "").trim()
+            
+            // Remove leading bullets or dashes
+            l = l.replace(Regex("""^[\-–—•*|]+\s*"""), "").trim()
 
-            val cleanLine = l.replace(Regex("""^(?:خلاصه داستان|درباره فیلم|داستان|توضیحات)\s*[:：\-]?\s*"""), "").trim()
-            if (cleanLine.isNotEmpty()) {
-                filteredLines.add(cleanLine)
+            if (l.isNotEmpty() && l != ":" && l != "-" && l.length > 2) {
+                filteredLines.add(l)
             }
         }
 

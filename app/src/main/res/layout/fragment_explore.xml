@@ -159,6 +159,6 @@
         android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:paddingHorizontal="10dp"
-        android:paddingBottom="24dp" />
+        android:paddingBottom="96dp" />
 
 </LinearLayout>

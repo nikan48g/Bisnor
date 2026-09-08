@@ -45,6 +45,16 @@ class DownloadsActivity : AppCompatActivity() {
         downloadsList = LocalDownloadManager.getDownloadedVideos(this)
         adapter.notifyDataSetChanged()
         binding.tvEmptyDownloads.visibility = if (downloadsList.isEmpty()) View.VISIBLE else View.GONE
+        binding.cardStorageSummary.visibility = if (downloadsList.isEmpty()) View.GONE else View.VISIBLE
+
+        val totalBytes = downloadsList.sumOf { it.totalBytes }
+        val totalMb = totalBytes / (1024.0 * 1024.0)
+        binding.tvStorageDesc.text = "${downloadsList.size} فایل دانلود شده آماده پخش"
+        binding.tvTotalDownloadSize.text = if (totalMb >= 1024.0) {
+            String.format("%.2f GB", totalMb / 1024.0)
+        } else {
+            String.format("%.1f MB", totalMb)
+        }
     }
 
     inner class DownloadAdapter : RecyclerView.Adapter<DownloadAdapter.Holder>() {

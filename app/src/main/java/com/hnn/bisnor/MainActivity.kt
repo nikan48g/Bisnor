@@ -52,6 +52,12 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // Prevent BottomNavigationView from consuming window insets as internal padding
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavigation) { view, insets ->
+            view.setPadding(0, 0, 0, 0)
+            insets
+        }
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, homeFragment)

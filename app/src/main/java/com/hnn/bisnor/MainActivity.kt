@@ -1,8 +1,14 @@
 package com.hnn.bisnor
 
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.hnn.bisnor.databinding.ActivityMainBinding
@@ -24,10 +30,27 @@ class MainActivity : AppCompatActivity() {
     private val settingsFragment = SettingsFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Handle WindowInsets for Edge-to-Edge display
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            
+            // Apply top inset (status bar) as padding to fragmentContainer so top bars are never covered
+            binding.fragmentContainer.updatePadding(top = systemBars.top)
+
+            // Lift floating bottom navigation above the navigation bar / gesture pill
+            val baseMarginBottom = (16 * resources.displayMetrics.density).toInt()
+            binding.bottomNavigation.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = baseMarginBottom + systemBars.bottom
+            }
+
+            insets
+        }
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()

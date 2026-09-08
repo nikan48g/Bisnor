@@ -625,7 +625,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/vazirmatn_medium"
-                            android:text="نسخه v4.0.0 (بروزرسانی از گیت‌هاب)"
+                            android:text="نسخه v4.6.0 (بروزرسانی از گیت‌هاب)"
                             android:textColor="@color/secondary"
                             android:textSize="12sp" />
                     </LinearLayout>

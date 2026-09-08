@@ -44,5 +44,5 @@
     <color name="overlay_scrim">#B3000000</color>
     <color name="shimmer_base">#1C1C24</color>
     <color name="shimmer_highlight">#2E2E3C</color>
-    <color name="nav_bar_translucent">#D91B1B22</color>
+    <color name="nav_bar_translucent">#E6FFFFFF</color>
 </resources>

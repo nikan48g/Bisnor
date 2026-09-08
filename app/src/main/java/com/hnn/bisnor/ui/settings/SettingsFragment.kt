@@ -112,6 +112,8 @@ class SettingsFragment : Fragment() {
             (activity as? MainActivity)?.selectFavoritesTab()
         }
 
+        binding.tvAppVersionAbout.text = "نسخه v${com.hnn.bisnor.BuildConfig.VERSION_NAME} (بروزرسانی از گیت‌هاب)"
+
         binding.btnCheckUpdate.setOnClickListener {
             lifecycleScope.launch {
                 Toast.makeText(requireContext(), "در حال بررسی آخرین نسخه در گیت‌هاب...", Toast.LENGTH_SHORT).show()

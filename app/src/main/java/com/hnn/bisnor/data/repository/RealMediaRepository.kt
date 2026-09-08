@@ -109,7 +109,11 @@ object RealMediaRepository {
 
     suspend fun search(query: String): List<RealMedia> = withContext(Dispatchers.IO) {
         if (query.trim().isEmpty()) {
-            return@withContext getLatestMovies(0)
+            val moviesDeferred = async { getLatestMovies(0) }
+            val seriesDeferred = async { getPopularSeries(0) }
+            val topMoviesDeferred = async { getTopImdbMovies(0) }
+            val combined = (moviesDeferred.await() + seriesDeferred.await() + topMoviesDeferred.await()).distinctBy { it.id }
+            return@withContext combined
         }
         try {
             val encoded = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8.toString()).replace("+", "%20")

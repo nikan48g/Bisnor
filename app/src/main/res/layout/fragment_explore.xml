@@ -19,21 +19,22 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:cardBackgroundColor="@color/surface_container_high"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="0dp">
+            app:cardBackgroundColor="@color/nav_bar_translucent"
+            app:cardCornerRadius="26dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/outline_variant">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:src="@drawable/ic_explore"
                     app:tint="@color/on_surface_variant" />
 
@@ -62,16 +63,24 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Filter Modal Menu Button -->
+        <!-- Filter Modal Menu Button (Glass Pill) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_open_filters_dialog"
             style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_marginStart="8dp"
-            app:backgroundTint="@color/surface_container_high"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:padding="0dp"
+            app:backgroundTint="@color/nav_bar_translucent"
             app:cornerRadius="16dp"
+            app:strokeColor="@color/outline_variant"
+            app:strokeWidth="1dp"
             app:icon="@drawable/ic_filter"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="20dp"
             app:iconTint="@color/primary" />
     </LinearLayout>
 

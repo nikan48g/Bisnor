@@ -146,40 +146,72 @@ object UpdateChecker {
 
         for (line in lines) {
             val trimmed = line.trim()
-            // Remove raw markdown images: ![alt](url)
-            if (trimmed.startsWith("![") && trimmed.contains("](")) continue
-            // Remove HTML image tags
-            if (trimmed.startsWith("<img") && trimmed.endsWith(">")) continue
-            if (trimmed.contains("<img") && trimmed.contains("src=")) continue
+            if (trimmed.isEmpty()) continue
 
-            // Clean markdown headers
+            // 1. Ignore HTML container tags (div, center, etc.)
+            if (trimmed.startsWith("<div", ignoreCase = true) || 
+                trimmed.startsWith("</div", ignoreCase = true) ||
+                trimmed.startsWith("<p", ignoreCase = true) ||
+                trimmed.startsWith("</p", ignoreCase = true) ||
+                trimmed.startsWith("<center", ignoreCase = true) ||
+                trimmed.startsWith("</center", ignoreCase = true)) {
+                continue
+            }
+
+            // 2. Ignore divider lines
+            if (trimmed.all { it == '-' || it == '*' || it == '_' } && trimmed.length >= 3) {
+                continue
+            }
+
+            // 3. Ignore raw markdown images / badges: ![alt](url)
+            if (trimmed.startsWith("![") && trimmed.contains("](")) {
+                continue
+            }
+
+            // 4. Ignore HTML image tags: <img ... />
+            if (trimmed.contains("<img", ignoreCase = true)) {
+                continue
+            }
+
+            // 5. Clean markdown headers with modern badges
             var cleanLine = trimmed
-            if (cleanLine.startsWith("###")) {
-                cleanLine = "🔸 " + cleanLine.removePrefix("###").trim()
-            } else if (cleanLine.startsWith("##")) {
-                cleanLine = "🔹 " + cleanLine.removePrefix("##").trim()
-            } else if (cleanLine.startsWith("#")) {
-                cleanLine = "💎 " + cleanLine.removePrefix("#").trim()
+            when {
+                cleanLine.startsWith("####") -> {
+                    cleanLine = "▫️ " + cleanLine.removePrefix("####").trim()
+                }
+                cleanLine.startsWith("###") -> {
+                    cleanLine = "\n🔸 " + cleanLine.removePrefix("###").trim()
+                }
+                cleanLine.startsWith("##") -> {
+                    cleanLine = "\n💎 " + cleanLine.removePrefix("##").trim()
+                }
+                cleanLine.startsWith("#") -> {
+                    cleanLine = "\n🚀 " + cleanLine.removePrefix("#").trim()
+                }
             }
 
-            // Clean bullet points
+            // 6. Clean bullet points
             if (cleanLine.startsWith("- ") || cleanLine.startsWith("* ")) {
-                cleanLine = "• " + cleanLine.substring(2).trim()
+                cleanLine = "  • " + cleanLine.substring(2).trim()
             }
 
-            // Remove markdown links: [text](url) -> text
+            // 7. Remove markdown links: [text](url) -> text
             cleanLine = cleanLine.replace(Regex("\\[([^\\]]+)\\]\\([^\\)]+\\)")) { match ->
                 match.groupValues[1]
             }
 
-            // Remove bold/italic symbols
+            // 8. Strip remaining HTML tags if any (e.g. <b>, </b>)
+            cleanLine = cleanLine.replace(Regex("<[^>]*>"), "")
+
+            // 9. Clean markdown bold/code asterisks and backticks
             cleanLine = cleanLine.replace("**", "").replace("__", "").replace("`", "")
 
-            if (cleanLine.isNotBlank()) {
-                cleanedLines.add(cleanLine)
+            val finalLine = cleanLine.trimEnd()
+            if (finalLine.isNotBlank()) {
+                cleanedLines.add(finalLine)
             }
         }
 
-        return cleanedLines.joinToString("\n")
+        return cleanedLines.joinToString("\n").trim()
     }
 }

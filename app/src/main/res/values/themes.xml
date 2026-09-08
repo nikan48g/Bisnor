@@ -68,6 +68,18 @@
         <item name="android:fontFamily">@font/vazirmatn_medium</item>
     </style>
 
+    <style name="TextAppearance.Bisnor.BottomNav" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/vazirmatn_medium</item>
+        <item name="android:fontFamily">@font/vazirmatn_medium</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="TextAppearance.Bisnor.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/vazirmatn_bold</item>
+        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+
     <style name="Theme.Bisnor.Light" parent="Theme.Bisnor" />
 
     <!-- Fullscreen Player Theme -->

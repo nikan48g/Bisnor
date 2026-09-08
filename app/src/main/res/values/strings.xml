@@ -2,7 +2,7 @@
     <string name="app_name">بیسنور</string>
     <string name="app_name_en">Bisnor</string>
     <string name="nav_home">خانه</string>
-    <string name="nav_explore">کاوش</string>
+    <string name="nav_explore">جستجو</string>
     <string name="nav_watchlist">واچ‌لیست</string>
     <string name="nav_favorites">واچ‌لیست</string>
     <string name="nav_downloads">دانلودها</string>
@@ -41,5 +41,5 @@
     <string name="settings_player">تنظیمات پلیر و ویدیو</string>
     <string name="settings_downloads">مدیریت حافظه و دانلودها</string>
     <string name="settings_about">درباره بیسنور</string>
-    <string name="settings_version">نسخه ۴.۰.۰ - بیسنور سینما (طراحی شیشه‌ای و موتور جستجوی پیشرفته)</string>
+    <string name="settings_version">نسخه ۴.۵.۰ - بیسنور سینما (بهینه‌سازی پلیر، جستجو و طراحی شیشه‌ای)</string>
 </resources>

@@ -32,7 +32,7 @@
     <color name="surface_container_highest">#31313C</color>
 
     <color name="outline">#8E9099</color>
-    <color name="outline_variant">#3C3D4A</color>
+    <color name="outline_variant">#2EFFFFFF</color>
 
     <!-- Accents & Functional -->
     <color name="rating_gold">#FFC107</color>
@@ -44,5 +44,5 @@
     <color name="overlay_scrim">#B3000000</color>
     <color name="shimmer_base">#1C1C24</color>
     <color name="shimmer_highlight">#2E2E3C</color>
-    <color name="nav_bar_translucent">#D91B1B22</color>
+    <color name="nav_bar_translucent">#B3181822</color>
 </resources>

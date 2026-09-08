@@ -47,6 +47,12 @@
         <item name="textAppearanceLabelSmall">@style/TextAppearance.Bisnor.Label</item>
     </style>
 
+    <style name="Widget.Bisnor.BottomNav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">#1A000000</item>
+        <item name="android:width">56dp</item>
+        <item name="android:height">32dp</item>
+    </style>
+
     <style name="Theme.Bisnor.Light" parent="Theme.Bisnor" />
 
     <style name="Theme.Bisnor.Player" parent="Theme.Material3.Dark.NoActionBar">

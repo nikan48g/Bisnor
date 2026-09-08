@@ -66,21 +66,23 @@
         <!-- Filter Modal Menu Button (Glass Pill) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_open_filters_dialog"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginStart="8dp"
             android:insetTop="0dp"
             android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
             android:padding="0dp"
             app:backgroundTint="@color/nav_bar_translucent"
             app:cornerRadius="16dp"
             app:strokeColor="@color/outline_variant"
             app:strokeWidth="1dp"
-            app:icon="@drawable/ic_filter"
+            app:icon="@drawable/ic_tune"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
-            app:iconSize="20dp"
+            app:iconSize="24dp"
             app:iconTint="@color/primary" />
     </LinearLayout>
 

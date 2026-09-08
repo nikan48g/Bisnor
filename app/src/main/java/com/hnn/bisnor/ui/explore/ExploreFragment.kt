@@ -138,17 +138,25 @@ class ExploreFragment : Fragment() {
         val btnApply = dialogView.findViewById<View>(R.id.btn_dialog_apply)
         val btnReset = dialogView.findViewById<View>(R.id.btn_dialog_reset)
 
-        btnType.text = filterType
-        btnContent.text = filterContent
-        btnGenres.text = if (selectedGenres.isEmpty()) "مهم نیست" else "${selectedGenres.size} ژانر انتخاب شد"
-        btnCountry.text = filterCountry
-        btnYear.text = filterYearRange
-        btnSort.text = filterSort
-        sliderImdb.value = filterMinImdb
-        tvImdbLabel.text = if (filterMinImdb > 0f) "امتیاز IMDb: حداقل ${String.format("%.1f", filterMinImdb)}" else "امتیاز IMDb: مهم نیست"
+        var tempType = filterType
+        var tempContent = filterContent
+        val tempGenres = selectedGenres.toMutableSet()
+        var tempCountry = filterCountry
+        var tempYear = filterYearRange
+        var tempSort = filterSort
+        var tempMinImdb = filterMinImdb
+
+        btnType.text = tempType
+        btnContent.text = tempContent
+        btnGenres.text = if (tempGenres.isEmpty()) "مهم نیست" else "${tempGenres.size} ژانر انتخاب شد"
+        btnCountry.text = tempCountry
+        btnYear.text = tempYear
+        btnSort.text = tempSort
+        sliderImdb.value = tempMinImdb
+        tvImdbLabel.text = if (tempMinImdb > 0f) "امتیاز IMDb: حداقل ${String.format("%.1f", tempMinImdb)}" else "امتیاز IMDb: مهم نیست"
 
         sliderImdb.addOnChangeListener { _, value, _ ->
-            filterMinImdb = value
+            tempMinImdb = value
             tvImdbLabel.text = if (value > 0f) "امتیاز IMDb: حداقل ${String.format("%.1f", value)}" else "امتیاز IMDb: مهم نیست"
         }
 
@@ -158,8 +166,8 @@ class ExploreFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("دسته:")
                 .setItems(items) { _, which ->
-                    filterType = items[which]
-                    btnType.text = filterType
+                    tempType = items[which]
+                    btnType.text = tempType
                 }.show()
         }
 
@@ -169,27 +177,27 @@ class ExploreFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("محتوا:")
                 .setItems(items) { _, which ->
-                    filterContent = items[which]
-                    btnContent.text = filterContent
+                    tempContent = items[which]
+                    btnContent.text = tempContent
                 }.show()
         }
 
-        // 3. Multi-Genre Checkbox Modal (As shown in screenshot)
+        // 3. Multi-Genre Checkbox Modal
         btnGenres.setOnClickListener {
             val allGenresList = arrayOf(
                 "کمدی", "اکشن", "عاشقانه", "ترسناک", "علمی تخیلی", "آخرالزمانی",
                 "انیمیشن", "انیمه", "تاریخی", "درام", "مستند", "جنایی", "ماجراجویی", "خانوادگی"
             )
-            val checkedItems = BooleanArray(allGenresList.size) { i -> selectedGenres.contains(allGenresList[i]) }
+            val checkedItems = BooleanArray(allGenresList.size) { i -> tempGenres.contains(allGenresList[i]) }
 
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("انتخاب ژانر (چند موردی)")
                 .setMultiChoiceItems(allGenresList, checkedItems) { _, which, isChecked ->
                     val g = allGenresList[which]
-                    if (isChecked) selectedGenres.add(g) else selectedGenres.remove(g)
+                    if (isChecked) tempGenres.add(g) else tempGenres.remove(g)
                 }
                 .setPositiveButton("تایید") { _, _ ->
-                    btnGenres.text = if (selectedGenres.isEmpty()) "مهم نیست" else "${selectedGenres.size} ژانر انتخاب شد"
+                    btnGenres.text = if (tempGenres.isEmpty()) "مهم نیست" else "${tempGenres.size} ژانر انتخاب شد"
                 }
                 .show()
         }
@@ -200,8 +208,8 @@ class ExploreFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("کشور:")
                 .setItems(items) { _, which ->
-                    filterCountry = items[which]
-                    btnCountry.text = filterCountry
+                    tempCountry = items[which]
+                    btnCountry.text = tempCountry
                 }.show()
         }
 
@@ -211,8 +219,8 @@ class ExploreFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("سال انتشار:")
                 .setItems(items) { _, which ->
-                    filterYearRange = items[which]
-                    btnYear.text = filterYearRange
+                    tempYear = items[which]
+                    btnYear.text = tempYear
                 }.show()
         }
 
@@ -222,8 +230,8 @@ class ExploreFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("ترتیب بر اساس:")
                 .setItems(items) { _, which ->
-                    filterSort = items[which]
-                    btnSort.text = filterSort
+                    tempSort = items[which]
+                    btnSort.text = tempSort
                 }.show()
         }
 
@@ -245,6 +253,15 @@ class ExploreFragment : Fragment() {
         }
 
         btnApply.setOnClickListener {
+            filterType = tempType
+            filterContent = tempContent
+            selectedGenres.clear()
+            selectedGenres.addAll(tempGenres)
+            filterCountry = tempCountry
+            filterMinImdb = tempMinImdb
+            filterYearRange = tempYear
+            filterSort = tempSort
+
             filterList()
             dialog.dismiss()
             Toast.makeText(requireContext(), "فیلترها اعمال شدند", Toast.LENGTH_SHORT).show()
@@ -382,6 +399,10 @@ class ExploreFragment : Fragment() {
             filtered = filtered.filter { it.country.any { c -> c.title.contains("ژاپن") } || it.genres.any { g -> g.title.contains("انیمه") || g.title.contains("ژاپن") } || it.title.contains("انیمه") || it.title.contains("ژاپن") }
         } else if (filterCountry.contains("ترکیه")) {
             filtered = filtered.filter { it.country.any { c -> c.title.contains("ترکیه") } || it.title.contains("ترکی") || it.description.contains("ترکیه") }
+        } else if (filterCountry.contains("ایران")) {
+            filtered = filtered.filter { it.country.any { c -> c.title.contains("ایران") } || it.title.contains("ایرانی") || it.description.contains("ایران") }
+        } else if (filterCountry.contains("آمریکا")) {
+            filtered = filtered.filter { it.country.any { c -> c.title.contains("آمریکا") || c.title.contains("usa", ignoreCase = true) } || it.description.contains("آمریکا") }
         }
 
         // 5. Min IMDb
@@ -389,10 +410,10 @@ class ExploreFragment : Fragment() {
             filtered = filtered.filter { it.imdb >= filterMinImdb }
         }
 
-        // 6. Year Range
+        // 6. Year Range (Support both Persian and English digits)
         filtered = when {
-            filterYearRange.contains("۲۰۲۴") -> filtered.filter { it.year >= 2024 }
-            filterYearRange.contains("۲۰۲۰") -> filtered.filter { it.year in 2020..2023 }
+            filterYearRange.contains("2024") || filterYearRange.contains("۲۰۲۴") -> filtered.filter { it.year >= 2024 }
+            filterYearRange.contains("2020") || filterYearRange.contains("۲۰۲۰") -> filtered.filter { it.year in 2020..2023 }
             filterYearRange.contains("قبل") -> filtered.filter { it.year in 1..2019 }
             else -> filtered
         }

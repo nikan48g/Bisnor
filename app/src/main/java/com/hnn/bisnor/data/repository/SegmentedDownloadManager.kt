@@ -246,8 +246,11 @@ object SegmentedDownloadManager {
                 task.bytesDownloaded.set(finalSize)
                 task.speedBytesPerSec = 0L
                 saveTasks(context)
-
                 MediaScannerConnection.scanFile(context, arrayOf(targetFile.absolutePath), null, null)
+
+                try {
+                    com.hnn.bisnor.data.database.SmartTasteDatabase(context).recordDataUsage(finalSize)
+                } catch (_: Exception) {}
 
                 val activeActivity = BisnorApp.currentActivity
                 if (activeActivity != null && activeActivity !is DownloadsActivity) {

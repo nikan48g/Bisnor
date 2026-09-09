@@ -55,6 +55,9 @@ class PlayerActivity : AppCompatActivity() {
     private var episodeTitle: String = ""
     private var episodeIndex: Int = 0
     private var startPositionMs: Long = 0L
+    private var mediaType: String = "movie"
+    private var mediaGenres: ArrayList<String> = arrayListOf()
+    private var lastRecordedPosMs: Long = 0L
     private var currentSpeedIndex = 1 // 1.0x
     private val speeds = listOf(0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
     private val speedLabels = listOf("0.75x", "1.0x", "1.25x", "1.5x", "2.0x")
@@ -133,6 +136,8 @@ class PlayerActivity : AppCompatActivity() {
         episodeTitle = intent.getStringExtra("episode_title") ?: ""
         episodeIndex = intent.getIntExtra("episode_index", 0)
         startPositionMs = intent.getLongExtra("start_position", 0L)
+        mediaType = intent.getStringExtra("media_type") ?: (if (episodeTitle.isNotEmpty() || episodeIndex > 0) "series" else "movie")
+        mediaGenres = intent.getStringArrayListExtra("media_genres") ?: arrayListOf()
 
         if (startPositionMs <= 0L && videoUrl.isNotEmpty()) {
             val saved = historyManager.getProgressByUrl(videoUrl)
@@ -568,6 +573,27 @@ class PlayerActivity : AppCompatActivity() {
                     positionMs = pos,
                     durationMs = dur
                 )
+
+                val deltaMs = pos - lastRecordedPosMs
+                if (deltaMs in 2000L..60000L) {
+                    val bytesEst = (deltaMs * 350L).coerceAtLeast(0L) // approx ~2.8 Mbps stream data
+                    try {
+                        val tasteDb = com.hnn.bisnor.data.database.SmartTasteDatabase(this)
+                        tasteDb.recordDataUsage(bytesEst)
+                        tasteDb.recordWatchEvent(
+                            mediaId = mediaId,
+                            title = mediaTitle,
+                            mediaType = mediaType,
+                            genres = mediaGenres,
+                            durationMs = deltaMs,
+                            bytesUsed = bytesEst,
+                            isCompleted = (pos * 100 / dur) >= 90
+                        )
+                    } catch (_: Exception) {}
+                    lastRecordedPosMs = pos
+                } else if (lastRecordedPosMs == 0L && pos > 0) {
+                    lastRecordedPosMs = pos
+                }
             }
         }
     }

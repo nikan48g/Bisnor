@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/vazirmatn_medium"
-            android:text="انتخاب آواتار سینمایی طنز:"
+            android:text="انتخاب کاراکتر و تصویر حساب:"
             android:textColor="@color/on_surface_variant"
             android:textSize="12sp" />
 
@@ -50,7 +50,7 @@
                 android:focusable="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_android" />
+                android:src="@drawable/avatar_breakingbad" />
 
             <ImageView
                 android:id="@+id/img_avatar_opt_2"
@@ -62,7 +62,7 @@
                 android:focusable="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_popcorn" />
+                android:src="@drawable/avatar_luffy" />
 
             <ImageView
                 android:id="@+id/img_avatar_opt_3"
@@ -74,7 +74,7 @@
                 android:focusable="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_cinema" />
+                android:src="@drawable/avatar_wednesday" />
 
             <ImageView
                 android:id="@+id/img_avatar_opt_4"
@@ -86,7 +86,7 @@
                 android:focusable="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_star" />
+                android:src="@drawable/avatar_film" />
         </LinearLayout>
     </LinearLayout>
 

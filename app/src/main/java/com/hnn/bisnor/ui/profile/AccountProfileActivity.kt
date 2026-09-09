@@ -47,7 +47,6 @@ class AccountProfileActivity : AppCompatActivity() {
         setupFavoriteGenres()
         loadTasteStats()
         loadMonthlyAnalytics()
-        setupWhatToWatch()
 
         binding.btnSaveProfile.setOnClickListener {
             val newName = binding.etUsername.text?.toString()?.trim() ?: ""
@@ -59,6 +58,9 @@ class AccountProfileActivity : AppCompatActivity() {
         }
 
         binding.btnChangeAvatarRound.setOnClickListener {
+            showAvatarSelectionDialog()
+        }
+        binding.imgProfileAvatarLarge.setOnClickListener {
             showAvatarSelectionDialog()
         }
 
@@ -313,77 +315,10 @@ class AccountProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupWhatToWatch() {
-        val clickListener = View.OnClickListener {
-            val topGenres = tasteDb.getTopRecommendedGenres()
-            val genreDesc = topGenres.take(3).joinToString(" و ")
-            val contentPref = tasteDb.getContentTypePreference()
-
-            Toast.makeText(this, "در حال یافتن بهترین پیشنهاد بر اساس ژانر «$genreDesc»...", Toast.LENGTH_SHORT).show()
-
-            lifecycleScope.launch(Dispatchers.IO) {
-                val movies = RealMediaRepository.getLatestMovies(0)
-                val series = RealMediaRepository.getPopularSeries(0)
-                val mediaList = (movies + series).distinctBy { it.id }
-                val filteredByType = mediaList.filter { m ->
-                    when (contentPref) {
-                        "movie" -> !m.isSeries
-                        "series" -> m.isSeries
-                        else -> true
-                    }
-                }
-                val candidatePool = if (filteredByType.isNotEmpty()) filteredByType else mediaList
-                val candidate = candidatePool.shuffled().firstOrNull { m ->
-                    m.genres.any { g -> topGenres.any { tg -> g.title.contains(tg) } }
-                } ?: candidatePool.randomOrNull()
-
-                withContext(Dispatchers.Main) {
-                    if (candidate != null) {
-                        val typeLabel = if (candidate.isSeries) "سریال 📺" else "فیلم 🎬"
-                        MaterialAlertDialogBuilder(this@AccountProfileActivity)
-                            .setTitle("🎲 پیشنهاد امشب بیسنور ($typeLabel)")
-                            .setMessage("پیشنهاد بر اساس علاقه شما به ژانر $genreDesc:\n\n«${candidate.title}»\nنوع: $typeLabel\nسال ساخت: ${candidate.year}\nامتیاز: ${candidate.imdb}")
-                            .setPositiveButton("مشاهده و تماشا") { _, _ ->
-                                val intent = Intent(this@AccountProfileActivity, DetailActivity::class.java).apply {
-                                    putExtra("real_media", candidate as java.io.Serializable)
-                                }
-                                startActivity(intent)
-                            }
-                            .setNegativeButton("پیشنهاد بعدی", null)
-                            .show()
-                    } else {
-                        Toast.makeText(this@AccountProfileActivity, "موردی یافت نشد", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-
-        binding.cardWhatToWatch.setOnClickListener(clickListener)
-        binding.btnWhatToWatch.setOnClickListener(clickListener)
-    }
-
     private fun showAvatarSelectionDialog() {
-        val avatars = listOf(
-            "https://api.dicebear.com/7.x/bottts/png?seed=Bisnor1",
-            "https://api.dicebear.com/7.x/bottts/png?seed=Bisnor2",
-            "https://api.dicebear.com/7.x/bottts/png?seed=Bisnor3",
-            "https://api.dicebear.com/7.x/bottts/png?seed=Bisnor4",
-            "https://api.dicebear.com/7.x/bottts/png?seed=Bisnor5"
-        )
-        val items = arrayOf("آواتار ۱ 🤖", "آواتار ۲ 🦁", "آواتار ۳ 🚀", "آواتار ۴ 💎", "آواتار ۵ 🎭")
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle("انتخاب تصویر پروفایل")
-            .setItems(items) { _, which ->
-                val chosen = avatars[which]
-                authManager.updateAvatarUrl(chosen)
-                binding.imgProfileAvatarLarge.load(chosen) {
-                    crossfade(true)
-                    transformations(CircleCropTransformation())
-                }
-                Toast.makeText(this, "تصویر پروفایل بروز شد", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("انصراف", null)
-            .show()
+        com.hnn.bisnor.util.AvatarPickerDialogHelper.show(this, authManager) { avatar ->
+            binding.imgProfileAvatarLarge.setImageResource(avatar.drawableRes)
+            Toast.makeText(this, "تصویر پروفایل به «${avatar.name}» تغییر یافت", Toast.LENGTH_SHORT).show()
+        }
     }
 }

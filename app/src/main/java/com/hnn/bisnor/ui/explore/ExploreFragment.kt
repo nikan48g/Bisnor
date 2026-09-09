@@ -271,17 +271,65 @@ class ExploreFragment : Fragment() {
     }
 
     private fun showRandomMovieDialog() {
-        val pool = allLoaded.filter { it.imdb >= 6.5 && it.image.isNotEmpty() }
-        randomCandidates = if (pool.isNotEmpty()) pool.shuffled() else allLoaded.shuffled()
-        if (randomCandidates.isEmpty()) {
-            Toast.makeText(requireContext(), "در حال دریافت فیلم‌ها...", Toast.LENGTH_SHORT).show()
+        if (allLoaded.isEmpty()) {
+            Toast.makeText(requireContext(), "در حال دریافت کاتالوگ فیلم‌ها و سریال‌ها...", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                allLoaded = RealMediaRepository.getExploreCatalog()
+                showRandomMovieDialog()
+            }
             return
         }
+
+        val tasteDb = com.hnn.bisnor.data.database.SmartTasteDatabase(requireContext())
+        val contentPref = tasteDb.getContentTypePreference()
+        val favoriteGenres = tasteDb.getFavoriteGenres()
+        val topLearnedGenres = tasteDb.getTopRecommendedGenres()
+        val allPreferredGenres = (favoriteGenres + topLearnedGenres).distinct()
+
+        // 1. Filter by content preference
+        val filteredByType = allLoaded.filter { m ->
+            when (contentPref) {
+                "movie" -> !m.isSeries
+                "series" -> m.isSeries
+                else -> true
+            }
+        }
+        val candidatePool = if (filteredByType.isNotEmpty()) filteredByType else allLoaded
+
+        // 2. Score candidates based on user tastes, favorites and IMDb quality
+        val scoredCandidates = candidatePool.map { item ->
+            var score = item.imdb * 1.5
+            val titleLower = item.title.lowercase()
+            val descLower = item.description.lowercase()
+
+            for (genre in allPreferredGenres) {
+                val gLower = genre.lowercase()
+                val isMatch = item.genres.any { it.title.contains(genre, ignoreCase = true) } ||
+                        titleLower.contains(gLower) ||
+                        descLower.contains(gLower) ||
+                        (genre == "انیمه" && (titleLower.contains("انیمه") || item.genres.any { it.title.contains("انیمه") || it.title.contains("انیمیشن") }))
+
+                if (isMatch) {
+                    score += 6.0
+                    if (favoriteGenres.contains(genre)) score += 4.0
+                }
+            }
+
+            if (item.imdb >= 8.0) score += 5.0
+            if (item.imdb < 6.0) score -= 10.0
+
+            item to score
+        }.sortedByDescending { it.second }
+
+        // Take the top 25 high-scoring gems and shuffle slightly for discovery freshness
+        val topPicks = scoredCandidates.take(25).map { it.first }.shuffled()
+        randomCandidates = if (topPicks.isNotEmpty()) topPicks else candidatePool.shuffled()
 
         randomizerIndex = 0
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_random_movie, null)
         val imgPreview = dialogView.findViewById<ImageView>(R.id.img_random_preview)
         val tvRating = dialogView.findViewById<TextView>(R.id.tv_random_rating)
+        val tvMatchReason = dialogView.findViewById<TextView>(R.id.tv_random_match_reason)
         val tvTitle = dialogView.findViewById<TextView>(R.id.tv_random_title)
         val tvGenreYear = dialogView.findViewById<TextView>(R.id.tv_random_genre_year)
         val tvDesc = dialogView.findViewById<TextView>(R.id.tv_random_desc)
@@ -298,12 +346,28 @@ class ExploreFragment : Fragment() {
             val banner = if (item.cover.isNotEmpty()) item.cover else item.image
             imgPreview.load(banner) { crossfade(true) }
             tvRating.text = String.format("%.1f", item.imdb)
+
+            // Match Reason Label
+            val matchedPrefGenre = item.genres.firstOrNull { g -> allPreferredGenres.any { g.title.contains(it) } }?.title
+                ?: allPreferredGenres.firstOrNull()
+
+            val typeBadge = if (item.isSeries) "سریال 📺" else "فیلم 🎬"
+            if (matchedPrefGenre != null) {
+                tvMatchReason.text = "🎯 پیشنهاد سلیقه‌سنج: ژانر «$matchedPrefGenre» • $typeBadge"
+                tvMatchReason.visibility = View.VISIBLE
+            } else {
+                tvMatchReason.text = "⭐ منتخب با بالاترین امتیاز IMDb • $typeBadge"
+                tvMatchReason.visibility = View.VISIBLE
+            }
+
             tvTitle.text = item.title
             val genreStr = item.genres.joinToString("، ") { it.title }
             val yearStr = if (item.year > 0) "${item.year} • " else ""
-            val typeStr = if (item.type == "serie") "سریال" else "سینمایی"
-            tvGenreYear.text = "$yearStr$typeStr • $genreStr"
-            tvDesc.text = if (item.description.isNotEmpty()) item.description else "توضیحاتی موجود نیست."
+            tvGenreYear.text = "$yearStr$typeBadge • $genreStr"
+
+            val isAnim = item.genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("انیمه") } || item.title.contains("انیمه")
+            val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb, isAnim, item.isSeries)
+            tvDesc.text = if (meta.cleanStoryline.isNotEmpty()) meta.cleanStoryline else "توضیحاتی موجود نیست."
 
             btnWatch.setOnClickListener {
                 dialog.dismiss()

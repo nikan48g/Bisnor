@@ -107,13 +107,36 @@ object RealMediaRepository {
         }
     }
 
+    suspend fun getExploreCatalog(): List<RealMedia> = withContext(Dispatchers.IO) {
+        val topImdb0 = async { getTopImdbMovies(0) }
+        val topImdb1 = async { getTopImdbMovies(1) }
+        val topImdb2 = async { getTopImdbMovies(2) }
+        val topImdb3 = async { getTopImdbMovies(3) }
+        val latest0 = async { getLatestMovies(0) }
+        val latest1 = async { getLatestMovies(1) }
+        val latest2 = async { getLatestMovies(2) }
+        val series0 = async { getPopularSeries(0) }
+        val series1 = async { getPopularSeries(1) }
+        val series2 = async { getPopularSeries(2) }
+
+        val list = mutableListOf<RealMedia>()
+        try { list.addAll(topImdb0.await()) } catch (_: Exception) {}
+        try { list.addAll(topImdb1.await()) } catch (_: Exception) {}
+        try { list.addAll(topImdb2.await()) } catch (_: Exception) {}
+        try { list.addAll(topImdb3.await()) } catch (_: Exception) {}
+        try { list.addAll(latest0.await()) } catch (_: Exception) {}
+        try { list.addAll(latest1.await()) } catch (_: Exception) {}
+        try { list.addAll(latest2.await()) } catch (_: Exception) {}
+        try { list.addAll(series0.await()) } catch (_: Exception) {}
+        try { list.addAll(series1.await()) } catch (_: Exception) {}
+        try { list.addAll(series2.await()) } catch (_: Exception) {}
+
+        list.distinctBy { it.id }
+    }
+
     suspend fun search(query: String): List<RealMedia> = withContext(Dispatchers.IO) {
         if (query.trim().isEmpty()) {
-            val moviesDeferred = async { getLatestMovies(0) }
-            val seriesDeferred = async { getPopularSeries(0) }
-            val topMoviesDeferred = async { getTopImdbMovies(0) }
-            val combined = (moviesDeferred.await() + seriesDeferred.await() + topMoviesDeferred.await()).distinctBy { it.id }
-            return@withContext combined
+            return@withContext getExploreCatalog()
         }
         try {
             val encoded = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8.toString()).replace("+", "%20")

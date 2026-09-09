@@ -170,65 +170,14 @@ class SettingsFragment : Fragment() {
     }
 
     private fun showAvatarPickerDialog() {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_select_avatar, null)
-        val opt1 = dialogView.findViewById<View>(R.id.btn_pick_avatar_1)
-        val opt2 = dialogView.findViewById<View>(R.id.btn_pick_avatar_2)
-        val opt3 = dialogView.findViewById<View>(R.id.btn_pick_avatar_3)
-        val opt4 = dialogView.findViewById<View>(R.id.btn_pick_avatar_4)
-        val img1 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_1)
-        val img2 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_2)
-        val img3 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_3)
-        val img4 = dialogView.findViewById<ImageView>(R.id.img_pick_avatar_4)
-        val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.btn_confirm_avatar)
-
-        var selected = authManager.userAvatarId
-        val items = listOf(
-            opt1 to (img1 to "m3_android"),
-            opt2 to (img2 to "m3_popcorn"),
-            opt3 to (img3 to "m3_cinema"),
-            opt4 to (img4 to "m3_star")
-        )
-
-        fun updateSelection() {
-            items.forEach { (_, pair) ->
-                val (iv, id) = pair
-                if (id == selected) {
-                    iv.alpha = 1.0f
-                    iv.scaleX = 1.15f
-                    iv.scaleY = 1.15f
-                } else {
-                    iv.alpha = 0.5f
-                    iv.scaleX = 0.92f
-                    iv.scaleY = 0.92f
-                }
-            }
-        }
-
-        updateSelection()
-
-        items.forEach { (view, pair) ->
-            view.setOnClickListener {
-                selected = pair.second
-                updateSelection()
-            }
-        }
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogView)
-            .create()
-
-        btnConfirm.setOnClickListener {
-            dialog.dismiss()
+        com.hnn.bisnor.util.AvatarPickerDialogHelper.show(requireContext(), authManager) { avatar ->
             lifecycleScope.launch {
-                authManager.updateAvatar(selected)
+                authManager.updateAvatar(avatar.id)
                 setupUserProfileSection()
                 Toast.makeText(requireContext(), "آواتار شما با موفقیت تغییر کرد!", Toast.LENGTH_SHORT).show()
             }
         }
-
-        dialog.show()
     }
-
 
     private fun showAuthDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_auth, null)
@@ -247,10 +196,10 @@ class SettingsFragment : Fragment() {
         var selectedAvatarId = authManager.userAvatarId
 
         val avatarViews = listOf(
-            imgAvatar1 to "m3_android",
-            imgAvatar2 to "m3_popcorn",
-            imgAvatar3 to "m3_cinema",
-            imgAvatar4 to "m3_star"
+            imgAvatar1 to "avatar_breakingbad",
+            imgAvatar2 to "avatar_luffy",
+            imgAvatar3 to "avatar_wednesday",
+            imgAvatar4 to "avatar_film"
         )
 
         fun updateAvatarSelection() {
@@ -367,9 +316,9 @@ class SettingsFragment : Fragment() {
             val btnInstall = itemView.findViewById<MaterialButton>(R.id.btn_player_install)
 
             tvName.text = player.name
+            imgIcon.imageTintList = null
             if (player.appIcon != null) {
                 imgIcon.setImageDrawable(player.appIcon)
-                imgIcon.imageTintList = null
             } else {
                 imgIcon.setImageResource(player.iconRes)
             }

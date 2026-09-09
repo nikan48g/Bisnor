@@ -202,68 +202,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Recommendation Feature: چی ببینم؟ -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="امشب چی ببینم؟ 🎲"
-                android:textColor="@color/primary"
-                android:textSize="14sp" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_what_to_watch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/surface_container"
-                app:cardCornerRadius="16dp"
-                app:strokeWidth="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="پیشنهاد هوشمند فیلم و سریال"
-                            android:textColor="@color/on_surface"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="بر اساس ژانرهای مورد علاقه و تحلیل تاریخچه تماشای شما"
-                            android:textColor="@color/on_surface_variant"
-                            android:textSize="11.5sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_what_to_watch"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:text="پیشنهاد بده 🎲"
-                        android:textSize="11.5sp"
-                        app:backgroundTint="@color/primary_container"
-                        app:cornerRadius="10dp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
             <!-- Favorite Genres (Manual Selection) -->
             <TextView
@@ -334,7 +272,7 @@
                     android:focusable="true"
                     android:fontFamily="@font/vazirmatn_medium"
                     android:padding="4dp"
-                    android:text="پاکسازی یادگیری"
+                    android:text="پاک‌سازی یادگیری"
                     android:textColor="@color/error"
                     android:textSize="11.5sp" />
             </LinearLayout>

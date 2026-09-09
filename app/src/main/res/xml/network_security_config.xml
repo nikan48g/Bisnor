@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- The catalog currently returns legacy HTTP video links from this host only. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">dl175m.info</domain>
+    </domain-config>
+</network-security-config>

@@ -68,8 +68,36 @@
                 app:iconTint="@color/error" />
         </LinearLayout>
 
+        <!-- Live Download Progress Section -->
+        <LinearLayout
+            android:id="@+id/layout_download_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progress_bar_download"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                app:indicatorColor="@color/primary"
+                app:trackColor="@color/surface_container_high"
+                app:trackCornerRadius="3dp" />
+
+            <TextView
+                android:id="@+id/tv_download_progress_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:textColor="@color/primary"
+                android:textSize="11sp" />
+        </LinearLayout>
+
         <!-- Play Button Row -->
         <LinearLayout
+            android:id="@+id/layout_play_offline_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"

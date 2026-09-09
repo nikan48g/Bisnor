@@ -15,7 +15,13 @@ data class DownloadedFile(
     val bytesDownloaded: Long,
     val status: Int,
     val isDownloaded: Boolean
-)
+) {
+    val progressPercent: Int
+        get() = if (totalBytes > 0) ((bytesDownloaded * 100) / totalBytes).toInt().coerceIn(0, 100) else 0
+
+    val isRunning: Boolean
+        get() = status == DownloadManager.STATUS_RUNNING || status == DownloadManager.STATUS_PENDING
+}
 
 object LocalDownloadManager {
 

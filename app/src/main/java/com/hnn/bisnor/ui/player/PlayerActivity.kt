@@ -27,6 +27,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -494,16 +495,28 @@ class PlayerActivity : AppCompatActivity() {
             val httpDataSourceFactory = DefaultHttpDataSource.Factory()
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                 .setAllowCrossProtocolRedirects(true)
-                .setConnectTimeoutMs(30000)
-                .setReadTimeoutMs(30000)
+                .setConnectTimeoutMs(10000)
+                .setReadTimeoutMs(20000)
 
             val dataSourceFactory = DefaultDataSource.Factory(this, httpDataSourceFactory)
             val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             trackSelector = DefaultTrackSelector(this)
 
+            // Fast startup: starts playback immediately once 500ms is buffered instead of waiting seconds
+            val loadControl = DefaultLoadControl.Builder()
+                .setBufferDurationsMs(
+                    /* minBufferMs = */ 15000,
+                    /* maxBufferMs = */ 50000,
+                    /* bufferForPlaybackMs = */ 500,
+                    /* bufferForPlaybackAfterRebufferMs = */ 1000
+                )
+                .setPrioritizeTimeOverSizeThresholds(true)
+                .build()
+
             exoPlayer = ExoPlayer.Builder(this)
                 .setTrackSelector(trackSelector)
                 .setMediaSourceFactory(mediaSourceFactory)
+                .setLoadControl(loadControl)
                 .build().apply {
                     binding.playerView.player = this
                     val mediaItem = MediaItem.fromUri(Uri.parse(cleanUrl))

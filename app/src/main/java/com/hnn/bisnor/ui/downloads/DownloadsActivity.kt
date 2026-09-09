@@ -36,12 +36,30 @@ class DownloadsActivity : AppCompatActivity() {
         loadDownloads()
     }
 
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val refreshRunnable = object : Runnable {
+        override fun run() {
+            loadDownloads(silent = true)
+            // If any download is still running, poll every 1 second
+            if (downloadsList.any { it.isRunning }) {
+                handler.postDelayed(this, 1000)
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         loadDownloads()
+        handler.removeCallbacks(refreshRunnable)
+        handler.post(refreshRunnable)
     }
 
-    private fun loadDownloads() {
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(refreshRunnable)
+    }
+
+    private fun loadDownloads(silent: Boolean = false) {
         downloadsList = LocalDownloadManager.getDownloadedVideos(this)
         adapter.notifyDataSetChanged()
         binding.tvEmptyDownloads.visibility = if (downloadsList.isEmpty()) View.VISIBLE else View.GONE
@@ -49,7 +67,7 @@ class DownloadsActivity : AppCompatActivity() {
 
         val totalBytes = downloadsList.sumOf { it.totalBytes }
         val totalMb = totalBytes / (1024.0 * 1024.0)
-        binding.tvStorageDesc.text = "${downloadsList.size} فایل دانلود شده آماده پخش"
+        binding.tvStorageDesc.text = "${downloadsList.size} فایل در لیست دانلودها"
         binding.tvTotalDownloadSize.text = if (totalMb >= 1024.0) {
             String.format("%.2f GB", totalMb / 1024.0)
         } else {
@@ -70,9 +88,26 @@ class DownloadsActivity : AppCompatActivity() {
             val item = downloadsList[position]
             holder.b.tvDownloadTitle.text = item.title
 
-            val mb = String.format("%.1f", item.totalBytes / (1024.0 * 1024.0))
-            val statusStr = if (item.isDownloaded) "تکمیل شده • $mb MB" else "در حال دانلود..."
-            holder.b.tvDownloadInfo.text = statusStr
+            if (item.isDownloaded) {
+                holder.b.layoutDownloadProgress.visibility = View.GONE
+                holder.b.layoutPlayOfflineContainer.visibility = View.VISIBLE
+                val mb = String.format("%.1f", item.totalBytes / (1024.0 * 1024.0))
+                holder.b.tvDownloadInfo.text = "تکمیل شده • $mb MB"
+            } else {
+                holder.b.layoutDownloadProgress.visibility = View.VISIBLE
+                holder.b.layoutPlayOfflineContainer.visibility = View.GONE
+
+                val pct = item.progressPercent
+                holder.b.progressBarDownload.isIndeterminate = (item.totalBytes <= 0L)
+                if (item.totalBytes > 0L) {
+                    holder.b.progressBarDownload.progress = pct
+                }
+
+                val downloadedMb = String.format("%.1f", item.bytesDownloaded / (1024.0 * 1024.0))
+                val totalMbStr = if (item.totalBytes > 0L) String.format("%.1f", item.totalBytes / (1024.0 * 1024.0)) else "در حال محاسبه"
+                holder.b.tvDownloadProgressText.text = "$pct٪ • $downloadedMb از $totalMbStr MB"
+                holder.b.tvDownloadInfo.text = "در حال دانلود ($pct٪)..."
+            }
 
             holder.b.btnDeleteDownload.setOnClickListener {
                 MaterialAlertDialogBuilder(this@DownloadsActivity)

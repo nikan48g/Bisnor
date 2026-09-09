@@ -87,15 +87,15 @@
         <androidx.media3.ui.DefaultTimeBar
             android:id="@id/exo_progress"
             android:layout_width="0dp"
-            android:layout_height="28dp"
+            android:layout_height="48dp"
             android:layout_marginHorizontal="12dp"
             android:layout_weight="1"
-            app:bar_height="5dp"
-            app:touch_target_height="28dp"
-            app:scrubber_enabled_size="16dp"
-            app:scrubber_dragged_size="22dp"
+            app:bar_height="9dp"
+            app:touch_target_height="48dp"
+            app:scrubber_enabled_size="22dp"
+            app:scrubber_dragged_size="30dp"
             app:played_color="@color/primary"
-            app:buffered_color="#66FFFFFF"
+            app:buffered_color="#80FFFFFF"
             app:scrubber_color="@color/primary"
             app:unplayed_color="#33FFFFFF" />
 

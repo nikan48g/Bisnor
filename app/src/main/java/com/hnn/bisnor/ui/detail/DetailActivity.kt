@@ -185,6 +185,16 @@ class DetailActivity : AppCompatActivity() {
         val item = mediaItem ?: return
         val banner = if (item.cover.isNotEmpty()) item.cover else item.image
 
+        // Learn user taste dynamically
+        try {
+            val genreList = item.genres.map { it.title }
+            com.hnn.bisnor.data.database.SmartTasteDatabase(this).recordWatchEvent(
+                mediaId = item.id,
+                title = item.title,
+                genres = genreList
+            )
+        } catch (_: Exception) {}
+
         PlayerLauncherHelper.launchPlayer(
             activity = this,
             playerChoice = historyManager.preferredPlayer,

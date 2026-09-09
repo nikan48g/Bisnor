@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -113,6 +114,7 @@ object UpdateChecker {
 
         val tvCurrentVersion = view.findViewById<TextView>(R.id.tv_current_version)
         val tvNewVersion = view.findViewById<TextView>(R.id.tv_new_version)
+        val wvChangelog = view.findViewById<android.webkit.WebView?>(R.id.wv_changelog)
         val tvChangelog = view.findViewById<TextView>(R.id.tv_changelog)
         val btnDownload = view.findViewById<MaterialButton>(R.id.btn_download_update)
         val btnClose = view.findViewById<ImageView>(R.id.btn_close_update)
@@ -120,8 +122,22 @@ object UpdateChecker {
 
         tvCurrentVersion.text = "v$currentAppVersionName"
         tvNewVersion.text = "v$newVersion"
-        val formattedNotes = formatChangelog(notes)
-        tvChangelog.text = if (formattedNotes.isNotBlank()) formattedNotes else "بهینه‌سازی کلی، رفع باگ‌ها و ارتقای سرعت پخش استریم."
+
+        if (wvChangelog != null) {
+            wvChangelog.settings.apply {
+                javaScriptEnabled = false
+                loadsImagesAutomatically = true
+                domStorageEnabled = false
+                defaultTextEncodingName = "utf-8"
+            }
+            wvChangelog.setBackgroundColor(0x00000000)
+            val htmlData = buildChangelogHtml(notes)
+            wvChangelog.loadDataWithBaseURL(null, htmlData, "text/html; charset=utf-8", "UTF-8", null)
+        } else {
+            val formattedNotes = formatChangelog(notes)
+            tvChangelog.visibility = View.VISIBLE
+            tvChangelog.text = if (formattedNotes.isNotBlank()) formattedNotes else "بهینه‌سازی کلی، رفع باگ‌ها و ارتقای سرعت پخش استریم."
+        }
 
         btnDownload.setOnClickListener {
             dialog.dismiss()
@@ -138,17 +154,221 @@ object UpdateChecker {
         dialog.show()
     }
 
-    private fun formatChangelog(raw: String): CharSequence {
-        if (raw.isBlank()) return ""
-
+    private fun buildChangelogHtml(raw: String): String {
         val lines = raw.lines()
-        val cleanedLines = mutableListOf<String>()
+        val sb = StringBuilder()
+        var inList = false
 
         for (line in lines) {
             val trimmed = line.trim()
-            if (trimmed.isEmpty()) continue
+            if (trimmed.isEmpty()) {
+                if (inList) {
+                    sb.append("</ul>\n")
+                    inList = false
+                }
+                continue
+            }
 
-            // 1. Ignore HTML container tags (div, center, etc.)
+            // Preserved HTML tags: <div ...>, </div>, <img ...>, <p ...>, </p>
+            if (trimmed.startsWith("<div", ignoreCase = true) ||
+                trimmed.startsWith("</div", ignoreCase = true) ||
+                trimmed.startsWith("<center", ignoreCase = true) ||
+                trimmed.startsWith("</center", ignoreCase = true) ||
+                trimmed.startsWith("<p", ignoreCase = true) ||
+                trimmed.startsWith("</p", ignoreCase = true)
+            ) {
+                if (inList) {
+                    sb.append("</ul>\n")
+                    inList = false
+                }
+                sb.append(trimmed).append("\n")
+                continue
+            }
+
+            // Horizontal dividers
+            if (trimmed.all { it == '-' || it == '*' || it == '_' } && trimmed.length >= 3) {
+                if (inList) {
+                    sb.append("</ul>\n")
+                    inList = false
+                }
+                sb.append("<hr/>\n")
+                continue
+            }
+
+            // Bullet points
+            if (trimmed.startsWith("* ") || trimmed.startsWith("- ")) {
+                if (!inList) {
+                    sb.append("<ul>\n")
+                    inList = true
+                }
+                val content = parseInlineMarkdown(trimmed.substring(2).trim())
+                sb.append("<li>").append(content).append("</li>\n")
+                continue
+            } else if (inList) {
+                sb.append("</ul>\n")
+                inList = false
+            }
+
+            // Markdown Headers
+            when {
+                trimmed.startsWith("####") -> {
+                    val h = parseInlineMarkdown(trimmed.removePrefix("####").trim())
+                    sb.append("<h4>").append(h).append("</h4>\n")
+                }
+                trimmed.startsWith("###") -> {
+                    val h = parseInlineMarkdown(trimmed.removePrefix("###").trim())
+                    sb.append("<h3>").append(h).append("</h3>\n")
+                }
+                trimmed.startsWith("##") -> {
+                    val h = parseInlineMarkdown(trimmed.removePrefix("##").trim())
+                    sb.append("<h2>").append(h).append("</h2>\n")
+                }
+                trimmed.startsWith("#") -> {
+                    val h = parseInlineMarkdown(trimmed.removePrefix("#").trim())
+                    sb.append("<h1>").append(h).append("</h1>\n")
+                }
+                else -> {
+                    val p = parseInlineMarkdown(trimmed)
+                    sb.append("<p>").append(p).append("</p>\n")
+                }
+            }
+        }
+
+        if (inList) {
+            sb.append("</ul>\n")
+        }
+
+        return """
+            <!DOCTYPE html>
+            <html dir="rtl" lang="fa">
+            <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700&display=swap');
+              * { box-sizing: border-box; }
+              body {
+                background-color: transparent;
+                color: #E2E8F0;
+                font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 13.5px;
+                line-height: 1.8;
+                margin: 0;
+                padding: 4px 2px;
+                direction: rtl;
+                text-align: right;
+              }
+              div[align="center"], [align="center"], center {
+                text-align: center !important;
+                direction: ltr !important;
+              }
+              img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 6px;
+                vertical-align: middle;
+                margin: 3px 2px;
+                display: inline-block;
+              }
+              h1 {
+                color: #FFB300;
+                font-size: 20px;
+                margin: 16px 0 8px 0;
+                font-weight: 700;
+              }
+              h2 {
+                color: #FFC107;
+                font-size: 16.5px;
+                margin: 14px 0 6px 0;
+                font-weight: 700;
+              }
+              h3 {
+                color: #FFD54F;
+                font-size: 14.5px;
+                margin: 12px 0 4px 0;
+                font-weight: 600;
+              }
+              h4 {
+                color: #FFE082;
+                font-size: 13.5px;
+                margin: 10px 0 4px 0;
+                font-weight: 600;
+              }
+              p {
+                margin: 6px 0;
+              }
+              ul {
+                padding-right: 20px;
+                padding-left: 0;
+                margin: 6px 0;
+              }
+              li {
+                margin-bottom: 4px;
+              }
+              a {
+                color: #FFB300;
+                text-decoration: none;
+              }
+              hr {
+                border: none;
+                border-top: 1px solid #2D3748;
+                margin: 16px 0;
+              }
+              strong, b {
+                color: #FFFFFF;
+                font-weight: 700;
+              }
+            </style>
+            </head>
+            <body>
+              ${sb.toString()}
+            </body>
+            </html>
+        """.trimIndent()
+    }
+
+    private fun parseInlineMarkdown(text: String): String {
+        var res = text
+
+        // Linked images: [![alt](imgUrl)](linkUrl)
+        res = res.replace(Regex("\\[!\\[([^\\]]*)\\]\\(([^\\)]+)\\)\\]\\(([^\\)]+)\\)")) { m ->
+            val alt = m.groupValues[1]
+            val img = m.groupValues[2]
+            val link = m.groupValues[3]
+            """<a href="$link"><img src="$img" alt="$alt" /></a>"""
+        }
+
+        // Markdown images: ![alt](url)
+        res = res.replace(Regex("!\\[([^\\]]*)\\]\\(([^\\)]+)\\)")) { m ->
+            val alt = m.groupValues[1]
+            val img = m.groupValues[2]
+            """<img src="$img" alt="$alt" />"""
+        }
+
+        // Markdown links: [text](url)
+        res = res.replace(Regex("\\[([^\\]]+)\\]\\(([^\\)]+)\\)")) { m ->
+            val t = m.groupValues[1]
+            val u = m.groupValues[2]
+            """<a href="$u">$t</a>"""
+        }
+
+        // Bold: **text** or __text__
+        res = res.replace(Regex("\\*\\*(.*?)\\*\\*")) { "<strong>${it.groupValues[1]}</strong>" }
+        res = res.replace(Regex("__(.*?)__")) { "<strong>${it.groupValues[1]}</strong>" }
+
+        // Code: `code`
+        res = res.replace(Regex("`([^`]+)`")) { "<code style=\"background:#1F2937; padding:2px 4px; border-radius:4px;\">${it.groupValues[1]}</code>" }
+
+        return res
+    }
+
+    private fun formatChangelog(raw: String): CharSequence {
+        if (raw.isBlank()) return ""
+        val lines = raw.lines()
+        val cleanedLines = mutableListOf<String>()
+        for (line in lines) {
+            val trimmed = line.trim()
+            if (trimmed.isEmpty()) continue
             if (trimmed.startsWith("<div", ignoreCase = true) || 
                 trimmed.startsWith("</div", ignoreCase = true) ||
                 trimmed.startsWith("<p", ignoreCase = true) ||
@@ -157,61 +377,25 @@ object UpdateChecker {
                 trimmed.startsWith("</center", ignoreCase = true)) {
                 continue
             }
-
-            // 2. Ignore divider lines
-            if (trimmed.all { it == '-' || it == '*' || it == '_' } && trimmed.length >= 3) {
-                continue
-            }
-
-            // 3. Ignore raw markdown images / badges: ![alt](url)
-            if (trimmed.startsWith("![") && trimmed.contains("](")) {
-                continue
-            }
-
-            // 4. Ignore HTML image tags: <img ... />
-            if (trimmed.contains("<img", ignoreCase = true)) {
-                continue
-            }
-
-            // 5. Clean markdown headers with modern badges
+            if (trimmed.all { it == '-' || it == '*' || it == '_' } && trimmed.length >= 3) continue
+            if (trimmed.startsWith("![") && trimmed.contains("](")) continue
+            if (trimmed.contains("<img", ignoreCase = true)) continue
             var cleanLine = trimmed
             when {
-                cleanLine.startsWith("####") -> {
-                    cleanLine = "▫️ " + cleanLine.removePrefix("####").trim()
-                }
-                cleanLine.startsWith("###") -> {
-                    cleanLine = "\n🔸 " + cleanLine.removePrefix("###").trim()
-                }
-                cleanLine.startsWith("##") -> {
-                    cleanLine = "\n💎 " + cleanLine.removePrefix("##").trim()
-                }
-                cleanLine.startsWith("#") -> {
-                    cleanLine = "\n🚀 " + cleanLine.removePrefix("#").trim()
-                }
+                cleanLine.startsWith("####") -> cleanLine = "▫️ " + cleanLine.removePrefix("####").trim()
+                cleanLine.startsWith("###") -> cleanLine = "\n🔸 " + cleanLine.removePrefix("###").trim()
+                cleanLine.startsWith("##") -> cleanLine = "\n💎 " + cleanLine.removePrefix("##").trim()
+                cleanLine.startsWith("#") -> cleanLine = "\n🚀 " + cleanLine.removePrefix("#").trim()
             }
-
-            // 6. Clean bullet points
             if (cleanLine.startsWith("- ") || cleanLine.startsWith("* ")) {
                 cleanLine = "  • " + cleanLine.substring(2).trim()
             }
-
-            // 7. Remove markdown links: [text](url) -> text
-            cleanLine = cleanLine.replace(Regex("\\[([^\\]]+)\\]\\([^\\)]+\\)")) { match ->
-                match.groupValues[1]
-            }
-
-            // 8. Strip remaining HTML tags if any (e.g. <b>, </b>)
+            cleanLine = cleanLine.replace(Regex("\\[([^\\]]+)\\]\\([^\\)]+\\)")) { it.groupValues[1] }
             cleanLine = cleanLine.replace(Regex("<[^>]*>"), "")
-
-            // 9. Clean markdown bold/code asterisks and backticks
             cleanLine = cleanLine.replace("**", "").replace("__", "").replace("`", "")
-
             val finalLine = cleanLine.trimEnd()
-            if (finalLine.isNotBlank()) {
-                cleanedLines.add(finalLine)
-            }
+            if (finalLine.isNotBlank()) cleanedLines.add(finalLine)
         }
-
         return cleanedLines.joinToString("\n").trim()
     }
 }

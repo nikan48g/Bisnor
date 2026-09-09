@@ -1,6 +1,7 @@
 package com.hnn.bisnor.ui.settings
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import coil.load
+import coil.transform.CircleCropTransformation
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -23,6 +26,7 @@ import com.hnn.bisnor.data.remote.AuthManager
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.databinding.FragmentSettingsBinding
 import com.hnn.bisnor.ui.downloads.DownloadsActivity
+import com.hnn.bisnor.ui.profile.AccountProfileActivity
 import com.hnn.bisnor.util.PlayerLauncherHelper
 import com.hnn.bisnor.util.UpdateChecker
 import kotlinx.coroutines.launch
@@ -100,19 +104,18 @@ class SettingsFragment : Fragment() {
             showAutoNextTimeDialog()
         }
 
-        binding.btnSettingAutoNextCountdown.setOnClickListener {
-            showAutoNextCountdownDialog()
-        }
-
         binding.btnSettingDownloads.setOnClickListener {
             startActivity(Intent(requireContext(), DownloadsActivity::class.java))
         }
 
-        binding.btnSettingPlaylists.setOnClickListener {
-            (activity as? MainActivity)?.selectFavoritesTab()
+        binding.btnOpenGithub.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nikan48g/Bisnor")).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
         }
 
-        binding.tvAppVersionAbout.text = "نسخه v${com.hnn.bisnor.BuildConfig.VERSION_NAME} (بروزرسانی از گیت‌هاب)"
+        binding.tvAppVersionAbout.text = "نسخه v${com.hnn.bisnor.BuildConfig.VERSION_NAME}"
 
         binding.btnCheckUpdate.setOnClickListener {
             lifecycleScope.launch {
@@ -122,72 +125,47 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        setupUserProfileSection()
+    }
+
     private fun setupUserProfileSection() {
         if (authManager.isLoggedIn) {
-            binding.tvProfileUsername.text = "@${authManager.currentUsername}"
-            binding.imgProfileAvatar.setImageResource(AuthManager.getAvatarDrawable(authManager.userAvatarId))
-            binding.layoutProfileExtraActions.visibility = View.VISIBLE
+            val username = "@${authManager.currentUsername}"
+            binding.tvProfileUsername.text = username
+            binding.tvProfileSyncStatus.text = "مدیریت پروفایل، علایق و تنظیمات"
+            binding.btnProfileAction.visibility = View.GONE
+            binding.imgProfileChevron.visibility = View.VISIBLE
 
-            if (authManager.lastSyncTime > 0L) {
-                val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(authManager.lastSyncTime))
-                binding.tvProfileSyncStatus.text = "همگام‌سازی ابری فعال (آخرین: $timeStr)"
-            } else {
-                binding.tvProfileSyncStatus.text = "متصل به فضای ابری"
-            }
-            binding.btnProfileAction.text = "همگام‌سازی 🔄"
-            binding.btnProfileAction.setOnClickListener {
-                lifecycleScope.launch {
-                    Toast.makeText(requireContext(), "در حال همگام‌سازی لیست‌ها با سرور...", Toast.LENGTH_SHORT).show()
-                    val ok = authManager.syncUp(requireContext())
-                    if (ok) {
-                        setupUserProfileSection()
-                        Toast.makeText(requireContext(), "لیست‌ها و نشان‌شده‌ها با موفقیت در ابری ذخیره شدند!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(requireContext(), "خطا در همگام‌سازی. لطفاً اتصال اینترنت را چک کنید.", Toast.LENGTH_SHORT).show()
-                    }
+            val avatarUrl = authManager.userAvatarUrl
+            if (avatarUrl.isNotEmpty()) {
+                binding.imgProfileAvatar.load(avatarUrl) {
+                    crossfade(true)
+                    transformations(CircleCropTransformation())
+                    placeholder(R.drawable.ic_account_circle)
+                    error(R.drawable.ic_account_circle)
                 }
+            } else {
+                binding.imgProfileAvatar.setImageResource(AuthManager.getAvatarDrawable(authManager.userAvatarId))
             }
 
-            binding.imgProfileAvatar.setOnClickListener {
-                showAvatarPickerDialog()
-            }
-            binding.btnProfileChangeAvatar.setOnClickListener {
-                showAvatarPickerDialog()
-            }
-            binding.imgAvatarBadgeEdit.visibility = View.VISIBLE
-
-            binding.btnProfileLogout.visibility = View.VISIBLE
-            binding.btnProfileLogout.setOnClickListener {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("خروج از حساب")
-                    .setMessage("آیا مایل به خروج از حساب کاربری «${authManager.currentUsername}» هستید؟")
-                    .setPositiveButton("خروج") { _, _ ->
-                        authManager.logout()
-                        setupUserProfileSection()
-                        Toast.makeText(requireContext(), "از حساب خارج شدید.", Toast.LENGTH_SHORT).show()
-                    }
-                    .setNegativeButton("انصراف", null)
-                    .show()
-            }
-
-            binding.cardUserProfile.setOnLongClickListener {
-                binding.btnProfileLogout.performClick()
-                true
+            binding.cardUserProfile.setOnClickListener {
+                startActivity(Intent(requireContext(), AccountProfileActivity::class.java))
             }
         } else {
-            binding.tvProfileUsername.text = "کاربر مهمان"
+            binding.tvProfileUsername.text = "ورود به حساب کاربری"
             binding.imgProfileAvatar.setImageResource(R.drawable.ic_account_circle)
-            binding.imgProfileAvatar.setOnClickListener(null)
-            binding.imgAvatarBadgeEdit.visibility = View.GONE
-            binding.layoutProfileExtraActions.visibility = View.GONE
-            binding.btnProfileLogout.visibility = View.GONE
-            binding.btnProfileLogout.setOnClickListener(null)
-            binding.tvProfileSyncStatus.text = "جهت ذخیره و سینک لیست‌ها وارد شوید"
-            binding.btnProfileAction.text = "ورود / ثبت‌نام"
-            binding.btnProfileAction.setOnClickListener {
+            binding.tvProfileSyncStatus.text = "جهت مدیریت پروفایل و ذخیره علایق وارد شوید"
+            binding.btnProfileAction.visibility = View.VISIBLE
+            binding.btnProfileAction.text = "ورود"
+            binding.imgProfileChevron.visibility = View.GONE
+
+            val loginClick = View.OnClickListener {
                 showAuthDialog()
             }
-            binding.cardUserProfile.setOnLongClickListener(null)
+            binding.btnProfileAction.setOnClickListener(loginClick)
+            binding.cardUserProfile.setOnClickListener(loginClick)
         }
     }
 
@@ -437,8 +415,6 @@ class SettingsFragment : Fragment() {
     private fun updateAutoNextLabel() {
         val mins = historyManager.autoNextMinutes
         binding.tvAutoNextMinutesLabel.text = "$mins دقیقه مانده به پایان"
-        val secs = historyManager.autoNextCountdownSeconds
-        binding.tvAutoNextCountdownLabel.text = "$secs ثانیه"
     }
 
     private fun showAutoNextTimeDialog() {

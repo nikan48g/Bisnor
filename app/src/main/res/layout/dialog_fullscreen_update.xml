@@ -161,6 +161,14 @@
                         android:textColor="@color/primary"
                         android:textSize="14sp" />
 
+                    <android.webkit.WebView
+                        android:id="@+id/wv_changelog"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@android:color/transparent"
+                        android:overScrollMode="never" />
+
                     <TextView
                         android:id="@+id/tv_changelog"
                         android:layout_width="match_parent"
@@ -169,7 +177,8 @@
                         android:fontFamily="@font/vazirmatn_regular"
                         android:lineSpacingExtra="4dp"
                         android:textColor="@color/on_surface"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

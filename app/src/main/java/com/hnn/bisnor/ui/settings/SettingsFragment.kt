@@ -188,7 +188,6 @@ class SettingsFragment : Fragment() {
         val imgAvatar3 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_3)
         val imgAvatar4 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_4)
         val etUser = dialogView.findViewById<TextInputEditText>(R.id.et_auth_username)
-        val etEmail = dialogView.findViewById<TextInputEditText>(R.id.et_auth_email)
         val etPass = dialogView.findViewById<TextInputEditText>(R.id.et_auth_password)
         val btnSubmit = dialogView.findViewById<MaterialButton>(R.id.btn_auth_submit)
         val btnSwitch = dialogView.findViewById<MaterialButton>(R.id.btn_auth_switch_mode)
@@ -219,9 +218,10 @@ class SettingsFragment : Fragment() {
 
         avatarViews.forEach { (iv, id) ->
             iv.setOnClickListener {
-                selectedAvatarId = id
-                authManager.userAvatarId = id
-                updateAvatarSelection()
+                com.hnn.bisnor.util.AvatarPickerDialogHelper.show(requireContext(), authManager) { avatar ->
+                    selectedAvatarId = avatar.id
+                    updateAvatarSelection()
+                }
             }
         }
 
@@ -251,10 +251,9 @@ class SettingsFragment : Fragment() {
 
         btnSubmit.setOnClickListener {
             val username = etUser.text?.toString()?.trim() ?: ""
-            val email = etEmail.text?.toString()?.trim() ?: ""
             val password = etPass.text?.toString()?.trim() ?: ""
 
-            if (email.isEmpty() || password.isEmpty() || (isRegisterMode && username.isEmpty())) {
+            if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(requireContext(), "لطفاً تمامی فیلدها را پر کنید.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -264,9 +263,9 @@ class SettingsFragment : Fragment() {
                 btnSubmit.text = "در حال ارتباط با سرور..."
 
                 val (success, message) = if (isRegisterMode) {
-                    authManager.register(username, email, password)
+                    authManager.register(username, password)
                 } else {
-                    authManager.login(email, password)
+                    authManager.login(username, password)
                 }
 
                 btnSubmit.isEnabled = true

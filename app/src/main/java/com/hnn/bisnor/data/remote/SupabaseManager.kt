@@ -38,20 +38,21 @@ class AuthManager(private val context: Context) {
 
     companion object {
         val FUNNY_AVATARS = listOf(
-            FunnyAvatar("m3_android", "ربات اندروید", R.drawable.avatar_m3_android),
-            FunnyAvatar("m3_popcorn", "پاپ‌کورن سینمایی", R.drawable.avatar_m3_popcorn),
-            FunnyAvatar("m3_cinema", "عینک سه‌بعدی", R.drawable.avatar_m3_cinema),
-            FunnyAvatar("m3_star", "ستاره طلایی", R.drawable.avatar_m3_star)
+            FunnyAvatar("avatar_breakingbad", "والتر وایت (بریکینگ بد)", R.drawable.avatar_breakingbad),
+            FunnyAvatar("avatar_luffy", "لوفی (وان پیس)", R.drawable.avatar_luffy),
+            FunnyAvatar("avatar_wednesday", "ونزدی آدامز", R.drawable.avatar_wednesday),
+            FunnyAvatar("avatar_nami", "نامی (وان پیس)", R.drawable.avatar_nami),
+            FunnyAvatar("avatar_garfield", "گارفیلد", R.drawable.avatar_garfield),
+            FunnyAvatar("avatar_bluey", "بلویی", R.drawable.avatar_bluey),
+            FunnyAvatar("avatar_bingo", "بینگو", R.drawable.avatar_bingo),
+            FunnyAvatar("avatar_carmen", "کارمن سندیگو", R.drawable.avatar_carmen),
+            FunnyAvatar("avatar_film", "کلاکت سینما", R.drawable.avatar_film),
+            FunnyAvatar("avatar_theater", "ماسک نمایش", R.drawable.avatar_theater),
+            FunnyAvatar("avatar_star", "ستاره طلایی", R.drawable.avatar_star)
         )
 
         fun getAvatarDrawable(id: String): Int {
-            return FUNNY_AVATARS.find { it.id == id }?.drawableRes ?: when (id) {
-                "godfather_cat" -> R.drawable.avatar_m3_android
-                "funny_director" -> R.drawable.avatar_m3_popcorn
-                "popcorn_pug" -> R.drawable.avatar_m3_cinema
-                "heisenberg_hamster" -> R.drawable.avatar_m3_star
-                else -> R.drawable.avatar_m3_android
-            }
+            return FUNNY_AVATARS.find { it.id == id }?.drawableRes ?: R.drawable.avatar_breakingbad
         }
     }
 
@@ -64,7 +65,7 @@ class AuthManager(private val context: Context) {
     }
 
     var userAvatarId: String
-        get() = prefs.getString("auth_avatar_id", "godfather_cat") ?: "godfather_cat"
+        get() = prefs.getString("auth_avatar_id", "avatar_breakingbad") ?: "avatar_breakingbad"
         set(value) = prefs.edit().putString("auth_avatar_id", value).apply()
 
     var userAvatarUrl: String

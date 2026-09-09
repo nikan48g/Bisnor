@@ -56,6 +56,16 @@
             android:paddingBottom="8dp">
 
             <TextView
+                android:id="@+id/tv_random_match_reason"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/badge_background"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:textColor="@color/primary"
+                android:textSize="11.5sp" />
+
+            <TextView
                 android:id="@+id/tv_random_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -83,7 +83,7 @@ object UpdateChecker {
         } catch (e: Exception) {
             if (showToastIfLatest) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "خطا در برقراری ارتباط با سرور گیت‌هاب جهت بروزرسانی.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "خطا در برقراری ارتباط با سرور گیت‌هاب جهت به‌روزرسانی.", Toast.LENGTH_SHORT).show()
                 }
             }
         }

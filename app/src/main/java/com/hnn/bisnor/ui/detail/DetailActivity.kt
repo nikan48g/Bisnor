@@ -293,14 +293,18 @@ class DetailActivity : AppCompatActivity() {
 
                 val isAnim = item.genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("کارتون") || g.title.contains("انیمه") } ||
                         item.title.contains("انیمه") || item.title.contains("انیمیشن")
-                val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb, isAnim)
+                val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb, isAnim, item.isSeries)
                 val displayImdb = meta.extractedImdb ?: item.imdb
 
                 b.tvHeaderTitle.text = item.title
                 b.tvHeaderGenres.text = item.genres.joinToString("، ") { it.title }
                 b.tvHeaderRating.text = if (displayImdb > 0.0) String.format("%.1f", displayImdb) else "—"
                 b.tvHeaderYear.text = if (item.year > 0) item.year.toString() else "نامشخص"
-                b.tvHeaderType.text = item.duration ?: if (item.type == "serie") "سریال" else "سینمایی"
+                b.tvHeaderType.text = if (item.isSeries) {
+                    if (meta.averageEpisodeSize != null) "سریال • ${meta.averageEpisodeSize}" else "سریال"
+                } else {
+                    item.duration ?: "سینمایی"
+                }
 
                 // Age rating badge
                 if (!meta.ageRating.isNullOrEmpty()) {

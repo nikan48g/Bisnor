@@ -48,14 +48,14 @@ object PlayerLauncherHelper {
                 name = "پلیر بیسنور (داخلی)",
                 packageName = "",
                 isInstalled = true,
-                iconRes = R.drawable.ic_play
+                iconRes = R.drawable.ic_player_bisnor
             ),
             PlayerAppInfo(
                 id = "vlc",
                 name = "VLC Player",
                 packageName = PKG_VLC,
                 isInstalled = vlcInstalled,
-                iconRes = R.drawable.ic_vlc,
+                iconRes = R.drawable.ic_player_vlc,
                 appIcon = getDrawable(PKG_VLC)
             ),
             PlayerAppInfo(
@@ -63,7 +63,7 @@ object PlayerLauncherHelper {
                 name = "MX Player",
                 packageName = PKG_MX_PLAYER,
                 isInstalled = mxInstalled,
-                iconRes = R.drawable.ic_videoplayer,
+                iconRes = R.drawable.ic_player_mx,
                 appIcon = getDrawable(PKG_MX_PLAYER)
             ),
             PlayerAppInfo(
@@ -71,7 +71,7 @@ object PlayerLauncherHelper {
                 name = "KMPlayer",
                 packageName = PKG_KM_PLAYER,
                 isInstalled = kmInstalled,
-                iconRes = R.drawable.ic_videoplayer,
+                iconRes = R.drawable.ic_player_kmplayer,
                 appIcon = getDrawable(PKG_KM_PLAYER)
             ),
             PlayerAppInfo(
@@ -79,15 +79,8 @@ object PlayerLauncherHelper {
                 name = "Just Player",
                 packageName = PKG_JUST_PLAYER,
                 isInstalled = justInstalled,
-                iconRes = R.drawable.ic_videoplayer,
+                iconRes = R.drawable.ic_player_justplayer,
                 appIcon = getDrawable(PKG_JUST_PLAYER)
-            ),
-            PlayerAppInfo(
-                id = "system",
-                name = "سایر برنامه‌ها (انتخابگر سیستم)",
-                packageName = "",
-                isInstalled = true,
-                iconRes = R.drawable.ic_share
             )
         )
     }

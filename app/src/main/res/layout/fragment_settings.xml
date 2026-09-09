@@ -250,7 +250,7 @@
             android:layout_marginTop="24dp"
             android:layout_marginBottom="8dp"
             android:fontFamily="@font/vazirmatn_bold"
-            android:text="تنظیمات و اپلیکیشن"
+            android:text="تنظیمات پخش و برنامه"
             android:textColor="@color/primary"
             android:textSize="13.5sp" />
 
@@ -508,7 +508,7 @@
             android:layout_marginTop="24dp"
             android:layout_marginBottom="8dp"
             android:fontFamily="@font/vazirmatn_bold"
-            android:text="درباره برنامه و بروزرسانی"
+            android:text="درباره برنامه و به‌روزرسانی"
             android:textColor="@color/primary"
             android:textSize="13.5sp" />
 
@@ -559,7 +559,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/vazirmatn_medium"
-                            android:text="نسخه v4.9.0"
+                            android:text="نسخه v5.0.0"
                             android:textColor="@color/secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -570,8 +570,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="40dp"
                         android:fontFamily="@font/vazirmatn_bold"
-                        android:text="بررسی آپدیت 🔄"
-                        android:textSize="11.5sp"
+                        android:text="بررسی به‌روزرسانی 🔄"
+                        android:textSize="11sp"
                         app:backgroundTint="@color/surface_container_high"
                         app:cornerRadius="10dp" />
                 </LinearLayout>

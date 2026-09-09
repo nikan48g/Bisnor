@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btn_avatar_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <FrameLayout
+        android:layout_width="72dp"
+        android:layout_height="72dp">
+
+        <!-- Selection Halo Ring -->
+        <View
+            android:id="@+id/view_selection_halo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_avatar_selected_halo"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/img_avatar_item"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:contentDescription="Avatar"
+            android:scaleType="fitCenter" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tv_avatar_item_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/vazirmatn_medium"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/on_surface"
+        android:textSize="11sp" />
+
+</LinearLayout>

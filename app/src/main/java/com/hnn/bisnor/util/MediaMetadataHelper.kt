@@ -6,7 +6,8 @@ data class ParsedMediaInfo(
     val ageRating: String? = null,
     val isAdultOr18: Boolean = false,
     val director: String? = null,
-    val actors: String? = null
+    val actors: String? = null,
+    val averageEpisodeSize: String? = null
 )
 
 object MediaMetadataHelper {
@@ -16,14 +17,21 @@ object MediaMetadataHelper {
     private val IMDB_REGEX = Regex("""(?i)(?:IMDb|نمره|امتیاز)\s*[:：\-]?\s*([0-9](?:\.[0-9])?)(?:\s*(?:از|/)\s*10)?""")
     private val DIRECTOR_REGEX = Regex("""(?i)(?:کارگردان|کارگردانی|سازنده)\s*[:：\-]?\s*([^\n\r]+)""")
     private val ACTORS_REGEX = Regex("""(?i)(?:بازیگران|ستارگان|با\s*حضور)\s*[:：\-]?\s*([^\n\r]+)""")
+    private val SIZE_REGEX = Regex("""(?i)(?:حجم(?:\s*کل|\s*تقریبی|\s*فایل|\s*هر\s*قسمت|\s*قسمت‌ها)?)\s*[:：\-]?\s*([0-9\.]+|[۰-۹\.]+)\s*(گیگابایت|مگابایت|GB|MB|گیگ|مگ)""")
 
-    fun parse(rawDescription: String, existingImdb: Double = 0.0, isAnimationOrAnime: Boolean = false): ParsedMediaInfo {
+    fun parse(
+        rawDescription: String,
+        existingImdb: Double = 0.0,
+        isAnimationOrAnime: Boolean = false,
+        isSeries: Boolean = false
+    ): ParsedMediaInfo {
         if (rawDescription.isBlank()) {
             return ParsedMediaInfo(
                 cleanStoryline = "",
                 extractedImdb = if (existingImdb > 0.0) existingImdb else null,
                 ageRating = null,
-                isAdultOr18 = false
+                isAdultOr18 = false,
+                averageEpisodeSize = if (isSeries) "میانگین هر قسمت: ~۳۵۰ مگابایت" else null
             )
         }
 
@@ -77,6 +85,43 @@ object MediaMetadataHelper {
             }
         }
 
+        var detectedAverageSize: String? = if (isSeries) "میانگین هر قسمت: ~۳۵۰ تا ۵۰۰ مگابایت" else null
+
+        val sizeMatch = SIZE_REGEX.find(rawDescription)
+        if (sizeMatch != null) {
+            val rawNumStr = sizeMatch.groupValues[1]
+                .replace("۰", "0").replace("۱", "1").replace("۲", "2")
+                .replace("۳", "3").replace("۴", "4").replace("۵", "5")
+                .replace("۶", "6").replace("۷", "7").replace("۸", "8")
+                .replace("۹", "9")
+            val unit = sizeMatch.groupValues[2].lowercase()
+            val num = rawNumStr.toDoubleOrNull() ?: 0.0
+
+            if (isSeries) {
+                if (unit.contains("گیگ") || unit.contains("gb")) {
+                    detectedAverageSize = if (num >= 20.0) {
+                        "میانگین هر قسمت: ~۴۵۰ تا ۵۵۰ مگابایت"
+                    } else if (num >= 8.0) {
+                        "میانگین هر قسمت: ~۳۵۰ تا ۴۵۰ مگابایت"
+                    } else {
+                        "میانگین هر قسمت: ~۲۵۰ تا ۳۵۰ مگابایت"
+                    }
+                } else {
+                    if (num in 150.0..1200.0) {
+                        detectedAverageSize = "میانگین هر قسمت: ~${num.toInt()} مگابایت"
+                    } else if (num > 1200.0) {
+                        detectedAverageSize = "میانگین هر قسمت: ~۴۵۰ مگابایت"
+                    }
+                }
+            } else {
+                detectedAverageSize = if (unit.contains("گیگ") || unit.contains("gb")) {
+                    "حجم تقریبی: ~$num گیگابایت"
+                } else {
+                    "حجم تقریبی: ~${num.toInt()} مگابایت"
+                }
+            }
+        }
+
         val cleaned = cleanStorylineText(rawDescription)
 
         return ParsedMediaInfo(
@@ -85,7 +130,8 @@ object MediaMetadataHelper {
             ageRating = detectedAgeRating,
             isAdultOr18 = isAdult,
             director = director,
-            actors = actors
+            actors = actors,
+            averageEpisodeSize = detectedAverageSize
         )
     }
 
@@ -111,6 +157,7 @@ object MediaMetadataHelper {
             Regex("""(?i)(?:کارگردان|کارگردانی|سازنده)\s*[:：\-]?\s*[^\n\r]+"""),
             Regex("""(?i)(?:بازیگران|ستارگان|با\s*حضور)\s*[:：\-]?\s*[^\n\r]+"""),
             Regex("""(?i)(?:کیفیت|فرمت|مدت\s*زمان|محصول|زبان|کشور|ژانر|نویسنده|تهیه‌کننده|شبکه)\s*[:：\-]?\s*[^\n\r]+"""),
+            Regex("""(?i)(?:حجم(?:\s*کل|\s*تقریبی|\s*فایل|\s*هر\s*قسمت|\s*قسمت‌ها)?)\s*[:：\-]?\s*[^\n\r]+"""),
             Regex("""(?i)(?:جوایز|رتبه|افتخارات)\s*[:：\-]?\s*[^\n\r]+""")
         )
 

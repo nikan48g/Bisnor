@@ -3,170 +3,113 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/surface"
+    android:background="@drawable/bg_glass_card"
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="20dp">
+
+    <!-- Header Handle Bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_marginBottom="14dp"
+        android:background="@drawable/bg_capsule_progress"
+        android:alpha="0.5" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/vazirmatn_bold"
-        android:text="انتخاب عکس پروفایل سینمایی 🎭"
+        android:text="انتخاب تصویر پروفایل اختصاصی 🎭"
         android:textColor="@color/on_surface"
         android:textSize="17sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="4dp"
         android:fontFamily="@font/vazirmatn_regular"
-        android:text="یک آواتار اختصاصی و طنز برای حساب کاربری خود انتخاب کنید:"
+        android:text="کاراکتر مورد علاقه خود را انتخاب کنید و پیش‌نمایش آن را ببینید:"
         android:textColor="@color/on_surface_variant"
         android:textSize="12sp" />
 
-    <!-- Avatars Grid -->
-    <LinearLayout
+    <!-- Live Preview Card -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:layout_marginBottom="12dp"
+        app:cardBackgroundColor="@color/surface_container_high"
+        app:cardCornerRadius="20dp"
+        app:strokeColor="@color/outline_variant"
+        app:strokeWidth="1dp">
 
         <LinearLayout
-            android:id="@+id/btn_pick_avatar_1"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="4dp">
+            android:padding="16dp">
 
-            <ImageView
-                android:id="@+id/img_pick_avatar_1"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/badge_background"
-                android:padding="2dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_android" />
+            <FrameLayout
+                android:layout_width="96dp"
+                android:layout_height="96dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="اندروید"
-                android:textColor="@color/on_surface"
-                android:textSize="11sp" />
-        </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_avatar_selected_halo" />
 
-        <LinearLayout
-            android:id="@+id/btn_pick_avatar_2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/img_pick_avatar_2"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/badge_background"
-                android:padding="2dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_popcorn" />
+                <ImageView
+                    android:id="@+id/img_avatar_live_preview"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Live Preview"
+                    android:scaleType="fitCenter" />
+            </FrameLayout>
 
             <TextView
+                android:id="@+id/tv_avatar_preview_character"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="پاپ‌کورن"
-                android:textColor="@color/on_surface"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btn_pick_avatar_3"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/img_pick_avatar_3"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/badge_background"
-                android:padding="2dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_cinema" />
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:textColor="@color/primary"
+                android:textSize="15sp" />
 
             <TextView
+                android:id="@+id/tv_avatar_preview_subtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="عینک سه‌بعدی"
-                android:textColor="@color/on_surface"
-                android:textSize="11sp" />
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:text="پیش‌نمایش تصویر روی حساب کاربری شما"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="11.5sp" />
         </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-        <LinearLayout
-            android:id="@+id/btn_pick_avatar_4"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="4dp">
+    <!-- Avatars Grid RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_avatars_selection"
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:clipToPadding="false"
+        android:paddingVertical="4dp"
+        android:scrollbars="vertical" />
 
-            <ImageView
-                android:id="@+id/img_pick_avatar_4"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/badge_background"
-                android:padding="2dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/avatar_m3_star" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="ستاره طلایی"
-                android:textColor="@color/on_surface"
-                android:textSize="11sp" />
-        </LinearLayout>
-    </LinearLayout>
-
+    <!-- Confirm Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_confirm_avatar"
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
-        android:layout_height="46dp"
-        android:layout_marginTop="20dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
         android:fontFamily="@font/vazirmatn_bold"
-        android:text="تایید و ذخیره آواتار"
+        android:text="تأیید و ذخیره آواتار ✨"
+        android:textSize="14sp"
         app:backgroundTint="@color/primary"
-        app:cornerRadius="12dp" />
+        app:cornerRadius="14dp" />
 
 </LinearLayout>

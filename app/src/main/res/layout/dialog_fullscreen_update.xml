@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:fontFamily="@font/vazirmatn_bold"
-            android:text="بروزرسانی جدید"
+            android:text="به‌روزرسانی جدید"
             android:textColor="@color/on_surface"
             android:textSize="18sp" />
     </FrameLayout>

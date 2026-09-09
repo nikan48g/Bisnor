@@ -57,11 +57,23 @@ class AuthManager(private val context: Context) {
 
     var currentUsername: String
         get() = prefs.getString("auth_username", "") ?: ""
-        private set(value) = prefs.edit().putString("auth_username", value).apply()
+        set(value) = prefs.edit().putString("auth_username", value).apply()
+
+    fun updateUsername(newName: String) {
+        currentUsername = newName
+    }
 
     var userAvatarId: String
         get() = prefs.getString("auth_avatar_id", "godfather_cat") ?: "godfather_cat"
         set(value) = prefs.edit().putString("auth_avatar_id", value).apply()
+
+    var userAvatarUrl: String
+        get() = prefs.getString("auth_avatar_url", "") ?: ""
+        set(value) = prefs.edit().putString("auth_avatar_url", value).apply()
+
+    fun updateAvatarUrl(url: String) {
+        userAvatarUrl = url
+    }
 
     var isLoggedIn: Boolean
         get() = prefs.getBoolean("auth_logged_in", false)

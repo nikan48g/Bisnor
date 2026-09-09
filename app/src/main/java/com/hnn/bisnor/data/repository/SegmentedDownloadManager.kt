@@ -219,6 +219,11 @@ object SegmentedDownloadManager {
                 httpClient.newCall(req).execute().use { response ->
                     if (!response.isSuccessful) throw IOException("Failed with code ${response.code}")
                     val body = response.body ?: throw IOException("Empty body")
+                    val bodyLength = body.contentLength()
+                    if (bodyLength > 0L && task.totalBytes <= 0L) {
+                        task.totalBytes = bodyLength
+                        saveTasks(context)
+                    }
                     val inputStream = body.byteStream()
                     val buffer = ByteArray(64 * 1024)
                     RandomAccessFile(targetFile, "rw").use { raf ->
@@ -286,6 +291,22 @@ object SegmentedDownloadManager {
                 // Ignore
             }
             tasks.remove(id)
+        }
+    }
+
+    fun retryDownload(context: Context, id: Long) {
+        val task = tasks[id] ?: return
+        task.status = SegmentedTask.STATUS_RUNNING
+        task.bytesDownloaded.set(0L)
+        task.speedBytesPerSec = 0L
+        saveTasks(context)
+        val targetFile = File(task.filePath)
+        try {
+            if (targetFile.exists()) targetFile.delete()
+        } catch (_: Exception) {}
+        task.job?.cancel()
+        task.job = downloadScope.launch {
+            runDownload(context, task, targetFile, task.url)
         }
     }
 

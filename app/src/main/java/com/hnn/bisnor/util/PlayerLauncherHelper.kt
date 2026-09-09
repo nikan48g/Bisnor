@@ -122,7 +122,9 @@ object PlayerLauncherHelper {
         mediaCover: String,
         episodeTitle: String,
         episodeIndex: Int,
-        startPositionMs: Long
+        startPositionMs: Long,
+        mediaType: String = "movie",
+        genres: ArrayList<String> = arrayListOf()
     ) {
         if (url.isEmpty()) return
 
@@ -147,6 +149,8 @@ object PlayerLauncherHelper {
                     putExtra("media_cover", mediaCover)
                     putExtra("episode_title", episodeTitle)
                     putExtra("episode_index", episodeIndex)
+                    putExtra("media_type", mediaType)
+                    putStringArrayListExtra("media_genres", genres)
                     if (startPositionMs > 0L) putExtra("start_position", startPositionMs)
                 }
                 activity.startActivity(intent)

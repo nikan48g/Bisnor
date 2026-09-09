@@ -122,11 +122,20 @@ class HomeFragment : Fragment() {
             }
 
             // Rich and diverse movie categories
+            val contentPref = try { com.hnn.bisnor.data.database.SmartTasteDatabase(requireContext()).getContentTypePreference() } catch (_: Exception) { "all" }
             val sections = mutableListOf<RealHomeSection>()
-            if (allMovies.isNotEmpty()) sections.add(RealHomeSection("🔥 تازه‌ترین فیلم‌های روز", allMovies.take(18)))
-            if (allSeries.isNotEmpty()) sections.add(RealHomeSection("📺 سریال‌های پرمخاطب و داغ", allSeries.take(18)))
+
+            if (contentPref == "series") {
+                if (allSeries.isNotEmpty()) sections.add(RealHomeSection("📺 سریال‌های پرمخاطب و داغ", allSeries.take(18)))
+                if (koreanList.isNotEmpty()) sections.add(RealHomeSection("🇰🇷 سریال‌های محبوب کره‌ای (K-Drama)", koreanList))
+                if (allMovies.isNotEmpty()) sections.add(RealHomeSection("🔥 تازه‌ترین فیلم‌های روز", allMovies.take(18)))
+            } else {
+                if (allMovies.isNotEmpty()) sections.add(RealHomeSection("🔥 تازه‌ترین فیلم‌های روز", allMovies.take(18)))
+                if (allSeries.isNotEmpty()) sections.add(RealHomeSection("📺 سریال‌های پرمخاطب و داغ", allSeries.take(18)))
+                if (koreanList.isNotEmpty()) sections.add(RealHomeSection("🇰🇷 سریال‌های محبوب کره‌ای (K-Drama)", koreanList))
+            }
+
             if (topList.isNotEmpty()) sections.add(RealHomeSection("⭐ برترین فیلم‌های تاریخ سینما (IMDb Top)", topList))
-            if (koreanList.isNotEmpty()) sections.add(RealHomeSection("🇰🇷 سریال‌های محبوب کره‌ای (K-Drama)", koreanList))
             if (animeList.isNotEmpty()) sections.add(RealHomeSection("🇯🇵 انیمه و دنیای سینمای ژاپن", animeList))
 
             val actionMovies = allMovies.filter { it.genres.any { g -> g.title.contains("اکشن") || g.title.contains("هیجان") } }

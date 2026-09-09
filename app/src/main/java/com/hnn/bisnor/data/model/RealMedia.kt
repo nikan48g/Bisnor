@@ -1,4 +1,4 @@
-﻿package com.hnn.bisnor.data.model
+package com.hnn.bisnor.data.model
 
 import java.io.Serializable
 
@@ -16,7 +16,10 @@ data class RealMedia(
     val genres: List<RealGenre> = emptyList(),
     val sources: List<RealSource> = emptyList(),
     val country: List<RealCountry> = emptyList()
-) : Serializable
+) : Serializable {
+    val isSeries: Boolean
+        get() = type.startsWith("seri", ignoreCase = true)
+}
 
 data class RealGenre(
     val id: Int = 0,

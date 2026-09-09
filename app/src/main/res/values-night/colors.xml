@@ -45,4 +45,7 @@
     <color name="shimmer_base">#1C1C24</color>
     <color name="shimmer_highlight">#2E2E3C</color>
     <color name="nav_bar_translucent">#E61B1B22</color>
+    <color name="glass_border">#2EFFFFFF</color>
+    <color name="glass_card_bg">#D9171720</color>
+    <color name="glass_elevated_bg">#E6242432</color>
 </resources>

@@ -186,11 +186,13 @@ class DetailActivity : AppCompatActivity() {
         val banner = if (item.cover.isNotEmpty()) item.cover else item.image
 
         // Learn user taste dynamically
+        val genreList = item.genres.map { it.title }
+        val mType = if (item.isSeries) "series" else "movie"
         try {
-            val genreList = item.genres.map { it.title }
             com.hnn.bisnor.data.database.SmartTasteDatabase(this).recordWatchEvent(
                 mediaId = item.id,
                 title = item.title,
+                mediaType = mType,
                 genres = genreList
             )
         } catch (_: Exception) {}
@@ -204,7 +206,9 @@ class DetailActivity : AppCompatActivity() {
             mediaCover = banner,
             episodeTitle = source.quality,
             episodeIndex = epIndex,
-            startPositionMs = resumePosition
+            startPositionMs = resumePosition,
+            mediaType = mType,
+            genres = ArrayList(genreList)
         )
     }
 

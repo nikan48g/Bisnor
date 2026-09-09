@@ -559,7 +559,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/vazirmatn_medium"
-                            android:text="نسخه v4.8.0"
+                            android:text="نسخه v4.9.0"
                             android:textColor="@color/secondary"
                             android:textSize="12sp" />
                     </LinearLayout>

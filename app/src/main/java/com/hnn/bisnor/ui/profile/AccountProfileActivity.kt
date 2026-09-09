@@ -43,8 +43,10 @@ class AccountProfileActivity : AppCompatActivity() {
         }
 
         setupProfileData()
+        setupContentPreference()
         setupFavoriteGenres()
         loadTasteStats()
+        loadMonthlyAnalytics()
         setupWhatToWatch()
 
         binding.btnSaveProfile.setOnClickListener {
@@ -67,6 +69,7 @@ class AccountProfileActivity : AppCompatActivity() {
                 .setPositiveButton("بله، پاک شود") { _, _ ->
                     tasteDb.resetLearnedTaste()
                     loadTasteStats()
+                    loadMonthlyAnalytics()
                     Toast.makeText(this, "تاریخچه سلیقه پاکسازی شد", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("انصراف", null)
@@ -182,10 +185,139 @@ class AccountProfileActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupContentPreference() {
+        val currentPref = tasteDb.getContentTypePreference()
+        when (currentPref) {
+            "movie" -> binding.toggleGroupContentPref.check(R.id.btn_pref_movies)
+            "series" -> binding.toggleGroupContentPref.check(R.id.btn_pref_series)
+            else -> binding.toggleGroupContentPref.check(R.id.btn_pref_both)
+        }
+
+        binding.toggleGroupContentPref.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                val newPref = when (checkedId) {
+                    R.id.btn_pref_movies -> "movie"
+                    R.id.btn_pref_series -> "series"
+                    else -> "all"
+                }
+                tasteDb.setContentTypePreference(newPref)
+                val msg = when (newPref) {
+                    "movie" -> "ترجیح شما روی بیشتر فیلم تنظیم شد 🎬"
+                    "series" -> "ترجیح شما روی بیشتر سریال تنظیم شد 📺"
+                    else -> "ترجیح شما روی هر دو (متعادل) تنظیم شد 🍿"
+                }
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun loadMonthlyAnalytics() {
+        val monthly = tasteDb.getMonthlyStats()
+
+        // Movie Duration
+        val mMin = monthly.movieDurationMs / 1000 / 60
+        val mH = mMin / 60
+        val mR = mMin % 60
+        binding.tvMonthlyMovieHours.text = if (mH > 0) "$mH ساعت و $mR دقیقه" else if (mR > 0) "$mR دقیقه" else "۰ دقیقه"
+
+        // Series Duration
+        val sMin = monthly.seriesDurationMs / 1000 / 60
+        val sH = sMin / 60
+        val sR = sMin % 60
+        binding.tvMonthlySeriesHours.text = if (sH > 0) "$sH ساعت و $sR دقیقه" else if (sR > 0) "$sR دقیقه" else "۰ دقیقه"
+
+        // Data Usage
+        val bytes = monthly.totalDataUsageBytes
+        binding.tvMonthlyDataUsage.text = formatDataUsage(bytes)
+
+        // Visual Distribution Bar & Monthly List
+        binding.layoutGenreDistributionBar.removeAllViews()
+        binding.layoutMonthlyGenreList.removeAllViews()
+
+        val palette = listOf(
+            "#FFB86B", "#80D5DB", "#FFB4AB", "#9DF1F7",
+            "#FFD54F", "#B388FF", "#69F0AE", "#FF8A80", "#80CBC4"
+        )
+
+        if (monthly.genreStats.isEmpty()) {
+            val emptyTv = TextView(this).apply {
+                text = "هنوز تماشایی در ۳۰ روز اخیر ثبت نشده است. با دیدن فیلم‌ها و سریال‌ها، نمودار تفکیکی در این بخش نمایش می‌یابد."
+                setTextColor(getColor(R.color.on_surface_variant))
+                textSize = 11.5f
+                setPadding(0, 12, 0, 12)
+                gravity = android.view.Gravity.CENTER
+            }
+            binding.layoutMonthlyGenreList.addView(emptyTv)
+            return
+        }
+
+        monthly.genreStats.forEachIndexed { index, stat ->
+            val colorHex = palette[index % palette.size]
+            val colorInt = android.graphics.Color.parseColor(colorHex)
+
+            // Segment in distribution bar
+            val seg = View(this).apply {
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, stat.percentage.toFloat())
+                setBackgroundColor(colorInt)
+            }
+            binding.layoutGenreDistributionBar.addView(seg)
+
+            // Row in monthly list
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, 6, 0, 6)
+            }
+
+            val dot = View(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    (10 * resources.displayMetrics.density).toInt(),
+                    (10 * resources.displayMetrics.density).toInt()
+                ).apply {
+                    marginEnd = (8 * resources.displayMetrics.density).toInt()
+                }
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.OVAL
+                    setColor(colorInt)
+                }
+            }
+
+            val titleTv = TextView(this).apply {
+                text = stat.genreName
+                textSize = 12.5f
+                setTextColor(getColor(R.color.on_surface))
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+
+            val pctTv = TextView(this).apply {
+                text = "${stat.percentage}٪"
+                textSize = 12f
+                setTextColor(getColor(R.color.on_surface_variant))
+            }
+
+            row.addView(dot)
+            row.addView(titleTv)
+            row.addView(pctTv)
+            binding.layoutMonthlyGenreList.addView(row)
+        }
+    }
+
+    private fun formatDataUsage(bytes: Long): String {
+        if (bytes <= 0L) return "۰ مگابایت"
+        val gb = bytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
+        return if (gb >= 1.0) {
+            String.format(java.util.Locale.US, "%.1f گیگابایت", gb)
+        } else {
+            val mb = (bytes / (1024L * 1024L)).coerceAtLeast(1L)
+            "$mb مگابایت"
+        }
+    }
+
     private fun setupWhatToWatch() {
         val clickListener = View.OnClickListener {
             val topGenres = tasteDb.getTopRecommendedGenres()
             val genreDesc = topGenres.take(3).joinToString(" و ")
+            val contentPref = tasteDb.getContentTypePreference()
 
             Toast.makeText(this, "در حال یافتن بهترین پیشنهاد بر اساس ژانر «$genreDesc»...", Toast.LENGTH_SHORT).show()
 
@@ -193,15 +325,24 @@ class AccountProfileActivity : AppCompatActivity() {
                 val movies = RealMediaRepository.getLatestMovies(0)
                 val series = RealMediaRepository.getPopularSeries(0)
                 val mediaList = (movies + series).distinctBy { it.id }
-                val candidate = mediaList.shuffled().firstOrNull { m ->
+                val filteredByType = mediaList.filter { m ->
+                    when (contentPref) {
+                        "movie" -> !m.isSeries
+                        "series" -> m.isSeries
+                        else -> true
+                    }
+                }
+                val candidatePool = if (filteredByType.isNotEmpty()) filteredByType else mediaList
+                val candidate = candidatePool.shuffled().firstOrNull { m ->
                     m.genres.any { g -> topGenres.any { tg -> g.title.contains(tg) } }
-                } ?: mediaList.randomOrNull()
+                } ?: candidatePool.randomOrNull()
 
                 withContext(Dispatchers.Main) {
                     if (candidate != null) {
+                        val typeLabel = if (candidate.isSeries) "سریال 📺" else "فیلم 🎬"
                         MaterialAlertDialogBuilder(this@AccountProfileActivity)
-                            .setTitle("🎲 پیشنهاد امشب بیسنور")
-                            .setMessage("پیشنهاد بر اساس علاقه شما به ژانر $genreDesc:\n\n🎬 «${candidate.title}»\nسال ساخت: ${candidate.year}\nامتیاز: ${candidate.imdb}")
+                            .setTitle("🎲 پیشنهاد امشب بیسنور ($typeLabel)")
+                            .setMessage("پیشنهاد بر اساس علاقه شما به ژانر $genreDesc:\n\n«${candidate.title}»\nنوع: $typeLabel\nسال ساخت: ${candidate.year}\nامتیاز: ${candidate.imdb}")
                             .setPositiveButton("مشاهده و تماشا") { _, _ ->
                                 val intent = Intent(this@AccountProfileActivity, DetailActivity::class.java).apply {
                                     putExtra("real_media", candidate as java.io.Serializable)

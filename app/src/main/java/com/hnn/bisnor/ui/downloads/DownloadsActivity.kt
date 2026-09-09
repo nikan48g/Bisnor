@@ -69,9 +69,9 @@ class DownloadsActivity : AppCompatActivity() {
         val totalMb = totalBytes / (1024.0 * 1024.0)
         binding.tvStorageDesc.text = "${downloadsList.size} فایل در لیست دانلودها"
         binding.tvTotalDownloadSize.text = if (totalMb >= 1024.0) {
-            String.format("%.2f GB", totalMb / 1024.0)
+            String.format("%.2f گیگابایت", totalMb / 1024.0)
         } else {
-            String.format("%.1f MB", totalMb)
+            String.format("%.1f مگابایت", totalMb)
         }
     }
 
@@ -92,7 +92,7 @@ class DownloadsActivity : AppCompatActivity() {
                 holder.b.layoutDownloadProgress.visibility = View.GONE
                 holder.b.layoutPlayOfflineContainer.visibility = View.VISIBLE
                 val mb = String.format("%.1f", item.totalBytes / (1024.0 * 1024.0))
-                holder.b.tvDownloadInfo.text = "تکمیل شده • $mb MB"
+                holder.b.tvDownloadInfo.text = "تکمیل شده • $mb مگابایت"
             } else {
                 holder.b.layoutDownloadProgress.visibility = View.VISIBLE
                 holder.b.layoutPlayOfflineContainer.visibility = View.GONE
@@ -104,15 +104,25 @@ class DownloadsActivity : AppCompatActivity() {
                 }
 
                 val downloadedMb = String.format("%.1f", item.bytesDownloaded / (1024.0 * 1024.0))
-                val totalMbStr = if (item.totalBytes > 0L) String.format("%.1f", item.totalBytes / (1024.0 * 1024.0)) else "در حال محاسبه"
-                holder.b.tvDownloadProgressText.text = "$pct٪ • $downloadedMb از $totalMbStr MB"
-                holder.b.tvDownloadInfo.text = "در حال دانلود ($pct٪)..."
+                val totalMb = item.totalBytes / (1024.0 * 1024.0)
+                val speedMb = item.speedBytesPerSec / (1024.0 * 1024.0)
+                val speedStr = if (speedMb >= 0.05) String.format("%.1f مگابایت/ثانیه", speedMb) else "در حال دریافت"
+                val partLabel = if (item.isSegmented) "۸ تکه‌ای" else "تکه‌ای"
+
+                if (item.totalBytes > 0L) {
+                    val totalMbStr = String.format("%.1f مگابایت", totalMb)
+                    holder.b.tvDownloadProgressText.text = "$pct٪ • $downloadedMb از $totalMbStr ($partLabel • $speedStr)"
+                    holder.b.tvDownloadInfo.text = "در حال دانلود ($pct٪) • $speedStr"
+                } else {
+                    holder.b.tvDownloadProgressText.text = "$downloadedMb مگابایت دریافت شده ($partLabel • $speedStr)"
+                    holder.b.tvDownloadInfo.text = "در حال دانلود • $speedStr"
+                }
             }
 
             holder.b.btnDeleteDownload.setOnClickListener {
                 MaterialAlertDialogBuilder(this@DownloadsActivity)
-                    .setTitle("حذف فایل دانلود شده")
-                    .setMessage("آیا می‌خواهید «${item.title}» را از حافظه دستگاه حذف کنید؟")
+                    .setTitle("حذف فایل دانلود")
+                    .setMessage("آیا می‌خواهید «${item.title}» را حذف کنید؟")
                     .setPositiveButton("حذف") { _, _ ->
                         LocalDownloadManager.deleteDownload(this@DownloadsActivity, item)
                         loadDownloads()

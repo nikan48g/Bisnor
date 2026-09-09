@@ -1,4 +1,4 @@
-﻿package com.hnn.bisnor
+package com.hnn.bisnor
 
 import android.app.Activity
 import android.app.Application
@@ -59,6 +59,7 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks {
     override fun onCreate() {
         super.onCreate()
         registerActivityLifecycleCallbacks(this)
+        com.hnn.bisnor.data.repository.SegmentedDownloadManager.init(this)
 
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

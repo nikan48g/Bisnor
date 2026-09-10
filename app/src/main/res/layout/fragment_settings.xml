@@ -142,7 +142,9 @@
                 <LinearLayout
                     android:id="@+id/btn_setting_downloads"
                     android:layout_width="match_parent"
-                    android:layout_height="62dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="58dp"
+                    android:paddingVertical="10dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
@@ -174,7 +176,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
+                            android:layout_marginTop="2dp"
                             android:fontFamily="@font/vazirmatn_regular"
                             android:text="مشاهده فایل‌های ذخیره شده و دانلود آفلاین"
                             android:textColor="@color/on_surface_variant"
@@ -197,7 +199,9 @@
                 <!-- Segmented Download Toggle -->
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="62dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="58dp"
+                    android:paddingVertical="10dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingHorizontal="16dp">
@@ -212,6 +216,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -226,7 +231,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
+                            android:layout_marginTop="2dp"
                             android:fontFamily="@font/vazirmatn_regular"
                             android:text="دانلود پرسرعت موازی فایل‌ها مانند IDM"
                             android:textColor="@color/on_surface_variant"
@@ -377,7 +382,9 @@
                 <LinearLayout
                     android:id="@+id/btn_setting_auto_next_time"
                     android:layout_width="match_parent"
-                    android:layout_height="54dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="54dp"
+                    android:paddingVertical="10dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
@@ -414,7 +421,9 @@
                 <LinearLayout
                     android:id="@+id/btn_setting_player_choice"
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="58dp"
+                    android:paddingVertical="10dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
@@ -425,6 +434,8 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="0dp"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -440,6 +451,7 @@
                             android:id="@+id/tv_current_player_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
                             android:fontFamily="@font/vazirmatn_medium"
                             android:text="پلیر داخلی بیسنور (پیش‌فرض)"
                             android:textColor="@color/primary"
@@ -586,7 +598,9 @@
                 <LinearLayout
                     android:id="@+id/btn_open_github"
                     android:layout_width="match_parent"
-                    android:layout_height="62dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="58dp"
+                    android:paddingVertical="10dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
@@ -618,7 +632,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="1dp"
+                            android:layout_marginTop="2dp"
                             android:fontFamily="@font/vazirmatn_regular"
                             android:text="مشاهده سورس‌کد و مشارکت در گیت‌هاب"
                             android:textColor="@color/on_surface_variant"

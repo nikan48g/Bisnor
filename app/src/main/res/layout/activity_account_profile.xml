@@ -172,31 +172,43 @@
                             android:id="@+id/btn_pref_movies"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
-                            android:layout_height="44dp"
+                            android:layout_height="wrap_content"
+                            android:minHeight="42dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/vazirmatn_bold"
+                            android:paddingHorizontal="4dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
                             android:text="بیشتر فیلم 🎬"
-                            android:textSize="11.5sp" />
+                            android:textSize="11sp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_pref_both"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
-                            android:layout_height="44dp"
+                            android:layout_height="wrap_content"
+                            android:minHeight="42dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/vazirmatn_bold"
+                            android:paddingHorizontal="4dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
                             android:text="هر دو 🍿"
-                            android:textSize="11.5sp" />
+                            android:textSize="11sp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_pref_series"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
-                            android:layout_height="44dp"
+                            android:layout_height="wrap_content"
+                            android:minHeight="42dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/vazirmatn_bold"
+                            android:paddingHorizontal="4dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
                             android:text="بیشتر سریال 📺"
-                            android:textSize="11.5sp" />
+                            android:textSize="11sp" />
 
                     </com.google.android.material.button.MaterialButtonToggleGroup>
                 </LinearLayout>

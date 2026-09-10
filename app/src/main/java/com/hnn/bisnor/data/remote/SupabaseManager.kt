@@ -11,36 +11,286 @@ import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.*
-import java.io.*
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
-import java.util.zip.*
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 
-data class FunnyAvatar(val id:String,val name:String,val drawableRes:Int)
-class AuthManager(private val context:Context) {
- private val p=context.getSharedPreferences("bisnor_auth_v3",Context.MODE_PRIVATE)
- companion object { val FUNNY_AVATARS=listOf(FunnyAvatar("avatar_breakingbad","والتر وایت (بریکینگ بد)",R.drawable.avatar_breakingbad),FunnyAvatar("avatar_luffy","لوفی (وان پیس)",R.drawable.avatar_luffy),FunnyAvatar("avatar_wednesday","ونزدی آدامز",R.drawable.avatar_wednesday),FunnyAvatar("avatar_nami","نامی (وان پیس)",R.drawable.avatar_nami),FunnyAvatar("avatar_garfield","گارفیلد",R.drawable.avatar_garfield),FunnyAvatar("avatar_bluey","بلویی",R.drawable.avatar_bluey),FunnyAvatar("avatar_bingo","بینگو",R.drawable.avatar_bingo),FunnyAvatar("avatar_carmen","کارمن سندیگو",R.drawable.avatar_carmen),FunnyAvatar("avatar_film","کلاکت سینما",R.drawable.avatar_film),FunnyAvatar("avatar_theater","ماسک نمایش",R.drawable.avatar_theater),FunnyAvatar("avatar_star","ستاره طلایی",R.drawable.avatar_star)); fun getAvatarDrawable(id:String)=FUNNY_AVATARS.find{it.id==id}?.drawableRes?:R.drawable.avatar_breakingbad }
- var currentUsername:String get()=p.getString("name","")?:""; private set(v){p.edit().putString("name",v).apply()}
- var userAvatarId:String get()=p.getString("avatar","avatar_breakingbad")?:"avatar_breakingbad"; set(v){p.edit().putString("avatar",v).apply()}
- var userAvatarUrl:String get()=p.getString("url","")?:""; set(v){p.edit().putString("url",v).apply()}
- var isLoggedIn:Boolean get()=SupabaseManager.hasSession(context); private set(v){}
- var lastSyncTime:Long get()=p.getLong("sync",0); set(v){p.edit().putLong("sync",v).apply()}
- fun updateUsername(v:String){currentUsername=v}; fun updateAvatarUrl(v:String){userAvatarUrl=v}; fun logout(){SupabaseManager.clear(context);p.edit().clear().apply()}
- private fun internalEmail(username:String) = "${username.trim().lowercase()}@accounts.bisnor.local"
- suspend fun register(name:String,password:String):Pair<Boolean,String> { if(!name.matches(Regex("[a-z0-9_.-]{3,32}")))return false to "نام کاربری نامعتبر است."; if(password.length<8)return false to "رمز عبور باید حداقل ۸ کاراکتر باشد."; val r=SupabaseManager.signup(context,name,internalEmail(name),password,userAvatarId); if(r.first&&SupabaseManager.hasSession(context)){currentUsername=name;syncUp(context)};return r }
- suspend fun login(username:String,password:String):Pair<Boolean,String>{val r=SupabaseManager.login(context,internalEmail(username),password);if(!r.first)return r;val x=SupabaseManager.profile(context)?:return false to "پروفایل امن پیدا نشد.";currentUsername=x.optString("username");userAvatarId=x.optString("avatar_id",userAvatarId);syncDown(context,x);return true to "ورود امن انجام شد."}
- suspend fun updateAvatar(v:String)=run {userAvatarId=v;!isLoggedIn||SupabaseManager.patch(context,JSONObject().put("avatar_id",v))}
- suspend fun syncUp(c:Context):Boolean{if(!isLoggedIn)return false;val x=JSONObject().put("favorites_data",SupabaseManager.compressString(FavoritesManager(c).getFavoritesRawJson())).put("playlists_data",SupabaseManager.compressString(PlaylistsManager(c).getPlaylistsRawJson())).put("avatar_id",userAvatarId);return SupabaseManager.patch(c,x).also{if(it)lastSyncTime=System.currentTimeMillis()}}
- suspend fun syncDown(c:Context,cachedProfile:JSONObject?=null):Boolean{if(!isLoggedIn)return false;val x=cachedProfile?:SupabaseManager.profile(c)?:return false;userAvatarId=x.optString("avatar_id",userAvatarId);runCatching{SupabaseManager.decompressString(x.optString("favorites_data")).takeIf{it.isNotBlank()&&it!="[]"}?.let{FavoritesManager(c).setFavoritesFromRawJson(it)}};runCatching{SupabaseManager.decompressString(x.optString("playlists_data")).takeIf{it.isNotBlank()&&it!="[]"}?.let{PlaylistsManager(c).setPlaylistsFromRawJson(it)}};lastSyncTime=System.currentTimeMillis();return true}
+data class FunnyAvatar(val id: String, val name: String, val drawableRes: Int)
+
+class AuthManager(private val context: Context) {
+    private val prefs = context.getSharedPreferences("bisnor_auth_v3", Context.MODE_PRIVATE)
+
+    companion object {
+        val FUNNY_AVATARS = listOf(
+            FunnyAvatar("avatar_breakingbad", "والتر وایت (بریکینگ بد)", R.drawable.avatar_breakingbad),
+            FunnyAvatar("avatar_luffy", "لوفی (وان پیس)", R.drawable.avatar_luffy),
+            FunnyAvatar("avatar_wednesday", "ونزدی آدامز", R.drawable.avatar_wednesday),
+            FunnyAvatar("avatar_nami", "نامی (وان پیس)", R.drawable.avatar_nami),
+            FunnyAvatar("avatar_garfield", "گارفیلد", R.drawable.avatar_garfield),
+            FunnyAvatar("avatar_bluey", "بلویی", R.drawable.avatar_bluey),
+            FunnyAvatar("avatar_bingo", "بینگو", R.drawable.avatar_bingo),
+            FunnyAvatar("avatar_carmen", "کارمن سندیگو", R.drawable.avatar_carmen),
+            FunnyAvatar("avatar_film", "کلاکت سینما", R.drawable.avatar_film),
+            FunnyAvatar("avatar_theater", "ماسک نمایش", R.drawable.avatar_theater),
+            FunnyAvatar("avatar_star", "ستاره طلایی", R.drawable.avatar_star)
+        )
+
+        fun getAvatarDrawable(id: String): Int {
+            return FUNNY_AVATARS.find { it.id == id }?.drawableRes ?: R.drawable.avatar_breakingbad
+        }
+    }
+
+    var currentUsername: String
+        get() = prefs.getString("name", "") ?: ""
+        private set(v) { prefs.edit().putString("name", v).apply() }
+
+    var userAvatarId: String
+        get() = prefs.getString("avatar", "avatar_breakingbad") ?: "avatar_breakingbad"
+        set(v) { prefs.edit().putString("avatar", v).apply() }
+
+    var userAvatarUrl: String
+        get() = prefs.getString("url", "") ?: ""
+        set(v) { prefs.edit().putString("url", v).apply() }
+
+    var isLoggedIn: Boolean
+        get() = currentUsername.isNotEmpty() && prefs.getBoolean("logged_in", false)
+        private set(v) { prefs.edit().putBoolean("logged_in", v).apply() }
+
+    var lastSyncTime: Long
+        get() = prefs.getLong("sync", 0L)
+        set(v) { prefs.edit().putLong("sync", v).apply() }
+
+    fun updateUsername(v: String) { currentUsername = v }
+    fun updateAvatarUrl(v: String) { userAvatarUrl = v }
+
+    fun logout() {
+        isLoggedIn = false
+        currentUsername = ""
+        userAvatarUrl = ""
+        userAvatarId = "avatar_breakingbad"
+        prefs.edit().clear().apply()
+    }
+
+    private fun hashPassword(password: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hash = digest.digest(password.toByteArray(StandardCharsets.UTF_8))
+        return hash.joinToString("") { "%02x".format(it) }
+    }
+
+    suspend fun register(username: String, password: String): Pair<Boolean, String> = withContext(Dispatchers.IO) {
+        val cleanUser = username.trim().lowercase()
+        val cleanPass = password.trim()
+
+        if (!cleanUser.matches(Regex("^[a-z0-9_.-]{3,32}$"))) {
+            return@withContext Pair(false, "نام کاربری باید بین ۳ تا ۳۲ حرف انگلیسی یا عدد باشد.")
+        }
+        if (cleanPass.length < 4) {
+            return@withContext Pair(false, "رمز عبور باید حداقل ۴ کاراکتر باشد.")
+        }
+
+        val existing = SupabaseManager.queryUser(cleanUser)
+        if (existing != null) {
+            return@withContext Pair(false, "این نام کاربری قبلاً ثبت شده است.")
+        }
+
+        val passHash = hashPassword(cleanPass)
+        val created = SupabaseManager.createUser(cleanUser, passHash, userAvatarId)
+        if (created) {
+            currentUsername = cleanUser
+            isLoggedIn = true
+            syncUp(context)
+            Pair(true, "ثبت‌نام با موفقیت انجام شد!")
+        } else {
+            Pair(false, "خطا در اتصال به سرور بیسنور. اتصال اینترنت خود را بررسی کنید.")
+        }
+    }
+
+    suspend fun login(username: String, password: String): Pair<Boolean, String> = withContext(Dispatchers.IO) {
+        val cleanUser = username.trim().lowercase()
+        val cleanPass = password.trim()
+
+        if (cleanUser.isEmpty() || cleanPass.isEmpty()) {
+            return@withContext Pair(false, "نام کاربری و رمز عبور را وارد کنید.")
+        }
+
+        val record = SupabaseManager.queryUser(cleanUser)
+            ?: return@withContext Pair(false, "کاربری با نام «$cleanUser» یافت نشد.")
+
+        val passHash = hashPassword(cleanPass)
+        val serverHash = record.optString("password_hash", "")
+        if (serverHash != passHash) {
+            return@withContext Pair(false, "رمز عبور وارد شده نادرست است.")
+        }
+
+        currentUsername = cleanUser
+        isLoggedIn = true
+        val avatar = record.optString("avatar_id", "avatar_breakingbad")
+        if (avatar.isNotEmpty()) {
+            userAvatarId = avatar
+        }
+
+        syncDown(context, record)
+        Pair(true, "ورود با موفقیت انجام شد! حساب شما همگام‌سازی گردید.")
+    }
+
+    suspend fun updateAvatar(newAvatarId: String): Boolean = withContext(Dispatchers.IO) {
+        userAvatarId = newAvatarId
+        if (!isLoggedIn || currentUsername.isEmpty()) return@withContext true
+        val payload = JSONObject().apply {
+            put("avatar_id", newAvatarId)
+            put("updated_at", System.currentTimeMillis())
+        }
+        SupabaseManager.updateUserData(currentUsername, payload.toString())
+    }
+
+    suspend fun syncUp(c: Context): Boolean = withContext(Dispatchers.IO) {
+        if (!isLoggedIn || currentUsername.isEmpty()) return@withContext false
+
+        val favs = FavoritesManager(c).getFavoritesRawJson()
+        val pls = PlaylistsManager(c).getPlaylistsRawJson()
+
+        val payload = JSONObject().apply {
+            put("favorites_data", SupabaseManager.compressString(favs))
+            put("playlists_data", SupabaseManager.compressString(pls))
+            put("avatar_id", userAvatarId)
+            put("updated_at", System.currentTimeMillis())
+        }
+
+        val ok = SupabaseManager.updateUserData(currentUsername, payload.toString())
+        if (ok) lastSyncTime = System.currentTimeMillis()
+        ok
+    }
+
+    suspend fun syncDown(c: Context, cachedRecord: JSONObject? = null): Boolean = withContext(Dispatchers.IO) {
+        if (!isLoggedIn || currentUsername.isEmpty()) return@withContext false
+
+        val record = cachedRecord ?: SupabaseManager.queryUser(currentUsername) ?: return@withContext false
+        val avatar = record.optString("avatar_id", "")
+        if (avatar.isNotEmpty()) userAvatarId = avatar
+
+        val favsCompressed = record.optString("favorites_data", "")
+        if (favsCompressed.isNotEmpty()) {
+            runCatching {
+                val decomp = SupabaseManager.decompressString(favsCompressed)
+                if (decomp.isNotBlank() && decomp != "[]") {
+                    FavoritesManager(c).setFavoritesFromRawJson(decomp)
+                }
+            }
+        }
+
+        val plsCompressed = record.optString("playlists_data", "")
+        if (plsCompressed.isNotEmpty()) {
+            runCatching {
+                val decomp = SupabaseManager.decompressString(plsCompressed)
+                if (decomp.isNotBlank() && decomp != "[]") {
+                    PlaylistsManager(c).setPlaylistsFromRawJson(decomp)
+                }
+            }
+        }
+
+        lastSyncTime = System.currentTimeMillis()
+        true
+    }
 }
-object SupabaseManager { private const val P="bisnor_session";private val h=OkHttpClient.Builder().connectTimeout(15,TimeUnit.SECONDS).readTimeout(15,TimeUnit.SECONDS).build();private val u get()=BuildConfig.SUPABASE_URL.trimEnd('/');private val k get()=BuildConfig.SUPABASE_ANON_KEY
- private fun p(c:Context)=c.getSharedPreferences(P,Context.MODE_PRIVATE);fun hasSession(c:Context?=null)=c!=null&&p(c).getString("token","")!!.isNotBlank();fun clear(c:Context){p(c).edit().clear().apply()}
- fun compressString(s:String):String{val b=ByteArrayOutputStream();GZIPOutputStream(b).use{it.write(s.toByteArray())};return Base64.encodeToString(b.toByteArray(),Base64.NO_WRAP)};fun decompressString(s:String):String{if(s.isBlank())return "";return GZIPInputStream(ByteArrayInputStream(Base64.decode(s,Base64.NO_WRAP))).bufferedReader(StandardCharsets.UTF_8).readText()}
- private fun q(c:Context,path:String,method:String="GET",body:JSONObject?=null,auth:Boolean=false):Pair<Int,String>{val b=Request.Builder().url(u+path).addHeader("apikey",k).addHeader("Authorization","Bearer "+if(auth)p(c).getString("token","")else k);val rb=body?.toString()?.toRequestBody("application/json".toMediaType());when(method){"POST"->b.post(rb!!);"PATCH"->b.patch(rb!!);else->b.get()};h.newCall(b.build()).execute().use{return it.code to(it.body?.string()?:"")}}
- private fun save(c:Context,s:String):Boolean{val x=JSONObject(s);val t=x.optString("access_token");val id=x.optJSONObject("user")?.optString("id")?:"";if(t.isBlank()||id.isBlank())return false;p(c).edit().putString("token",t).putString("id",id).apply();return true}
- suspend fun signup(c:Context,n:String,e:String,pw:String,a:String)=withContext(Dispatchers.IO){runCatching{val(r,s)=q(c,"/auth/v1/signup","POST",JSONObject().put("email",e).put("password",pw).put("data",JSONObject().put("username",n).put("avatar_id",a)));if(r !in 200..299) false to "ثبت‌نام انجام نشد." else {save(c,s);true to if(hasSession(c))"حساب امن ساخته شد." else "ایمیل تأیید را باز کنید."}}.getOrElse{false to "خطای ارتباط امن."}}
- suspend fun login(c:Context,e:String,pw:String)=withContext(Dispatchers.IO){runCatching{val(r,s)=q(c,"/auth/v1/token?grant_type=password","POST",JSONObject().put("email",e).put("password",pw));if(r in 200..299&&save(c,s))true to "ok" else false to "ایمیل یا رمز نادرست است."}.getOrElse{false to "خطای ارتباط امن."}}
- suspend fun profile(c:Context):JSONObject?=withContext(Dispatchers.IO){if(!hasSession(c))null else runCatching{val id=p(c).getString("id","");val(r,s)=q(c,"/rest/v1/profiles?user_id=eq.$id&select=*",auth=true);if(r in 200..299)JSONArray(s).optJSONObject(0) else null}.getOrNull()}
- suspend fun patch(c:Context,x:JSONObject)=withContext(Dispatchers.IO){val id=p(c).getString("id","");runCatching{q(c,"/rest/v1/profiles?user_id=eq.$id","PATCH",x,true).first in 200..299}.getOrDefault(false)}
+
+object SupabaseManager {
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .build()
+
+    private val url: String get() = BuildConfig.SUPABASE_URL.trimEnd('/')
+    private val key: String get() = BuildConfig.SUPABASE_ANON_KEY
+
+    fun compressString(data: String): String {
+        if (data.isBlank() || data == "[]") return ""
+        val bos = ByteArrayOutputStream()
+        GZIPOutputStream(bos).use { it.write(data.toByteArray(StandardCharsets.UTF_8)) }
+        return Base64.encodeToString(bos.toByteArray(), Base64.NO_WRAP)
+    }
+
+    fun decompressString(compressedBase64: String): String {
+        if (compressedBase64.isBlank()) return ""
+        return runCatching {
+            val bytes = Base64.decode(compressedBase64, Base64.NO_WRAP)
+            GZIPInputStream(ByteArrayInputStream(bytes)).bufferedReader(StandardCharsets.UTF_8).readText()
+        }.getOrDefault("")
+    }
+
+    suspend fun queryUser(username: String): JSONObject? = withContext(Dispatchers.IO) {
+        if (url.isEmpty() || key.isEmpty()) return@withContext null
+        try {
+            val reqUrl = "$url/rest/v1/users?username=eq.$username&select=*"
+            val request = Request.Builder()
+                .url(reqUrl)
+                .addHeader("apikey", key)
+                .addHeader("Authorization", "Bearer $key")
+                .get()
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string() ?: return@withContext null
+                    val arr = JSONArray(body)
+                    if (arr.length() > 0) arr.getJSONObject(0) else null
+                } else null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun createUser(username: String, passwordHash: String, avatarId: String): Boolean = withContext(Dispatchers.IO) {
+        if (url.isEmpty() || key.isEmpty()) return@withContext false
+        try {
+            val payload = JSONObject().apply {
+                put("username", username)
+                put("password_hash", passwordHash)
+                put("avatar_id", avatarId)
+                put("created_at", System.currentTimeMillis())
+            }.toString()
+
+            val body = payload.toRequestBody("application/json; charset=utf-8".toMediaType())
+            val request = Request.Builder()
+                .url("$url/rest/v1/users")
+                .addHeader("apikey", key)
+                .addHeader("Authorization", "Bearer $key")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Prefer", "return=minimal")
+                .post(body)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun updateUserData(username: String, jsonPayload: String): Boolean = withContext(Dispatchers.IO) {
+        if (url.isEmpty() || key.isEmpty()) return@withContext false
+        try {
+            val body = jsonPayload.toRequestBody("application/json; charset=utf-8".toMediaType())
+            val request = Request.Builder()
+                .url("$url/rest/v1/users?username=eq.$username")
+                .addHeader("apikey", key)
+                .addHeader("Authorization", "Bearer $key")
+                .addHeader("Content-Type", "application/json")
+                .patch(body)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

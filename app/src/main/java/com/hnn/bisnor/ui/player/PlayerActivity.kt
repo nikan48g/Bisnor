@@ -500,14 +500,14 @@ class PlayerActivity : AppCompatActivity() {
             val httpDataSourceFactory = DefaultHttpDataSource.Factory()
                 .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
                 .setAllowCrossProtocolRedirects(true)
-                .setConnectTimeoutMs(10000)
-                .setReadTimeoutMs(20000)
+                .setConnectTimeoutMs(30000)
+                .setReadTimeoutMs(30000)
+                .setKeepPostFor302Redirects(true)
 
             val dataSourceFactory = DefaultDataSource.Factory(this, httpDataSourceFactory)
             val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             trackSelector = DefaultTrackSelector(this)
 
-            // Fast startup: starts playback immediately once 500ms is buffered instead of waiting seconds
             val loadControl = DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
                     /* minBufferMs = */ 15000,

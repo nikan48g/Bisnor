@@ -477,30 +477,47 @@ class BisnorApp {
             }
         };
 
-        // 1. Render immediately from current in-memory / fallback catalog
-        const initialHero = await window.mediaService.getHeroFeatured();
+        // 1. Render immediately from verified offline real catalog synchronously (NO await blocking!)
+        const initialHero = window.mediaService.getHeroFeaturedSync ? 
+            window.mediaService.getHeroFeaturedSync() : 
+            FALLBACK_CATALOG[0];
         updateHero(initialHero);
+
         renderRow("row-latest-movies", FALLBACK_CATALOG.filter(x => x.type === 'movie'));
         renderRow("row-popular-series", FALLBACK_CATALOG.filter(x => x.type === 'serie'));
         renderRow("row-top-imdb", [...FALLBACK_CATALOG].sort((a, b) => (b.imdb || 0) - (a.imdb || 0)));
+        renderRow("row-animations", FALLBACK_CATALOG.filter(x => {
+            const g = (x.genres || []).map(item => item.title).join(' ');
+            return g.includes('انیمیشن') || g.includes('کارتون') || g.includes('انیمه');
+        }));
 
-        // 2. Fetch fresh live data in parallel
+        // 2. Fetch fresh live data in parallel in background
         Promise.allSettled([
             window.mediaService.getLatestMovies().then(latest => {
-                renderRow("row-latest-movies", latest);
-                if (latest.length > 0) updateHero(latest[0]);
+                if (latest && latest.length > 0) {
+                    renderRow("row-latest-movies", latest);
+                    updateHero(latest[0]);
+                }
             }),
             window.mediaService.getPopularSeries().then(series => {
-                renderRow("row-popular-series", series);
+                if (series && series.length > 0) {
+                    renderRow("row-popular-series", series);
+                }
             }),
             window.mediaService.getTopImdb().then(top => {
-                renderRow("row-top-imdb", top);
+                if (top && top.length > 0) {
+                    renderRow("row-top-imdb", top);
+                }
             }),
             window.mediaService.getAnimations().then(anim => {
-                renderRow("row-animations", anim);
+                if (anim && anim.length > 0) {
+                    renderRow("row-animations", anim);
+                }
             })
         ]).then(() => {
             console.log("[BisnorMedia] All home sections synchronized with live Iranflix servers.");
+        }).catch(err => {
+            console.warn("[BisnorMedia] Live sync notice:", err);
         });
     }
 

@@ -552,7 +552,8 @@ const FALLBACK_CATALOG = [
 
 class MediaDataService {
     constructor() {
-        this.catalog = [];
+        // Pre-populate with verified offline real Iranian & International catalog immediately
+        this.catalog = [...FALLBACK_CATALOG];
         this.pendingRequests = new Map();
         this.initBridgeListener();
         this.servers = [
@@ -615,8 +616,8 @@ class MediaDataService {
                 const promise = new Promise((resolve, reject) => {
                     const timer = setTimeout(() => {
                         this.pendingRequests.delete(requestId);
-                        reject(new Error("Bridge Timeout (8s)"));
-                    }, 8000);
+                        reject(new Error("Bridge Timeout (3.5s)"));
+                    }, 3500);
                     this.pendingRequests.set(requestId, {
                         resolve: (data) => { clearTimeout(timer); resolve(data); },
                         reject: (err) => { clearTimeout(timer); reject(err); }
@@ -765,12 +766,15 @@ class MediaDataService {
     }
 
     async getExploreCatalog() {
-        if (this.catalog.length > 20) return this.catalog;
-        const [movies, series, topImdb] = await Promise.all([
+        if (this.catalog && this.catalog.length >= 20) {
+            return this.catalog;
+        }
+        // If first run, initiate background refresh but return whatever we have immediately
+        Promise.allSettled([
             this.getLatestMovies(),
             this.getPopularSeries(),
             this.getTopImdb()
-        ]);
+        ]).catch(() => {});
         return this.catalog.length > 0 ? this.catalog : FALLBACK_CATALOG;
     }
 
@@ -845,9 +849,12 @@ class MediaDataService {
         });
     }
 
+    getHeroFeaturedSync() {
+        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : FALLBACK_CATALOG[0];
+    }
+
     async getHeroFeatured() {
-        if (this.catalog.length === 0) await this.getLatestMovies();
-        return this.catalog[0] || FALLBACK_CATALOG[0];
+        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : FALLBACK_CATALOG[0];
     }
 }
 

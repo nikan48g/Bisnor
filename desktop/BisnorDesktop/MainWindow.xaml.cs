@@ -200,12 +200,25 @@ public partial class MainWindow : Window
 
         try
         {
+            object? parsedData = null;
+            if (!string.IsNullOrEmpty(resultJson))
+            {
+                try
+                {
+                    parsedData = JsonDocument.Parse(resultJson).RootElement;
+                }
+                catch
+                {
+                    parsedData = resultJson;
+                }
+            }
+
             var responsePayload = new
             {
                 action = "iranflixResponse",
                 requestId,
                 success = resultJson != null,
-                data = resultJson,
+                data = parsedData,
                 error = lastEx?.Message
             };
 

@@ -14,8 +14,7 @@ public partial class MainWindow : Window
     private static readonly string[] IranflixServers = new[]
     {
         "https://hostinnegar.com",
-        "https://server-hi-speed-iran.info",
-        "https://windowsdiba.info"
+        "https://server-hi-speed-iran.info"
     };
     private const string ApiKey = "4F5A9C3D9A86FA54EACEDDD635185";
 
@@ -25,7 +24,7 @@ public partial class MainWindow : Window
         AllowAutoRedirect = true
     })
     {
-        Timeout = TimeSpan.FromSeconds(20)
+        Timeout = TimeSpan.FromSeconds(15)
     };
 
     public MainWindow()
@@ -173,12 +172,13 @@ public partial class MainWindow : Window
         {
             try
             {
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(6));
                 var cleanServer = server.TrimEnd('/');
                 var fullUrl = $"{cleanServer}{normalizedEndpoint}".Replace("{API_KEY}", ApiKey);
-                var response = await _httpClient.GetAsync(fullUrl);
+                var response = await _httpClient.GetAsync(fullUrl, cts.Token);
                 if (response.IsSuccessStatusCode)
                 {
-                    resultJson = await response.Content.ReadAsStringAsync();
+                    resultJson = await response.Content.ReadAsStringAsync(cts.Token);
                     if (!string.IsNullOrWhiteSpace(resultJson) && (resultJson.TrimStart().StartsWith("[") || resultJson.TrimStart().StartsWith("{")))
                     {
                         break;
@@ -188,23 +188,34 @@ public partial class MainWindow : Window
             catch (Exception ex)
             {
                 lastEx = ex;
+                Debug.WriteLine($"[IranflixFetchError] {server} => {ex.Message}");
             }
         }
 
-        var responsePayload = new
+        try
         {
-            action = "iranflixResponse",
-            requestId,
-            success = resultJson != null,
-            data = resultJson,
-            error = lastEx?.Message
-        };
+            var responsePayload = new
+            {
+                action = "iranflixResponse",
+                requestId,
+                success = resultJson != null,
+                data = resultJson,
+                error = lastEx?.Message
+            };
 
-        var jsonStr = JsonSerializer.Serialize(responsePayload);
-        await Dispatcher.InvokeAsync(() =>
+            var jsonStr = JsonSerializer.Serialize(responsePayload);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                if (webView?.CoreWebView2 != null)
+                {
+                    webView.CoreWebView2.PostWebMessageAsString(jsonStr);
+                }
+            });
+        }
+        catch (Exception ex)
         {
-            webView.CoreWebView2.PostWebMessageAsString(jsonStr);
-        });
+            Debug.WriteLine($"[PostMessageError] {ex.Message}");
+        }
     }
 
     private void LaunchPlayer(string? player, string? url, string? title)

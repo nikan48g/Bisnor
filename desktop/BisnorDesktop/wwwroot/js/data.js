@@ -4,301 +4,549 @@
  */
 
 const FALLBACK_CATALOG = [
-    // 1. Movies
     {
-        id: 101,
-        type: "movie",
-        title: "اوپنهایمر (Oppenheimer)",
-        description: "داستان زندگی جی. رابرت اوپنهایمر، فیزیکدان نظری آمریکایی که به عنوان پدر بمب اتمی شناخته می‌شود و نقش کلیدی در پروژه منهتن داشت. فیلم کاوشی عمیق در اخلاقیات، سیاست و پیامدهای ویرانگر ساخت سلاح هسته‌ای است.",
-        year: 2023,
-        imdb: 8.9,
-        rating: 9.2,
-        duration: "180 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_FMjpg_UX1000_.jpg",
-        cover: "https://images.hdqwalls.com/download/oppenheimer-movie-banner-4k-3840x2160.jpg",
-        genres: [{ id: 1, title: "زندگینامه" }, { id: 2, title: "درام" }, { id: 3, title: "تاریخی" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 1011, quality: "1080p BluRay - 2.8 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-            { id: 1012, quality: "720p WEB-DL - 1.4 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-            { id: 1013, quality: "480p WEB-DL - 750 MB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" }
-        ]
-    },
-    {
-        id: 102,
-        type: "movie",
-        title: "شوالیه تاریکی (The Dark Knight)",
-        description: "بتمن با کمک ستوان جیم گوردون و دادستان جدید هاروی دنت، شروع به برچیدن جرایم سازمان‌یافته در گاتهام می‌کند. اما ورود جوکر، روان‌پریشی با نبوغ جنایتکارانه، شهر را به ورطه هرج‌ومرج و تباهی می‌کشاند.",
-        year: 2008,
-        imdb: 9.0,
-        rating: 9.5,
-        duration: "152 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg",
-        cover: "https://images.alphacoders.com/289/28929.jpg",
-        genres: [{ id: 4, title: "اکشن" }, { id: 5, title: "جنایی" }, { id: 2, title: "درام" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 1021, quality: "1080p BluRay - 2.4 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-            { id: 1022, quality: "720p BluRay - 1.2 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
-        ]
-    },
-    {
-        id: 103,
-        type: "movie",
-        title: "میان‌ستاره‌ای (Interstellar)",
-        description: "در آینده‌ای که زمین به دلیل تغییرات اقلیمی و بحران غلات غیرقابل سکونت شده است، تیمی از فضانوردان و دانشمندان از طریق یک کرم‌چاله در نزدیکی زحل به جستجوی سیاره‌ای جدید برای بقای نسل بشر می‌روند.",
-        year: 2014,
-        imdb: 8.7,
-        rating: 9.1,
-        duration: "169 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg",
-        cover: "https://images6.alphacoders.com/546/546684.png",
-        genres: [{ id: 6, title: "علمی تخیلی" }, { id: 2, title: "درام" }, { id: 7, title: "ماجراجویی" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 1031, quality: "1080p 10bit x265 - 2.6 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-            { id: 1032, quality: "720p x264 - 1.3 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
-        ]
-    },
-    {
-        id: 104,
-        type: "movie",
-        title: "تلقین (Inception)",
-        description: "دام کاب یک سارق ماهر است که خطرناک‌ترین کار دزدی را انجام می‌دهد: استخراج اسرار ارزشمند از عمق ضمیر ناخودآگاه در طول وضعیت خواب و رؤیا. حال به او ماموریتی معکوس یعنی کاشتن یک ایده در ذهن یک مدیر داده می‌شود.",
-        year: 2010,
-        imdb: 8.8,
-        rating: 9.0,
-        duration: "148 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
-        cover: "https://images2.alphacoders.com/139/139268.jpg",
-        genres: [{ id: 4, title: "اکشن" }, { id: 6, title: "علمی تخیلی" }, { id: 7, title: "ماجراجویی" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 1041, quality: "1080p BluRay - 2.1 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-            { id: 1042, quality: "720p BluRay - 1.1 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
-        ]
-    },
-    {
-        id: 105,
-        type: "movie",
-        title: "تل‌ماسه: بخش دوم (Dune: Part Two)",
-        description: "پل آتریدیس با چانی و فرمن‌ها متحد می‌شود در حالی که به دنبال انتقام از توطئه‌گرانی است که خانواده‌اش را نابود کردند. او در دوراهی بین عشق زندگی‌اش و سرنوشت جهان هستی قرار می‌گیرد.",
-        year: 2024,
-        imdb: 8.6,
-        rating: 9.3,
-        duration: "166 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BN2QyZGU4ZDctOWMzMy00NTc5LThlOGQtODhmNDI1NmY5YzAwXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg",
-        cover: "https://images.hdqwalls.com/download/dune-part-two-2024-5k-3840x2160.jpg",
-        genres: [{ id: 4, title: "اکشن" }, { id: 6, title: "علمی تخیلی" }, { id: 7, title: "ماجراجویی" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 1051, quality: "1080p WEB-DL - 2.9 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-            { id: 1052, quality: "720p WEB-DL - 1.5 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
-        ]
-    },
-    {
-        id: 106,
-        type: "movie",
-        title: "پدرخوانده (The Godfather)",
-        description: "دون ویتو کورلئونه رئیس سالخورده یک خانواده مافیایی در نیویورک، کنترل امپراتوری خود را به کوچک‌ترین پسرش، مایکل، که پیش از این تمایلی به ورود به دنیای جرم و جنایت نداشت واگذار می‌کند.",
-        year: 1972,
-        imdb: 9.2,
-        rating: 9.6,
-        duration: "175 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMDEwNWQ@._V1_.jpg",
-        cover: "https://images.alphacoders.com/278/278912.jpg",
-        genres: [{ id: 5, title: "جنایی" }, { id: 2, title: "درام" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 1061, quality: "1080p Remastered - 2.5 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
-        ]
-    },
-
-    // 2. Series with Complete Seasons and Episodes
-    {
-        id: 201,
-        type: "serie",
-        title: "بریکینگ بد (Breaking Bad)",
-        description: "یک معلم شیمی دبیرستان که مبتلا به سرطان ریه پیشرفته شده است، به همراه یکی از دانش‌آموزان سابق خود برای تأمین آینده مالی خانواده‌اش به تولید و فروش شیشه روی می‌آورد و به مرور به یک غول مواد مخدر تبدیل می‌شود.",
-        year: 2008,
-        imdb: 9.5,
-        rating: 9.8,
-        duration: "5 فصل کامل",
-        image: "https://m.media-amazon.com/images/M/MV5BYmQ4YWMxYjUtNjZmYi00MDQxLWEzMjAtNjMtZGY3NTBjOTA0ZGYxXkEyXkFqcGdeQXVyMTMzNDExODE5._V1_.jpg",
-        cover: "https://images5.alphacoders.com/439/439410.jpg",
-        genres: [{ id: 5, title: "جنایی" }, { id: 2, title: "درام" }, { id: 8, title: "هیجان انگیز" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        seasons: [
+        "id": 34764,
+        "type": "movie",
+        "title": "PAW Patrol The Dino Movie",
+        "description": "سگ های نگهبان: جزیره دایناسورها، گروه سگ‌های نگهبان پس از یک طوفان، سر از یک جزیره دایناسوری مرموز درمی‌آورند. آن‌ها در آنجا با رکس، یک توله سگ سرگردان، آشنا می‌شوند. هنگامی که معدن‌کاری بی‌ملاحظه‌ی ��امدینگر باعث فعال شدن یک آتشفشان می‌شود، تیم برای نجات جزیره با بزرگ‌ترین مأموریت نجات خود روبرو میشود.\n\n\nزیرنویس چسبیده پارسی\n\n\nبرای تماشای تمام قسمت های انیمیشن این کلمه را سرچ کنید         PAW Patrol",
+        "year": 2026,
+        "imdb": 6.2,
+        "rating": 5,
+        "duration": "88 min",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/75d8588beae4a05d4d99fd4e3517966e.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/364f3fff425fe466708507d1f5b53a4c.jpg",
+        "genres": [
             {
-                id: 2011,
-                title: "فصل 1",
-                episodes: [
-                    { id: 20111, title: "قسمت ۱: پایلوت", description: "والتر وایت ۵۰ ساله متوجه ابتلای خود به سرطان می‌شود و تصمیمی خطرناک می‌گیرد.", duration: "58 دقیقه", sources: [{ id: 1, quality: "1080p - 850 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }, { id: 2, quality: "720p - 450 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }] },
-                    { id: 20112, title: "قسمت ۲: گربه‌ای درون کیسه...", description: "والت و جسی تلاش می‌کنند اولین معامله خود و عواقب فاجعه‌بارش را جمع‌وجور کنند.", duration: "48 دقیقه", sources: [{ id: 1, quality: "1080p - 790 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 20113, title: "قسمت ۳: و کیسه درون رودخانه", description: "والت ناچار است با تصمیمی اخلاقی پیرامون سرنوشت کریزی-ایت روبه‌رو شود.", duration: "48 دقیقه", sources: [{ id: 1, quality: "1080p - 820 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 20114, title: "قسمت ۴: مرد سرطان", description: "والت راز بیماری‌اش را با خانواده در میان می‌گذارد.", duration: "48 دقیقه", sources: [{ id: 1, quality: "1080p - 760 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 20115, title: "قسمت ۵: ماده خاکستری", description: "یک پیشنهاد وسوسه‌انگیز کاری از جانب دوستان سابق والت، غرور او را جریحه‌دار می‌کند.", duration: "48 دقیقه", sources: [{ id: 1, quality: "1080p - 810 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 20116, title: "قسمت ۶: یک مشت جنون", description: "والت با هویت مستعار «هایزنبرگ» وارد قلمروی توکو سالامانکا می‌شود.", duration: "48 دقیقه", sources: [{ id: 1, quality: "1080p - 890 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 20117, title: "قسمت ۷: معامله‌ای از جنس مرگ", description: "والت و جسی به تولید صنعتی روی می‌آورند و خطر توکو بیخ گوششان است.", duration: "48 دقیقه", sources: [{ id: 1, quality: "1080p - 840 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] }
-                ]
+                "id": 2,
+                "title": "اکشن"
             },
             {
-                id: 2012,
-                title: "فصل 2",
-                episodes: [
-                    { id: 20121, title: "قسمت ۱: هفت و سی و هفت", description: "والت و جسی نقشه‌ای برای حذف توکو پیش از آنکه او آنها را بکشد می‌کشند.", duration: "47 دقیقه", sources: [{ id: 1, quality: "1080p - 820 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 20122, title: "قسمت ۲: در آتش پنهان", description: "توکو آنها را به کلبه عمویش هکتور سالامانکا در بیابان می‌برد.", duration: "47 دقیقه", sources: [{ id: 1, quality: "1080p - 830 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] }
-                ]
-            }
-        ]
-    },
-    {
-        id: 202,
-        type: "serie",
-        title: "چیزهای عجیب (Stranger Things)",
-        description: "هنگامی که یک پسربچه در شهری کوچک ناپدید می‌شود، اهالی پرده از معمایی شامل آزمایش‌های فوق سری دولتی، نیروهای ماوراءطبیعی ترسناک و یک دختر عجیب و غریب برمی‌دارند.",
-        year: 2016,
-        imdb: 8.7,
-        rating: 9.0,
-        duration: "4 فصل",
-        image: "https://m.media-amazon.com/images/M/MV5BMDZkYmVhNjMtNWU4MC00MDQxLWE3YTgtZTZlN2RhOWFlNmZlXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_.jpg",
-        cover: "https://images.alphacoders.com/832/832269.jpg",
-        genres: [{ id: 6, title: "علمی تخیلی" }, { id: 2, title: "درام" }, { id: 9, title: "ترسناک" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        seasons: [
+                "id": 3,
+                "title": "انیمیشن + انیمه"
+            },
             {
-                id: 2021,
-                title: "فصل 1",
-                episodes: [
-                    { id: 20211, title: "قسمت ۱: ناپدید شدن ویل بایرز", description: "شبی تاریک در سال ۱۹۸۳، ویل در راه بازگشت به خانه با چیزی وحشتناک مواجه می‌شود.", duration: "48 دقیقه", sources: [{ id: 1, quality: "1080p - 920 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 20212, title: "قسمت ۲: دخترک عجیب خیابان میپل", description: "بچه‌ها با الون (Eleven) در جنگل برخورد می‌کنند و متوجه توانایی‌های ماورایی‌اش می‌شوند.", duration: "55 دقیقه", sources: [{ id: 1, quality: "1080p - 950 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] }
-                ]
-            }
-        ]
-    },
-    {
-        id: 203,
-        type: "serie",
-        title: "ونزدی (Wednesday)",
-        description: "داستان سال‌های تحصیل ونزدی آدامز در آکادمی نِورمور، جایی که او تلاش می‌کند بر توانایی‌های روانی نوظهور خود مسلط شود و معمایی قتل‌آمیز با پیشینه ۲۵ ساله را حل کند.",
-        year: 2022,
-        imdb: 8.1,
-        rating: 8.8,
-        duration: "1 فصل",
-        image: "https://m.media-amazon.com/images/M/MV5BMjA3NjU1NTE3N15BMl5BanBnXkFtZTgwNTk5NDM4MzI@._V1_.jpg",
-        cover: "https://images7.alphacoders.com/129/1291888.jpg",
-        genres: [{ id: 10, title: "کمدی" }, { id: 11, title: "فانتزی" }, { id: 5, title: "جنایی" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        seasons: [
+                "id": 7,
+                "title": "جنایی"
+            },
             {
-                id: 2031,
-                title: "فصل 1",
-                episodes: [
-                    { id: 20311, title: "قسمت ۱: چهارشنبه پر از اندوه است", description: "ونزدی پس از یک حادثه در استخر دبیرستان، به آکادمی نورمور تبعید می‌شود.", duration: "59 دقیقه", sources: [{ id: 1, quality: "1080p - 1.1 GB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] }
-                ]
-            }
-        ]
-    },
-
-    // 3. Animations & Anime
-    {
-        id: 301,
-        type: "movie",
-        title: "شهر اشباح (Spirited Away)",
-        description: "چیهیرو، دختربچه‌ای ۱۰ ساله، همراه با والدینش به شهری جدید نقل مکان می‌کند اما در راه وارد دنیایی جادویی پر از ارواح، شیاطین و خدایان باستانی می‌شود. شاهکار هایائو میازاکی برنده جایزه اسکار.",
-        year: 2001,
-        imdb: 8.6,
-        rating: 9.3,
-        duration: "125 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BMjlmAmZjzxUtMTU2Ny00MzU0LWI3ODktMmQzZTYyMmE3ZWIxXkEyXkFqcGdeQXVyNzkwMDEwNWQ@._V1_.jpg",
-        cover: "https://images.alphacoders.com/209/209424.jpg",
-        genres: [{ id: 12, title: "انیمیشن" }, { id: 7, title: "ماجراجویی" }, { id: 11, title: "فانتزی" }],
-        country: [{ id: 2, title: "ژاپن", image: "" }],
-        sources: [
-            { id: 3011, quality: "1080p BluRay - 1.9 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
-        ]
-    },
-    {
-        id: 302,
-        type: "movie",
-        title: "مرد عنکبوتی: در میان دنیای عنکبوتی (Spider-Man: Across the Spider-Verse)",
-        description: "مایلز مورالس در سفری چندبعدی با تیمی از افراد عنکبوتی روبه‌رو می‌شود که وظیفه دارند از هستی چندجهانی محافظت کنند، اما هنگامی که در مواجهه با تهدیدی جدید اختلاف نظر پیدا می‌کنند، مایلز در برابر آنها قرار می‌گیرد.",
-        year: 2023,
-        imdb: 8.7,
-        rating: 9.4,
-        duration: "140 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BMzI0NmVkMjEtYmY4MS00ZDMxLTlkZmEtMzU4MDQxYTMzMjU2XkEyXkFqcGdeQXVyMzQ0MzA0NTM@._V1_.jpg",
-        cover: "https://images4.alphacoders.com/131/1318025.jpeg",
-        genres: [{ id: 12, title: "انیمیشن" }, { id: 4, title: "اکشن" }, { id: 7, title: "ماجراجویی" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 3021, quality: "1080p Web-DL - 2.5 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
-        ]
-    },
-    {
-        id: 303,
-        type: "serie",
-        title: "وان پیس (One Piece)",
-        description: "مانکی دی. لوفی، پسری جوان با بدنی کشسان، با رویای یافتن گنج نهایی «وان پیس» و تبدیل شدن به پادشاه دزدان دریایی، با خدمه وفادارش راهی گرند لاین می‌شود.",
-        year: 1999,
-        imdb: 8.9,
-        rating: 9.4,
-        duration: "سریال ادامه‌دار",
-        image: "https://m.media-amazon.com/images/M/MV5BODcwNWE3OTMtMDc3MS00NDFjLWE1OTAtNDU3NjgxNTQ2MWM0XkEyXkFqcGdeQXVyMTA1OTcyNDQ4._V1_.jpg",
-        cover: "https://images.alphacoders.com/605/605592.png",
-        genres: [{ id: 12, title: "انیمیشن" }, { id: 4, title: "اکشن" }, { id: 7, title: "ماجراجویی" }],
-        country: [{ id: 2, title: "ژاپن", image: "" }],
-        seasons: [
+                "id": 9,
+                "title": "خانوادگی"
+            },
             {
-                id: 3031,
-                title: "فصل 1 (East Blue)",
-                episodes: [
-                    { id: 30311, title: "قسمت ۱: من لوفی‌ام! مردی که پادشاه دزدان دریایی خواهد شد!", description: "لوفی از یک بشکه چوبی بیرون می‌آید و با کوبی آشنا می‌شود.", duration: "24 دقیقه", sources: [{ id: 1, quality: "1080p - 450 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 30312, title: "قسمت ۲: وارد شدن شمشیرزن ماهر: شکارچی دزدان دریایی، رورونوا زورو!", description: "لوفی برای جذب اولین هم‌تیمی خود به پایگاه تفنگداران دریایی نفوذ می‌کند.", duration: "24 دقیقه", sources: [{ id: 1, quality: "1080p - 440 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] }
-                ]
-            }
-        ]
-    },
-    {
-        id: 304,
-        type: "serie",
-        title: "بلویی (Bluey)",
-        description: "ماجراهای دوست‌داشتنی و خانوادگی سگ پاستورال استرالیایی به نام بلویی و خواهر کوچکش بینگو که تخیل بی‌پایانشان زندگی روزمره را به بازی‌های خلاقانه و شاد تبدیل می‌کند.",
-        year: 2018,
-        imdb: 9.4,
-        rating: 9.7,
-        duration: "3 فصل",
-        image: "https://m.media-amazon.com/images/M/MV5BNDAwODQ0MDItMWMzNi00Yzk4LWFkOGYtN2NmOWM5YmVmYjAwXkEyXkFqcGdeQXVyMTM1MTE1NDMx._V1_.jpg",
-        cover: "https://images.alphacoders.com/133/1332028.jpeg",
-        genres: [{ id: 12, title: "انیمیشن" }, { id: 10, title: "کمدی" }],
-        country: [{ id: 3, title: "استرالیا", image: "" }],
-        seasons: [
+                "id": 12,
+                "title": "ماجراجویی"
+            },
             {
-                id: 3041,
-                title: "فصل 1",
-                episodes: [
-                    { id: 30411, title: "قسمت ۱: زایلوفون جادویی", description: "بلویی و بینگو با زایلوفون جادویی پدرشان را در حالت‌های خنده‌دار متوقف می‌کنند.", duration: "8 دقیقه", sources: [{ id: 1, quality: "1080p - 180 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] },
-                    { id: 30412, title: "قسمت ۲: بیمارستان", description: "بلویی و بینگو دکتر می‌شوند و پدرشان را درمان می‌کنند!", duration: "8 دقیقه", sources: [{ id: 1, quality: "1080p - 175 MB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }] }
+                "id": 13,
+                "title": "کمدی"
+            }
+        ],
+        "country": [
+            {
+                "id": 1,
+                "title": "امریکا",
+                "image": "https://hostinnegar.com/uploads/cache/country_thumb/uploads/jpg/b8b281c0e76be9a34a53edefa904ca99.jpg"
+            }
+        ],
+        "sources": [
+            {
+                "id": 496370,
+                "quality": "تیزر",
+                "type": "mp4",
+                "url": "http://drive3.google.dl175m.info/tizer/PAW.Patrol.The.Dino.Movie.2026.Trailer.mp4"
+            },
+            {
+                "id": 496371,
+                "quality": "480 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/PAW.Patrol.The.Dino.Movie.2026.480p.WEB-DL.Farsi.Sub.simba.mkv"
+            },
+            {
+                "id": 496372,
+                "quality": "720 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/PAW.Patrol.The.Dino.Movie.2026.720p.WEB-DL.YIFY.Farsi.Sub.simba.mkv"
+            },
+            {
+                "id": 496373,
+                "quality": "1080 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/PAW.Patrol.The.Dino.Movie.2026.1080p.WEB-DL.6CH.YIFY.Farsi.Sub.simba.mkv"
+            }
+        ]
+    },
+    {
+        "id": 34763,
+        "type": "movie",
+        "title": "Mirzapur The Movie",
+        "description": "نبرد بر سر تصاحب تاج‌وتخت میرزاپور بالا می‌گیرد؛ دشمنانی قدیمی از سر نو سر برمی‌آورند و تهدیدهای تازه‌ای سر برون می‌آورند. خون‌خواهی‌ها باید پس داده شوند، در حالی که مدعیان تشنهٔ قدرت برای کنترل دنیای زیرزمینی و پرخشونت شهر به جان هم می‌افتند.\n\n\nزیرنویس چسبیده پارسی",
+        "year": 2026,
+        "imdb": 7.9,
+        "rating": 5,
+        "duration": "120 دقیقه",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/c56ffbe70a091e520f1768a66bdcc3de.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/d48ef82fc416c95a3f281346fc65fbce.jpg",
+        "genres": [
+            {
+                "id": 2,
+                "title": "اکشن"
+            },
+            {
+                "id": 7,
+                "title": "جنایی"
+            },
+            {
+                "id": 10,
+                "title": "درام"
+            },
+            {
+                "id": 21,
+                "title": "هیجان انگیز"
+            },
+            {
+                "id": 38,
+                "title": "هندی"
+            }
+        ],
+        "country": [
+            {
+                "id": 13,
+                "title": "هند",
+                "image": "https://hostinnegar.com/uploads/cache/country_thumb/uploads/jpg/9d04c7aa8ea4bad5c22c792029220081.jpg"
+            }
+        ],
+        "sources": [
+            {
+                "id": 496351,
+                "quality": "تیزر",
+                "type": "mp4",
+                "url": "http://drive3.google.dl175m.info/tizer/Mirzapur-%20The%20Movie%20-%20Trailer.mp4"
+            },
+            {
+                "id": 496352,
+                "quality": "480 فارسی پرده ای",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Mirzapur.The.Movie.2026.Hindi.480p.HDTC.HardSub.mkv"
+            },
+            {
+                "id": 496353,
+                "quality": "720 فارسی پرده ای",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Mirzapur.The.Movie.2026.Hindi.720p.HDTC.HardSub.mkv"
+            },
+            {
+                "id": 496354,
+                "quality": "1080 فارسی پرده ای",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Mirzapur.The.Movie.2026.Hindi.1080p.HDTC.HardSub.mkv"
+            }
+        ]
+    },
+    {
+        "id": 34752,
+        "type": "movie",
+        "title": "Drawn Together",
+        "description": "ماریل کورتس، دخترِ یک تاجرِ ثروتمندِ اسپانیایی، ربوده شده و سپس آزاد می‌شود و این اتفاق، پدرش را به استخدامِ سباستین مور به‌عنوان محافظ شخصی وادار می‌کند. با وجودِ تضادهایِ اولیه، جذابیتی غیرقابل‌انکار میانِ آنها شکل می‌گیرد، در حالی که در دنیایی قدم می‌گذارند که هیچ‌کس آن‌طور نیست که ادعا می‌کند.\n\n\nزیرنویس چسبیده پارسی",
+        "year": 2026,
+        "imdb": 5.6,
+        "rating": 4.7,
+        "duration": "120 دقیقه",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/3d88844df2dd716ed686b2d364e7d330.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/88ce88e9b9cc4ea71a13f5de34033f46.jpg",
+        "genres": [
+            {
+                "id": 4,
+                "title": "عاشقانه"
+            },
+            {
+                "id": 10,
+                "title": "درام"
+            },
+            {
+                "id": 21,
+                "title": "هیجان انگیز"
+            }
+        ],
+        "country": [
+            {
+                "id": 14,
+                "title": "اسپانیا",
+                "image": "https://hostinnegar.com/uploads/cache/country_thumb/uploads/jpg/65737aafe597b08739d1a44016e990f1.jpg"
+            }
+        ],
+        "sources": [
+            {
+                "id": 496330,
+                "quality": "تیزر",
+                "type": "mp4",
+                "url": "http://drive3.google.dl175m.info/tizer/Drawn.Together.-.Official.Trailer.mp4"
+            },
+            {
+                "id": 496349,
+                "quality": "720 فارسی",
+                "type": "mp4",
+                "url": "http://drive3.google.dl175m.info/new%20film/Drawn.Together.2026.720p.AMZN.WEB-DL.HardSub.9Movie.mp4"
+            },
+            {
+                "id": 496350,
+                "quality": "1080 فارسی",
+                "type": "mp4",
+                "url": "http://drive3.google.dl175m.info/new%20film/Drawn.Together.2026.1080p.AMZN.WEB-DL.HardSub.9Movie.mp4"
+            }
+        ]
+    },
+    {
+        "id": 34751,
+        "type": "movie",
+        "title": "Compression",
+        "description": "هیزل یک بیمار مبتلا به هراس از مکان‌های باز (آگورافوبیا) شدید است که یک پادکست جنایی واقعی درباره پرونده‌های زنان مفقودشده را اداره می‌کند. وقتی برنامه او برای ماندن در خانه و استراحت، در میان یک سفر دارویی بسیار سخت و کابوس‌وار به هم می‌ریزد، او مجبور می‌شود با ترس‌هایش روبه‌رو شود، با آسیب‌های روحی خود مقابله کند و در این درام ترسناک و سورئال، قدم‌هایی نه‌چندان استعاری برای احساس زنده بودن دوباره بردارد و ...\n\n\nزیرنویس چسبیده پارسی",
+        "year": 2024,
+        "imdb": 5.3,
+        "rating": 5,
+        "duration": "120 دقیقه",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/330755b7e21a389a55ec047c7a258995.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/cd3af70029ee55d35ae9605002c0cae8.jpg",
+        "genres": [
+            {
+                "id": 1,
+                "title": "ترسناک"
+            },
+            {
+                "id": 10,
+                "title": "درام"
+            },
+            {
+                "id": 21,
+                "title": "هیجان انگیز"
+            }
+        ],
+        "country": [
+            {
+                "id": 1,
+                "title": "امریکا",
+                "image": "https://hostinnegar.com/uploads/cache/country_thumb/uploads/jpg/b8b281c0e76be9a34a53edefa904ca99.jpg"
+            }
+        ],
+        "sources": [
+            {
+                "id": 496329,
+                "quality": "تیزر",
+                "type": "mp4",
+                "url": "http://drive3.google.dl175m.info/tizer/%D8%AF%D8%A7%D9%86%D9%84%D9%88%D8%AF%20%D9%81%DB%8C%D9%84%D9%85%20Compression%202024%20%D9%81%D8%B4%D8%A7%D8%B1%20%D8%A8%D8%AF%D9%88%D9%86%20%D8%B3%D8%A7%D9%86%D8%B3%D9%88%D8%B1.mp4"
+            },
+            {
+                "id": 496340,
+                "quality": "720 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Compression.2024.720p.WEBRip.x264.AAC-YTS.SoftSub.simba.mkv"
+            },
+            {
+                "id": 496341,
+                "quality": "1080 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Compression.2024.1080p.WEBRip.x264.AAC-YTS.SoftSub.simba.mkv"
+            }
+        ]
+    },
+    {
+        "id": 34750,
+        "type": "movie",
+        "title": "Portal to Hell",
+        "description": "پس از آنکه یک شرخر در ماشین لباس‌شویی رخت‌شوی‌خانه محلی خود دروازه‌ای به جهنم پیدا می‌کند، به او پیشنهاد می‌شود تا برای نجات روح همسایه‌اش، گناهکاران را خوراک این دروازه کند؛ کاری که شاید حتی به قیمت از دست رفتن روح خودش تمام شود.\n\n\nزیرنویس چسبیده پارسی",
+        "year": 2025,
+        "imdb": 5.4,
+        "rating": 5,
+        "duration": "93 min",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/fd97c00885f2095da52770b0748e8910.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/45f1e9cc25e8f2142c3d8e770027bc63.jpg",
+        "genres": [
+            {
+                "id": 1,
+                "title": "ترسناک"
+            },
+            {
+                "id": 13,
+                "title": "کمدی"
+            }
+        ],
+        "country": [
+            {
+                "id": 1,
+                "title": "امریکا",
+                "image": "https://hostinnegar.com/uploads/cache/country_thumb/uploads/jpg/b8b281c0e76be9a34a53edefa904ca99.jpg"
+            }
+        ],
+        "sources": [
+            {
+                "id": 496342,
+                "quality": "720 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Portal.To.Hell.2025.720p.WEBRip.x264.AAC-YTS.SoftSub.simba.mkv"
+            },
+            {
+                "id": 496343,
+                "quality": "1080 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Portal.To.Hell.2025.1080p.WEBRip.x264.AAC5.1-YTS.SoftSub.simba.mkv"
+            }
+        ]
+    },
+    {
+        "id": 34749,
+        "type": "movie",
+        "title": "Asad",
+        "description": "فیلم داستان \"اسد\" برده‌ای در مصر قرن نوزدهم است که برای آزادی و رهایی از ظلم اربابانش مبارزه می‌کند و زمانی که عاشق \"لیلا\" زنی آزاد می‌شود، این عشق مسیر زندگی‌اش را تغییر می‌دهد و مبارزه‌ او برای آزادی را جدی‌تر می‌کند و ...\n\n\nزیرنویس چسبیده پارسی",
+        "year": 2026,
+        "imdb": 7.2,
+        "rating": 5,
+        "duration": "120 min",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/76b02aea38bba727bcef88ffc8bfe119.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/fc111f1287cd414e3761fe010a89c615.jpg",
+        "genres": [
+            {
+                "id": 2,
+                "title": "اکشن"
+            },
+            {
+                "id": 5,
+                "title": "تاریخی"
+            },
+            {
+                "id": 10,
+                "title": "درام"
+            }
+        ],
+        "country": [
+            {
+                "id": 38,
+                "title": "مصر",
+                "image": "https://hostinnegar.com/uploads/cache/country_thumb/uploads/png/874b6041b35b2b48d349aa1e1be12f89.png"
+            }
+        ],
+        "sources": [
+            {
+                "id": 496338,
+                "quality": "720 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Asad.2026.720p.WEB-DL.SoftSub.simba.mkv"
+            },
+            {
+                "id": 496339,
+                "quality": "1080 فارسی",
+                "type": "mkv",
+                "url": "http://drive3.google.dl175m.info/new%20film/Asad.2026.1080p.WEB-DL.SoftSub.simba.mkv"
+            }
+        ]
+    },
+    {
+        "id": 34754,
+        "type": "serie",
+        "title": "Ask ve Taht",
+        "description": "نام اصلی:     Ask ve Taht\n\nامتیاز سریال:  7.5/10\n\nنام پارسی:    عشق و تخت\n\nژانر:  تاریخی , عاشقانه\n    \nتاریخ انتشار:  2026\n\nمحصول:  ترکیه\n\nزبان: ترکی\n\nرده سنی:  16\n\nروز پخش: پنجشنبه\n\nستارگان:   Akin Akinözü  , Simay Barlas  , Halil Ibrahim Ceyhan\n\nفرمت:  mp4 , mkv\n\nکیفیت: 480-----720\n\nحجم:  کیفیت 480 ( 616 مگابایت )\n\nکیفیت 720 ( 1.2 گیگابایت )\n\n\nخلاصه سریال :\n\nداستان سریال عشق و تخت به زندگی سلطان علاءالدین کی‌قباد اول، یکی از قدرتمندترین فرمانروایان سلجوقیان روم می‌پردازد؛ پادشاهی که دوران حکومت او به عنوان یکی از باشکوه‌ترین دوره‌های تاریخ سلجوقیان شناخته می‌شود.\n\n\nزیرنویس چسبیده پارسی\n\n\nوضعیت سریال: درحال پخش",
+        "year": 2026,
+        "imdb": 7.5,
+        "rating": 5,
+        "duration": "1 فصل",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/b9de499ea74788b2427b1b1713271bd1.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/91115cd88488ef3537dc4158ac672e65.jpg",
+        "genres": [
+            {
+                "id": 4,
+                "title": "عاشقانه"
+            },
+            {
+                "id": 5,
+                "title": "تاریخی"
+            },
+            {
+                "id": 31,
+                "title": "سریال های بروز شده"
+            },
+            {
+                "id": 35,
+                "title": "ترکی"
+            }
+        ],
+        "country": [
+            {
+                "id": 12,
+                "title": "ترکیه"
+            }
+        ],
+        "sources": [],
+        "seasons": [
+            {
+                "id": 19941,
+                "title": "فصل اول زیرنویس",
+                "episodes": [
+                    {
+                        "id": 353838,
+                        "title": "قسمت 1",
+                        "duration": "45 دقیقه",
+                        "sources": [
+                            {
+                                "id": 496319,
+                                "quality": "480",
+                                "type": "mkv",
+                                "url": "http://drive3.google.dl175m.info/tv2/Ask%20ve%20Taht/fasl1480/Ask.ve.taht.E001.HardSub.480p.mkv"
+                            },
+                            {
+                                "id": 496320,
+                                "quality": "720",
+                                "type": "mp4",
+                                "url": "http://drive3.google.dl175m.info/tv2/Ask%20ve%20Taht/fasl1720/Ask.ve.taht.E001.HardSub.720p.mp4"
+                            }
+                        ]
+                    }
                 ]
             }
         ]
     },
     {
-        id: 305,
-        type: "movie",
-        title: "گارفیلد (The Garfield Movie)",
-        description: "گارفیلد، گربه خانگی معروف که عاشق لازانیاست و از دوشنبه‌ها متنفر است، پس از دیدار غیرمنتظره با پدر گمشده‌اش ویک، وارد یک ماجراجویی هیجان‌انگیز در فضای باز می‌شود.",
-        year: 2024,
-        imdb: 6.0,
-        rating: 7.2,
-        duration: "101 دقیقه",
-        image: "https://m.media-amazon.com/images/M/MV5BZmJhZjg5NGQtMmU5Yi00OWM1LWI2MjQtNDI3ODQ2N2Q1OTQyXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_.jpg",
-        cover: "https://images.hdqwalls.com/download/the-garfield-movie-2024-5k-3840x2160.jpg",
-        genres: [{ id: 12, title: "انیمیشن" }, { id: 10, title: "کمدی" }, { id: 7, title: "ماجراجویی" }],
-        country: [{ id: 1, title: "آمریکا", image: "" }],
-        sources: [
-            { id: 3051, quality: "1080p WEB-DL - 1.6 GB", type: "mp4", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }
+        "id": 34753,
+        "type": "serie",
+        "title": "Sevdan Bir Ates",
+        "description": "نام اصلی:     Sevdan Bir Ates\n\nامتیاز سریال:  7.0/10\n\nنام پارسی:      عشقت یه آتشه\n\nژانر:  درام , عاشقانه\n    \nتاریخ انتشار:  2026\n\nمحصول:  ترکیه\n\nزبان: ترکی\n\nرده سنی:  16\n\nروز پخش: پنجشنبه\n\nستارگان:   Dorukcan Sariduman  , Murat Ünalmis  , Özge Özacar\n\nفرمت:  mp4 , mkv\n\nکیفیت: 480-----720\n\nحجم:  کیفیت 480 ( 605 مگابایت )\n\nکیفیت 720 ( 1.15 گیگابایت )\n\n\nخلاصه سریال :\n\nداستان سریال عشقت یه آتشه (Sevdan Bir Ateş) درباره دو شخصیت اصلی، میرزا و لیلا است که در میان عشق، اختلافات خانوادگی، رازهای گذشته و تصمیم‌های سرنوشت‌ساز گرفتار می‌شوند.\n\n\nزیرنویس چسبیده پارسی\n\n\nوضعیت سریال: درحال پخش",
+        "year": 2026,
+        "imdb": 7,
+        "rating": 5,
+        "duration": "1 فصل",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/4f4688ff6f92dcd2978501f8ba7cb35a.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/8a8a376fe0f303ef90786296b4b880fe.jpg",
+        "genres": [
+            {
+                "id": 4,
+                "title": "عاشقانه"
+            },
+            {
+                "id": 10,
+                "title": "درام"
+            },
+            {
+                "id": 31,
+                "title": "سریال های بروز شده"
+            },
+            {
+                "id": 35,
+                "title": "ترکی"
+            }
+        ],
+        "country": [
+            {
+                "id": 12,
+                "title": "ترکیه"
+            }
+        ],
+        "sources": [],
+        "seasons": [
+            {
+                "id": 19942,
+                "title": "فصل اول زیرنویس",
+                "episodes": [
+                    {
+                        "id": 353839,
+                        "title": "قسمت 1",
+                        "duration": "45 دقیقه",
+                        "sources": [
+                            {
+                                "id": 496321,
+                                "quality": "480",
+                                "type": "mkv",
+                                "url": "http://drive3.google.dl175m.info/tv2/Sevdan%20Bir%20Ates/fasl1480/Sevdan.Bir.Atesr.E001.HardSub.480p.mkv"
+                            },
+                            {
+                                "id": 496322,
+                                "quality": "720",
+                                "type": "mp4",
+                                "url": "http://drive3.google.dl175m.info/tv2/Sevdan%20Bir%20Ates/fasl1720/Sevdan.Bir.Atesr.E001.HardSub.720p.mp4"
+                            }
+                        ]
+                    }
+                ]
+            }
         ]
+    },
+    {
+        "id": 34746,
+        "type": "serie",
+        "title": "Last Seen",
+        "description": "نام اصلی:     Last Seen\n\nامتیاز سریال:  7.5/10\n\nنام پارسی:     آخرین ردپا\n\nژانر:   معمایی , هیجان انگیز\n    \nتاریخ انتشار:  2026\n\nمحصول:   آمریکا\n\nزبان:  انگلیسی\n\nرده سنی:  16\n\nستارگان:       Lana Prodanovic  , Stevie Denton  , Patrick Brammall\n\nفرمت: mkv\n\nکیفیت: 480-----720-----1080\n\nحجم:  کیفیت 480 ( 230 مگابایت )\n\nکیفیت 720 ( 633 مگابایت )\n\nکیفیت 1080 ( 1 گیگابایت )\n\n\nخلاصه سریال :\n\nیک نجوای لرزان از میان نویز خطوط اضطراری پلیس، کابوسی چندین‌ساله را ناگهان به گردابی از جنون و آدرنالین بدل می‌سازد! هنگامی که «ایان ریدلی»، اپراتور بی‌سیم پلیس، پشت تلفن صدایی را می‌شنود که با تمام ذره‌ذره‌ی وجودش باور دارد دختر ربوده‌شده‌اش «مگی» است، زمان برای او می‌ایستد. ایان با شکستن تمام قوانین، نادیده گرفتن پروتکل‌ها و گذر از روی خطوط قرمز، کارزاری بی‌امان، طوفانی و پرتعلیق را در تاریک‌ترین نقاط شهر آغاز می‌کند تا ردی از پاره‌ی تنش بیابد؛ مأموریتی نفس‌گیر بر لبه‌ی تیغ که بهایی جز خاکستر شدن امنیتش ندارد، جایی که پدری مستأصل برای نجات خانواده‌اش از هیچ پیامد مرگباری هراس به خود راه نمی‌دهد.\n\n\nزیرنویس چسبیده پارسی\n\n\nوضعیت سریال: درحال پخش",
+        "year": 2026,
+        "imdb": 7.5,
+        "rating": 5,
+        "duration": "1 فصل",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/9d8cf1971666963accd500a66bdb7dea.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/a7ebde828cb2d4de4d9364581cbea962.jpg",
+        "genres": [
+            {
+                "id": 14,
+                "title": "معمایی"
+            },
+            {
+                "id": 21,
+                "title": "هیجان انگیز"
+            },
+            {
+                "id": 31,
+                "title": "سریال های بروز شده"
+            }
+        ],
+        "country": [
+            {
+                "id": 1,
+                "title": "امریکا"
+            }
+        ],
+        "sources": []
+    },
+    {
+        "id": 34745,
+        "type": "serie",
+        "title": "Abyss",
+        "description": "نام اصلی سریال : Abyss\n\nامتیاز سریال : 8.0/10\n\nنام پارسی سریال :     ورطه\n\nژانر : هیجان انگیز , معمایی , جنایی , درام\n\nتاریخ انتشار: 2026\n\nمحصول کشور:  چین\n\nزبان:  چینی\n\nرده سنی:  16\n\nپخش از شبکه:    iQiyi\n\nتعداد قسمت ها:  18 قسمت\n\nکارگردان: Nie Cheng Shuai\n\nستارگان:   He Bing , Qin Jun Jie , Ren Jia Lun , Tian Xiao Jie , Wang Yan Hui , Ni Hong Jie\n\nفرمت:  MKV\n\nکیفیت 480-----720\n\nحجم:   کیفیت 480 (108-----118 مگابایت )\n\nکیفیت 720 (195-----213 مگابایت )\n\n\nخلاصه سریال : \n\nانتشار یک رمان اینترنتی، راز یک قتل قدیمی رو دوباره زنده می‌کنه؛ چون جزئیات داستان با اطلاعات محرمانه پرونده مطابقت داره. لی چنگ، کارآگاه جوان، در میان چند مظنون وارد یک بازی پیچیده ذهنی می‌شه و هرچه بیشتر تحقیق می‌کنه، رازهای تاریک‌تری از گذشته یک شهر آشکار می‌شن. داستانی معمایی و نفس‌گیر درباره قتل، خانواده، دوستی و تصمیم‌هایی که می‌تونن سرنوشت آدم‌ها رو برای همیشه تغییر بدن.\n\n\nزیرنویس چسبیده پارسی\n\n\nوضعیت سریال: در حال پخش",
+        "year": 2026,
+        "imdb": 8,
+        "rating": 5,
+        "duration": "1 فصل",
+        "image": "https://hostinnegar.com/uploads/cache/poster_thumb/uploads/jpg/d026175d18ff7835d6b7b818225fb9bb.jpg",
+        "cover": "https://hostinnegar.com/uploads/cache/cover_thumb/uploads/jpg/c4f61506821d6ef7840d008922e06ff9.jpg",
+        "genres": [
+            {
+                "id": 7,
+                "title": "جنایی"
+            },
+            {
+                "id": 10,
+                "title": "درام"
+            },
+            {
+                "id": 14,
+                "title": "معمایی"
+            },
+            {
+                "id": 21,
+                "title": "هیجان انگیز"
+            },
+            {
+                "id": 31,
+                "title": "سریال های بروز شده"
+            },
+            {
+                "id": 37,
+                "title": "چینی ژاپنی"
+            },
+            {
+                "id": 57,
+                "title": "چینی"
+            }
+        ],
+        "country": [
+            {
+                "id": 6,
+                "title": "چین"
+            }
+        ],
+        "sources": []
     }
 ];
 
@@ -309,8 +557,7 @@ class MediaDataService {
         this.initBridgeListener();
         this.servers = [
             "https://hostinnegar.com",
-            "https://server-hi-speed-iran.info",
-            "https://windowsdiba.info"
+            "https://server-hi-speed-iran.info"
         ];
         this.apiKey = "4F5A9C3D9A86FA54EACEDDD635185";
         this.adKeywords = [
@@ -333,7 +580,12 @@ class MediaDataService {
         if (window.chrome && window.chrome.webview) {
             window.chrome.webview.addEventListener("message", (e) => {
                 try {
-                    const msg = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+                    let msg = e.data;
+                    if (typeof msg === "string") {
+                        try {
+                            msg = JSON.parse(msg);
+                        } catch (_) {}
+                    }
                     if (msg && msg.action === "iranflixResponse" && msg.requestId) {
                         const resolver = this.pendingRequests.get(msg.requestId);
                         if (resolver) {
@@ -363,8 +615,8 @@ class MediaDataService {
                 const promise = new Promise((resolve, reject) => {
                     const timer = setTimeout(() => {
                         this.pendingRequests.delete(requestId);
-                        reject(new Error("Timeout"));
-                    }, 15000);
+                        reject(new Error("Bridge Timeout (8s)"));
+                    }, 8000);
                     this.pendingRequests.set(requestId, {
                         resolve: (data) => { clearTimeout(timer); resolve(data); },
                         reject: (err) => { clearTimeout(timer); reject(err); }
@@ -378,7 +630,11 @@ class MediaDataService {
                 });
 
                 const rawJson = await promise;
-                return typeof rawJson === "string" ? JSON.parse(rawJson) : rawJson;
+                let parsed = typeof rawJson === "string" ? JSON.parse(rawJson) : rawJson;
+                if (typeof parsed === "string") {
+                    try { parsed = JSON.parse(parsed); } catch (_) {}
+                }
+                return parsed;
             } catch (bridgeErr) {
                 console.warn("[Bridge Fetch Failed, fallback to direct]", bridgeErr);
             }

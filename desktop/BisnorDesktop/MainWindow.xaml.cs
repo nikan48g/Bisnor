@@ -92,7 +92,13 @@ public partial class MainWindow : Window
 
             if (foundIndexPath != null)
             {
-                webView.CoreWebView2.Navigate(new Uri(foundIndexPath).AbsoluteUri);
+                var wwwrootDir = Path.GetDirectoryName(foundIndexPath)!;
+                webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                    "appassets.bisnor",
+                    wwwrootDir,
+                    CoreWebView2HostResourceAccessKind.Allow
+                );
+                webView.CoreWebView2.Navigate("https://appassets.bisnor/index.html");
             }
             else
             {

@@ -438,22 +438,22 @@ class BisnorApp {
 
     // --- Home Tab ---
     async renderHomeTab() {
-        const hero = await window.mediaService.getHeroFeatured();
-        if (hero) {
+        const updateHero = (hero) => {
+            if (!hero) return;
             const heroCard = document.getElementById("hero-banner-card");
             if (heroCard) {
-                const genreTitle = (hero.genres && hero.genres[0]) ? hero.genres[0].title : 'درام';
+                const genreTitle = (hero.genres && hero.genres[0]) ? hero.genres[0].title : 'اکشن';
                 const heroFallback = window.getPosterFallbackSvg ? 
-                    window.getPosterFallbackSvg(hero.title, genreTitle, hero.year, (hero.imdb || 8.9).toFixed(1)) : 
+                    window.getPosterFallbackSvg(hero.title, genreTitle, hero.year, (hero.imdb || 8.0).toFixed(1)) : 
                     "assets/logo.png";
 
                 heroCard.style.backgroundImage = `url('${hero.cover || hero.image || heroFallback}')`;
                 heroCard.innerHTML = `
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-info-wrap">
-                        <div class="hero-rating-badge">⭐ ${(hero.imdb || 8.9).toFixed(1)} IMDb • برترین اثر منتخب</div>
+                        <div class="hero-rating-badge">⭐ ${(hero.imdb || 8.0).toFixed(1)} IMDb • اثر برتر روز</div>
                         <h1 class="hero-title">${hero.title}</h1>
-                        <div class="hero-genre-year">${(hero.genres || []).map(g => g.title).join('، ')} • سال ${hero.year || 2023}</div>
+                        <div class="hero-genre-year">${(hero.genres || []).map(g => g.title).join('، ')} • سال ${hero.year || 2026}</div>
                         <p class="hero-desc">${hero.description || ''}</p>
                         <button class="btn-play-primary" id="btn-hero-play-main">
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -467,35 +467,41 @@ class BisnorApp {
                 });
                 heroCard.onclick = () => this.openDetailModal(hero);
             }
-        }
+        };
 
-        const latest = await window.mediaService.getLatestMovies();
-        const rowLatest = document.getElementById("row-latest-movies");
-        if (rowLatest) {
-            rowLatest.innerHTML = "";
-            latest.forEach(m => rowLatest.appendChild(this.createMediaCard(m)));
-        }
+        const renderRow = (rowId, items) => {
+            const row = document.getElementById(rowId);
+            if (row && Array.isArray(items) && items.length > 0) {
+                row.innerHTML = "";
+                items.forEach(m => row.appendChild(this.createMediaCard(m)));
+            }
+        };
 
-        const series = await window.mediaService.getPopularSeries();
-        const rowSeries = document.getElementById("row-popular-series");
-        if (rowSeries) {
-            rowSeries.innerHTML = "";
-            series.forEach(m => rowSeries.appendChild(this.createMediaCard(m)));
-        }
+        // 1. Render immediately from current in-memory / fallback catalog
+        const initialHero = await window.mediaService.getHeroFeatured();
+        updateHero(initialHero);
+        renderRow("row-latest-movies", FALLBACK_CATALOG.filter(x => x.type === 'movie'));
+        renderRow("row-popular-series", FALLBACK_CATALOG.filter(x => x.type === 'serie'));
+        renderRow("row-top-imdb", [...FALLBACK_CATALOG].sort((a, b) => (b.imdb || 0) - (a.imdb || 0)));
 
-        const topImdb = await window.mediaService.getTopImdb();
-        const rowTop = document.getElementById("row-top-imdb");
-        if (rowTop) {
-            rowTop.innerHTML = "";
-            topImdb.forEach(m => rowTop.appendChild(this.createMediaCard(m)));
-        }
-
-        const animations = await window.mediaService.getAnimations();
-        const rowAnim = document.getElementById("row-animations");
-        if (rowAnim) {
-            rowAnim.innerHTML = "";
-            animations.forEach(m => rowAnim.appendChild(this.createMediaCard(m)));
-        }
+        // 2. Fetch fresh live data in parallel
+        Promise.allSettled([
+            window.mediaService.getLatestMovies().then(latest => {
+                renderRow("row-latest-movies", latest);
+                if (latest.length > 0) updateHero(latest[0]);
+            }),
+            window.mediaService.getPopularSeries().then(series => {
+                renderRow("row-popular-series", series);
+            }),
+            window.mediaService.getTopImdb().then(top => {
+                renderRow("row-top-imdb", top);
+            }),
+            window.mediaService.getAnimations().then(anim => {
+                renderRow("row-animations", anim);
+            })
+        ]).then(() => {
+            console.log("[BisnorMedia] All home sections synchronized with live Iranflix servers.");
+        });
     }
 
     // --- Explore Tab with Search & Filtering ---

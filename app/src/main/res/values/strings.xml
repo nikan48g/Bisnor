@@ -41,5 +41,5 @@
     <string name="settings_player">تنظیمات پلیر و ویدیو</string>
     <string name="settings_downloads">مدیریت حافظه و دانلودها</string>
     <string name="settings_about">درباره بیسنور</string>
-    <string name="settings_version">نسخه ۵.۰.۰ - بیسنور سینما (آواتارهای سینمایی، پلیرهای اختصاصی و بهینه‌سازی سرچ پیشرفته)</string>
+    <string name="settings_version">نسخه ۵.۰.۴ - بیسنور سینما (رفع خطای پخش پلیر، رفع ثبت‌نام و ورود بدون ایمیل، پایداری استریم)</string>
 </resources>

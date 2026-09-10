@@ -210,10 +210,34 @@ class BisnorApp {
 
         document.getElementById("btn-close-player")?.addEventListener("click", () => this.closePlayerModal());
         document.getElementById("btn-player-open-external")?.addEventListener("click", () => {
-            if (video && video.src) {
+            if (this.currentPlayingUrl) {
                 const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
-                this.postNative("launchExternalPlayer", { player: this.settings.player, url: video.src, title });
+                this.postNative("launchExternalPlayer", { player: this.settings.player === "bisnor" ? "vlc" : this.settings.player, url: this.currentPlayingUrl, title });
             }
+        });
+
+        // Error overlay buttons
+        document.getElementById("btn-player-err-open-vlc")?.addEventListener("click", () => {
+            if (this.currentPlayingUrl) {
+                const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
+                this.postNative("launchExternalPlayer", { player: "vlc", url: this.currentPlayingUrl, title });
+                this.closePlayerModal();
+            }
+        });
+        document.getElementById("btn-player-err-open-default")?.addEventListener("click", () => {
+            if (this.currentPlayingUrl) {
+                const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
+                this.postNative("launchExternalPlayer", { player: "potplayer", url: this.currentPlayingUrl, title });
+                this.closePlayerModal();
+            }
+        });
+        document.getElementById("btn-player-err-download")?.addEventListener("click", () => {
+            if (this.currentPlayingUrl) {
+                this.postNative("downloadWithIDM", { url: this.currentPlayingUrl });
+            }
+        });
+        document.getElementById("btn-player-err-close")?.addEventListener("click", () => {
+            this.closePlayerModal();
         });
 
         playPauseBtn?.addEventListener("click", () => {
@@ -252,6 +276,14 @@ class BisnorApp {
             video.addEventListener("ended", () => {
                 if (playPauseBtn) playPauseBtn.textContent = "▶️";
                 this.recordWatchTime(30);
+            });
+            video.addEventListener("error", (e) => {
+                console.warn("[Player Video Error]", video.error, e);
+                // HTML5 video could not decode this container or codec (e.g. MKV/HEVC)
+                const errOverlay = document.getElementById("player-error-overlay");
+                if (errOverlay) {
+                    errOverlay.style.display = "flex";
+                }
             });
         }
 
@@ -635,11 +667,13 @@ class BisnorApp {
         if (!container) return;
         container.innerHTML = "";
 
-        if (sources.length === 0) {
-            sources = [
-                { id: 1, quality: "1080p BluRay - 2.2 GB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-                { id: 2, quality: "720p WEB-DL - 1.1 GB", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" }
-            ];
+        if (!sources || sources.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 16px; color: var(--on-surface-variant); font-size: 13px; text-align: center; width: 100%;">
+                    ⚠️ لینکی برای این اثر در سرور یافت نشد.
+                </div>
+            `;
+            return;
         }
 
         sources.forEach(src => {
@@ -695,7 +729,16 @@ class BisnorApp {
         if (!epsWrap) return;
         epsWrap.innerHTML = "";
 
-        (episodes || []).forEach(ep => {
+        if (!episodes || episodes.length === 0) {
+            epsWrap.innerHTML = `
+                <div style="padding: 16px; color: var(--on-surface-variant); font-size: 13px; text-align: center; width: 100%;">
+                    قسمتی برای این فصل یافت نشد.
+                </div>
+            `;
+            return;
+        }
+
+        episodes.forEach(ep => {
             const card = document.createElement("div");
             card.className = "episode-card";
             card.innerHTML = `
@@ -712,13 +755,21 @@ class BisnorApp {
                     </div>
                 </div>
             `;
-            const epUrl = (ep.sources && ep.sources[0]) ? ep.sources[0].url : "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+            const epUrl = (ep.sources && ep.sources.length > 0) ? ep.sources[0].url : "";
             card.querySelector(".btn-play-ep").addEventListener("click", () => {
-                this.playStream(epUrl, `${this.activeMedia.title} - ${ep.title}`);
+                if (epUrl) {
+                    this.playStream(epUrl, `${this.activeMedia.title} - ${ep.title}`);
+                } else {
+                    alert("لینکی برای پخش این قسمت موجود نیست.");
+                }
             });
             card.querySelector(".btn-dl-ep").addEventListener("click", () => {
-                this.postNative("downloadWithIDM", { url: epUrl });
-                this.addDownloadTask(this.activeMedia, ep.title);
+                if (epUrl) {
+                    this.postNative("downloadWithIDM", { url: epUrl });
+                    this.addDownloadTask(this.activeMedia, ep.title);
+                } else {
+                    alert("لینکی برای دانلود این قسمت موجود نیست.");
+                }
             });
             epsWrap.appendChild(card);
         });
@@ -738,25 +789,35 @@ class BisnorApp {
 
     // --- Player Management ---
     playMedia(media) {
-        let streamUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+        let streamUrl = "";
         if (media.sources && media.sources.length > 0) {
             streamUrl = media.sources[0].url;
         } else if (media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
-            streamUrl = media.seasons[0].episodes[0].sources?.[0]?.url || streamUrl;
+            streamUrl = media.seasons[0].episodes[0].sources?.[0]?.url || "";
+        }
+        if (!streamUrl) {
+            alert("لینکی برای پخش این محتوا موجود نیست.");
+            return;
         }
         this.playStream(streamUrl, media.title);
     }
 
     getStreamUrl(media) {
-        if (!media) return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+        if (!media) return "";
         if (media.sources && media.sources.length > 0) return media.sources[0].url;
         if (media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
-            return media.seasons[0].episodes[0].sources?.[0]?.url || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+            return media.seasons[0].episodes[0].sources?.[0]?.url || "";
         }
-        return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+        return "";
     }
 
     playStream(url, title) {
+        if (!url) {
+            alert("لینکی برای پخش این محتوا موجود نیست.");
+            return;
+        }
+        this.currentPlayingUrl = url;
+
         if (this.settings.player !== "bisnor") {
             // Launch Windows external player configured in Settings
             this.postNative("launchExternalPlayer", { player: this.settings.player, url, title });
@@ -766,8 +827,10 @@ class BisnorApp {
         const modal = document.getElementById("modal-player");
         const video = document.getElementById("html-video-player");
         const titleEl = document.getElementById("player-media-title");
+        const errOverlay = document.getElementById("player-error-overlay");
         if (!modal || !video) return;
 
+        if (errOverlay) errOverlay.style.display = "none";
         if (titleEl) titleEl.textContent = title;
         video.src = url;
         video.load();
@@ -778,9 +841,12 @@ class BisnorApp {
     closePlayerModal() {
         const modal = document.getElementById("modal-player");
         const video = document.getElementById("html-video-player");
+        const errOverlay = document.getElementById("player-error-overlay");
+        if (errOverlay) errOverlay.style.display = "none";
         if (video) {
             video.pause();
-            video.src = "";
+            video.removeAttribute("src");
+            video.load();
         }
         if (modal) modal.style.display = "none";
     }

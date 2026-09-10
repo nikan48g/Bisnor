@@ -5,7 +5,7 @@
 
 const SUPABASE_CONFIG = {
     url: "https://flhchqkuubuubzxyktnp.supabase.co",
-    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsaGNocWt1dWJ1dWJ6eHlrdG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2Njk4MTAsImV4cCI6MjA2MjI0NTgxMH0.l5-lA-67c7e0f2v6a12m6q7r5a-67b7e6f8v4k4a-78"
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsaGNocWt1dWJ1dWJ6eHlrdG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0MTAxNTcsImV4cCI6MjEwMzk4NjE1N30.ETvgYM4nHQ7gUfbPxFN34z280-wpwG2pHpWSOq86ozs"
 };
 
 class SupabaseAuthService {
@@ -34,89 +34,119 @@ class SupabaseAuthService {
     }
 
     isLoggedIn() {
-        return Boolean(this.getToken() && this.getUserId());
+        const u = localStorage.getItem(this.usernameKey);
+        return Boolean(u && u.trim().length > 0);
     }
 
-    internalEmail(username) {
-        return `${username.trim().toLowerCase()}@accounts.bisnor.local`;
+    async hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password.trim());
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
     async signup(username, password, avatarId = "avatar_breakingbad") {
-        if (!username || username.length < 3) {
-            return { success: false, message: "نام کاربری باید حداقل ۳ کاراکتر باشد." };
+        const cleanUser = (username || "").trim().toLowerCase();
+        const cleanPass = (password || "").trim();
+
+        if (!/^[a-z0-9_.-]{3,32}$/.test(cleanUser)) {
+            return { success: false, message: "نام کاربری باید بین ۳ تا ۳۲ حرف انگلیسی، عدد یا خط‌تیره باشد." };
         }
-        if (!password || password.length < 8) {
-            return { success: false, message: "رمز عبور باید حداقل ۸ کاراکتر باشد." };
+        if (cleanPass.length < 4) {
+            return { success: false, message: "رمز عبور باید حداقل ۴ کاراکتر باشد." };
         }
 
-        const email = this.internalEmail(username);
         try {
-            const resp = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/signup`, {
+            // Check if user already exists
+            const checkResp = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/users?username=eq.${cleanUser}&select=*`, {
+                headers: {
+                    "apikey": SUPABASE_CONFIG.anonKey,
+                    "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`
+                }
+            });
+
+            if (checkResp.ok) {
+                const existing = await checkResp.json();
+                if (Array.isArray(existing) && existing.length > 0) {
+                    return { success: false, message: "این نام کاربری قبلاً ثبت شده است." };
+                }
+            }
+
+            const passHash = await this.hashPassword(cleanPass);
+            const now = Date.now();
+            const payload = {
+                username: cleanUser,
+                password_hash: passHash,
+                avatar_id: avatarId || "avatar_breakingbad",
+                created_at: now
+            };
+
+            const insertResp = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/users`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "apikey": SUPABASE_CONFIG.anonKey
+                    "apikey": SUPABASE_CONFIG.anonKey,
+                    "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`,
+                    "Prefer": "return=minimal"
                 },
-                body: JSON.stringify({
-                    email,
-                    password,
-                    data: {
-                        username,
-                        avatar_id: avatarId
-                    }
-                })
+                body: JSON.stringify(payload)
             });
 
-            const data = await resp.json();
-            if (resp.ok && data.access_token) {
-                this.saveSession(data.access_token, data.user?.id || "", username, avatarId);
-                return { success: true, message: "حساب کاربری با موفقیت ساخته شد." };
-            } else if (resp.ok && data.id) {
-                // Email confirmation might be needed or user created
-                return { success: true, message: "ثبت‌نام انجام شد. اکنون وارد شوید." };
+            if (insertResp.ok || insertResp.status === 201) {
+                this.saveSession("token_" + cleanUser, cleanUser, cleanUser, avatarId);
+                await this.syncUp();
+                return { success: true, message: "حساب کاربری با موفقیت ساخته شد و وارد شدید!" };
             } else {
-                return { success: false, message: data.msg || data.error_description || "ثبت‌نام ناموفق بود." };
+                const errData = await insertResp.json().catch(() => ({}));
+                return { success: false, message: errData.message || "خطا در برقراری ارتباط با سرور." };
             }
         } catch (e) {
-            // Local mode fallback
-            this.saveSession("offline_token_" + Date.now(), "usr_local_" + Date.now(), username, avatarId);
-            return { success: true, message: "حساب محلی روی سیستم شما با موفقیت ایجاد شد." };
+            console.error("Supabase signup error:", e);
+            // Fallback to local offline session
+            this.saveSession("offline_token_" + Date.now(), cleanUser, cleanUser, avatarId);
+            return { success: true, message: "حساب محلی روی ویندوز با موفقیت ایجاد شد." };
         }
     }
 
     async login(username, password) {
-        if (!username || !password) {
+        const cleanUser = (username || "").trim().toLowerCase();
+        const cleanPass = (password || "").trim();
+
+        if (!cleanUser || !cleanPass) {
             return { success: false, message: "لطفاً نام کاربری و رمز عبور را وارد کنید." };
         }
 
-        const email = this.internalEmail(username);
         try {
-            const resp = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/token?grant_type=password`, {
-                method: "POST",
+            const resp = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/users?username=eq.${cleanUser}&select=*`, {
                 headers: {
-                    "Content-Type": "application/json",
-                    "apikey": SUPABASE_CONFIG.anonKey
-                },
-                body: JSON.stringify({
-                    email,
-                    password
-                })
+                    "apikey": SUPABASE_CONFIG.anonKey,
+                    "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`
+                }
             });
 
-            const data = await resp.json();
-            if (resp.ok && data.access_token) {
-                const userId = data.user?.id || "";
-                const avatarId = data.user?.user_metadata?.avatar_id || "avatar_breakingbad";
-                this.saveSession(data.access_token, userId, username, avatarId);
-                await this.syncDown();
-                return { success: true, message: "ورود با موفقیت انجام شد." };
+            if (resp.ok) {
+                const rows = await resp.json();
+                if (!Array.isArray(rows) || rows.length === 0) {
+                    return { success: false, message: `کاربری با نام «${cleanUser}» یافت نشد.` };
+                }
+
+                const userRecord = rows[0];
+                const expectedHash = await this.hashPassword(cleanPass);
+                if (userRecord.password_hash !== expectedHash) {
+                    return { success: false, message: "رمز عبور وارد شده نادرست است." };
+                }
+
+                const avatar = userRecord.avatar_id || "avatar_breakingbad";
+                this.saveSession("token_" + cleanUser, cleanUser, cleanUser, avatar);
+                await this.syncDown(userRecord);
+                return { success: true, message: "ورود با موفقیت انجام شد! حساب شما همگام‌سازی گردید." };
             } else {
-                return { success: false, message: data.error_description || "نام کاربری یا رمز عبور اشتباه است." };
+                return { success: false, message: "خطا در اتصال به سرور بیسنور." };
             }
         } catch (e) {
-            // Offline demo login
-            this.saveSession("offline_token_demo", "usr_offline", username, "avatar_breakingbad");
-            return { success: true, message: "ورود به صورت محلی انجام شد." };
+            console.error("Supabase login error:", e);
+            return { success: false, message: "خطا در اتصال به اینترنت یا سرور ابری." };
         }
     }
 
@@ -124,7 +154,7 @@ class SupabaseAuthService {
         localStorage.setItem(this.tokenKey, token);
         localStorage.setItem(this.userIdKey, userId);
         localStorage.setItem(this.usernameKey, username);
-        localStorage.setItem(this.avatarKey, avatarId);
+        localStorage.setItem(this.avatarKey, avatarId || "avatar_breakingbad");
     }
 
     logout() {
@@ -178,63 +208,82 @@ class SupabaseAuthService {
 
     async syncUp() {
         if (!this.isLoggedIn()) return;
-        const userId = this.getUserId();
-        const token = this.getToken();
+        const username = this.getUsername();
         const favs = this.getFavorites();
         const avatarId = this.getAvatarId();
 
         try {
-            await fetch(`${SUPABASE_CONFIG.url}/rest/v1/profiles?user_id=eq.${userId}`, {
+            // Encode favorites as Base64 JSON (matching Android string storage)
+            const jsonStr = JSON.stringify(favs);
+            let encodedFavs = "";
+            try {
+                encodedFavs = btoa(unescape(encodeURIComponent(jsonStr)));
+            } catch (_) {
+                encodedFavs = jsonStr;
+            }
+
+            const payload = {
+                avatar_id: avatarId,
+                favorites_data: encodedFavs,
+                updated_at: Date.now()
+            };
+
+            await fetch(`${SUPABASE_CONFIG.url}/rest/v1/users?username=eq.${username}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     "apikey": SUPABASE_CONFIG.anonKey,
-                    "Authorization": `Bearer ${token}`
+                    "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`
                 },
-                body: JSON.stringify({
-                    avatar_id: avatarId,
-                    favorites_data: btoa(unescape(encodeURIComponent(JSON.stringify(favs))))
-                })
+                body: JSON.stringify(payload)
             });
         } catch (e) {
-            console.warn("SyncUp failed (offline):", e);
+            console.warn("SyncUp failed:", e);
         }
     }
 
-    async syncDown() {
+    async syncDown(cachedRecord = null) {
         if (!this.isLoggedIn()) return;
-        const userId = this.getUserId();
-        const token = this.getToken();
+        const username = this.getUsername();
 
         try {
-            const resp = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/profiles?user_id=eq.${userId}&select=*`, {
-                headers: {
-                    "apikey": SUPABASE_CONFIG.anonKey,
-                    "Authorization": `Bearer ${token}`
-                }
-            });
-            if (resp.ok) {
-                const rows = await resp.json();
-                if (rows && rows.length > 0) {
-                    const prof = rows[0];
-                    if (prof.avatar_id) {
-                        localStorage.setItem(this.avatarKey, prof.avatar_id);
+            let record = cachedRecord;
+            if (!record) {
+                const resp = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/users?username=eq.${username}&select=*`, {
+                    headers: {
+                        "apikey": SUPABASE_CONFIG.anonKey,
+                        "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`
                     }
-                    if (prof.favorites_data) {
+                });
+                if (resp.ok) {
+                    const rows = await resp.json();
+                    if (rows && rows.length > 0) record = rows[0];
+                }
+            }
+
+            if (record) {
+                if (record.avatar_id) {
+                    localStorage.setItem(this.avatarKey, record.avatar_id);
+                }
+                if (record.favorites_data) {
+                    try {
+                        let raw = "";
                         try {
-                            const raw = decodeURIComponent(escape(atob(prof.favorites_data)));
-                            const parsed = JSON.parse(raw);
-                            if (Array.isArray(parsed)) {
-                                localStorage.setItem(this.favoritesKey, JSON.stringify(parsed));
-                            }
-                        } catch (err) {
-                            console.warn("Error decoding favorites_data:", err);
+                            raw = decodeURIComponent(escape(atob(record.favorites_data)));
+                        } catch (_) {
+                            raw = record.favorites_data;
                         }
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            localStorage.setItem(this.favoritesKey, JSON.stringify(parsed));
+                        }
+                    } catch (err) {
+                        console.warn("Error decoding favorites_data:", err);
                     }
                 }
             }
         } catch (e) {
-            console.warn("SyncDown failed (offline):", e);
+            console.warn("SyncDown failed:", e);
         }
     }
 }

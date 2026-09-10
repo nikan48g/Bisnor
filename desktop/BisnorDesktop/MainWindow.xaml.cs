@@ -30,7 +30,7 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) BisnorDesktop/5.0.3");
+        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) BisnorDesktop/5.0.5");
         InitializeComponent();
 
         try
@@ -166,16 +166,20 @@ public partial class MainWindow : Window
         string? resultJson = null;
         Exception? lastEx = null;
 
+        // Ensure endpoint ends with / for Iranflix API
+        var normalizedEndpoint = endpoint.EndsWith("/") ? endpoint : endpoint + "/";
+
         foreach (var server in IranflixServers)
         {
             try
             {
-                var fullUrl = $"{server}{endpoint}".Replace("{API_KEY}", ApiKey);
+                var cleanServer = server.TrimEnd('/');
+                var fullUrl = $"{cleanServer}{normalizedEndpoint}".Replace("{API_KEY}", ApiKey);
                 var response = await _httpClient.GetAsync(fullUrl);
                 if (response.IsSuccessStatusCode)
                 {
                     resultJson = await response.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrWhiteSpace(resultJson))
+                    if (!string.IsNullOrWhiteSpace(resultJson) && (resultJson.TrimStart().StartsWith("[") || resultJson.TrimStart().StartsWith("{")))
                     {
                         break;
                     }

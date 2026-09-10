@@ -269,7 +269,7 @@
                         <img src="assets/logo.png" alt="Bisnor Logo" class="about-app-logo">
                         <div class="setting-text">
                             <span class="setting-name">بیسنور دسکتاپ (Bisnor Desktop)</span>
-                            <span id="tv-app-version-about" class="setting-desc">نسخه v5.0.3 • مجهز به .NET 10 و WebView2</span>
+                            <span id="tv-app-version-about" class="setting-desc">نسخه v5.0.5 • مجهز به .NET 10 و WebView2</span>
                         </div>
                         <button id="btn-check-update" class="btn-tonal-sm">بررسی به‌روزرسانی 🔄</button>
                     </div>
@@ -412,6 +412,21 @@
             <div class="player-container">
                 <video id="html-video-player" playsinline preload="auto"></video>
                 
+                <!-- Player Error Overlay (for MKV / Codec errors) -->
+                <div id="player-error-overlay" class="player-error-overlay" style="display: none;">
+                    <div class="player-error-card glass-panel">
+                        <div class="player-error-icon">⚠️</div>
+                        <h3 id="player-error-title">پخش‌کننده داخلی قادر به کدگشایی این فرمت نیست</h3>
+                        <p id="player-error-desc">این ویدیو با کانتینر MKV یا صدای پیشرفته کدگذاری شده است. می‌توانید آن را بدون هیچ مشکلی در پلیر ویندوز (VLC، PotPlayer یا مدیا پلیر پیش‌فرض) تماشا کنید.</p>
+                        <div class="player-error-actions">
+                            <button id="btn-player-err-open-vlc" class="btn-primary-gradient">پخش فوری در VLC / PotPlayer 🚀</button>
+                            <button id="btn-player-err-open-default" class="btn-tonal-sm">پلیر پیش‌فرض ویندوز 🎬</button>
+                            <button id="btn-player-err-download" class="glass-pill-btn">دانلود با IDM ⬇️</button>
+                            <button id="btn-player-err-close" class="btn-danger-sm">بستن ✕</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Player Controls Overlay -->
                 <div id="player-controls" class="player-controls">
                     <div class="player-top-bar">

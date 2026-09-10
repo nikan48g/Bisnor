@@ -313,6 +313,20 @@ class MediaDataService {
             "https://windowsdiba.info"
         ];
         this.apiKey = "4F5A9C3D9A86FA54EACEDDD635185";
+        this.adKeywords = [
+            "تبلیغ", "ورژن جدید", "اپلیکیشن", "دانلود اپ", "کانال تلگرام", "فیلترشکن", 
+            "v2ray", "vpn", "proxy", "simba", "darknama", "نسخه جدید", "بروزرسانی",
+            "promot", "update app", "apk", "t.me", "telegram", "کانال"
+        ];
+    }
+
+    isAdvertisement(title, desc, url = "") {
+        const t = (title || "").toLowerCase();
+        const d = (desc || "").toLowerCase();
+        const u = (url || "").toLowerCase();
+        if (this.adKeywords.some(kw => t.includes(kw) || d.includes(kw))) return true;
+        if (u.endsWith(".apk") || u.includes("download_app") || u.includes("telegram") || u.includes("t.me")) return true;
+        return false;
     }
 
     initBridgeListener() {
@@ -339,6 +353,8 @@ class MediaDataService {
     }
 
     async fetchEndpoint(path) {
+        // Ensure trailing slash
+        const normalizedPath = path.endsWith("/") ? path : path + "/";
         const requestId = "req_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
 
         // Try Native .NET HttpClient bridge first (bypasses browser CORS & SSL cert issues)
@@ -348,7 +364,7 @@ class MediaDataService {
                     const timer = setTimeout(() => {
                         this.pendingRequests.delete(requestId);
                         reject(new Error("Timeout"));
-                    }, 12000);
+                    }, 15000);
                     this.pendingRequests.set(requestId, {
                         resolve: (data) => { clearTimeout(timer); resolve(data); },
                         reject: (err) => { clearTimeout(timer); reject(err); }
@@ -358,11 +374,11 @@ class MediaDataService {
                 window.chrome.webview.postMessage({
                     action: "fetchIranflix",
                     requestId,
-                    endpoint: path
+                    endpoint: normalizedPath
                 });
 
                 const rawJson = await promise;
-                return JSON.parse(rawJson);
+                return typeof rawJson === "string" ? JSON.parse(rawJson) : rawJson;
             } catch (bridgeErr) {
                 console.warn("[Bridge Fetch Failed, fallback to direct]", bridgeErr);
             }
@@ -371,8 +387,8 @@ class MediaDataService {
         // Direct fetch fallback across servers
         for (const server of this.servers) {
             try {
-                const cleanPath = path.replace("{API_KEY}", this.apiKey);
-                const url = `${server}${cleanPath}`;
+                const cleanPath = normalizedPath.replace("{API_KEY}", this.apiKey);
+                const url = `${server.replace(/\/+$/, "")}${cleanPath}`;
                 const resp = await fetch(url, { headers: { "Accept": "application/json" } });
                 if (resp.ok) {
                     return await resp.json();
@@ -384,13 +400,18 @@ class MediaDataService {
 
     cleanMedia(raw) {
         if (!raw) return null;
+        const title = (raw.title || '').trim();
+        const desc = (raw.description || '').replace(/\r\n/g, '\n').trim();
+
+        // Filter out ads or invalid titles
+        if (!title || this.isAdvertisement(title, desc)) return null;
+
         const genres = (raw.genres || []).map(g => ({
             id: g.id || 0,
             title: (g.title || '').trim()
-        }));
+        })).filter(g => g.title && !this.adKeywords.some(kw => g.title.toLowerCase().includes(kw)));
 
         const isAnim = genres.some(g => g.title.includes("انیمیشن") || g.title.includes("کارتون") || g.title.includes("انیمه"));
-        let desc = (raw.description || '').replace(/\r\n/g, '\n').trim();
 
         // Parse clean IMDb score if available in description
         let score = raw.imdb ? parseFloat(raw.imdb) : 0;
@@ -408,6 +429,21 @@ class MediaDataService {
             storyline = desc.substring(storyIndex).replace(/خلاصه داستان\s*[:：\-]?/g, '').trim();
         }
 
+        // Clean sources - filter out telegram, apk, or promotional links
+        const cleanSources = (raw.sources || []).filter(s => {
+            const u = (s.url || '').toLowerCase();
+            const q = (s.quality || '').toLowerCase();
+            if (!u || !u.startsWith("http")) return false;
+            if (u.endsWith(".apk") || u.includes("telegram") || u.includes("t.me")) return false;
+            if (this.adKeywords.some(kw => q.includes(kw))) return false;
+            return true;
+        }).map(s => ({
+            id: s.id || Math.random(),
+            quality: (s.quality || '1080p').replace(/زیرنویس/g, 'فارسی').trim(),
+            type: s.type || 'mkv',
+            url: s.url
+        }));
+
         // Optimize image URLs
         const img = raw.image || "";
         const cover = raw.cover || img;
@@ -415,7 +451,7 @@ class MediaDataService {
         return {
             id: raw.id,
             type: raw.type === "serie" ? "serie" : "movie",
-            title: (raw.title || '').trim(),
+            title: title,
             description: storyline || desc || 'توضیحاتی برای این اثر ثبت نشده است.',
             year: raw.year || 2024,
             imdb: Number(score.toFixed ? score.toFixed(1) : score),
@@ -423,17 +459,9 @@ class MediaDataService {
             duration: raw.duration || (raw.type === 'serie' ? 'سریال چند قسمتی' : '120 دقیقه'),
             image: img,
             cover: cover,
-            genres: genres.length > 0 ? genres : [{ id: 1, title: 'فیلم' }],
+            genres: genres.length > 0 ? genres : [{ id: 1, title: 'فیلم سینمایی' }],
             country: raw.country || [{ id: 1, title: 'جهانی' }],
-            sources: (raw.sources || []).filter(s => {
-                const u = (s.url || '').toLowerCase();
-                return u && !u.endsWith(".apk") && !u.includes("telegram");
-            }).map(s => ({
-                id: s.id || Math.random(),
-                quality: s.quality || 'کیفیت اصلی (1080p)',
-                type: s.type || 'mp4',
-                url: s.url
-            }))
+            sources: cleanSources
         };
     }
 
@@ -512,25 +540,43 @@ class MediaDataService {
     async getSeriesSeasons(seriesId) {
         const raw = await this.fetchEndpoint(`/api/season/by/serie/${seriesId}/{API_KEY}/`);
         if (Array.isArray(raw)) {
-            return raw.map((s, idx) => {
+            const seasons = [];
+            raw.forEach((s, idx) => {
                 const rawTitle = (s.title || '').trim();
                 const title = rawTitle && rawTitle !== "null" ? rawTitle : `فصل ${idx + 1}`;
-                const episodes = (s.episodes || []).map((ep, epIdx) => {
+                const episodes = [];
+                (s.episodes || []).forEach((ep, epIdx) => {
                     const epTitle = (ep.title || '').trim();
-                    return {
-                        id: ep.id || (idx * 100 + epIdx),
-                        title: epTitle && epTitle !== "null" ? epTitle : `قسمت ${epIdx + 1}`,
-                        duration: ep.duration || '45 دقیقه',
-                        sources: (ep.sources || []).map(src => ({
-                            id: src.id,
-                            quality: src.quality || '1080p / 720p',
-                            type: src.type || 'mkv',
-                            url: src.url
-                        }))
-                    };
+                    const epDesc = (ep.description || '').trim();
+                    if (this.isAdvertisement(epTitle, epDesc)) return;
+
+                    const cleanSources = (ep.sources || []).filter(src => {
+                        const u = (src.url || '').toLowerCase();
+                        if (!u || !u.startsWith("http")) return false;
+                        if (u.endsWith(".apk") || u.includes("telegram") || u.includes("t.me")) return false;
+                        return true;
+                    }).map(src => ({
+                        id: src.id || Math.random(),
+                        quality: (src.quality || '720p / 1080p').replace(/زیرنویس/g, 'فارسی').trim(),
+                        type: src.type || 'mkv',
+                        url: src.url
+                    }));
+
+                    if (cleanSources.length > 0) {
+                        episodes.push({
+                            id: ep.id || (idx * 100 + epIdx),
+                            title: epTitle && epTitle !== "null" ? epTitle : `قسمت ${epIdx + 1}`,
+                            duration: ep.duration || '45 دقیقه',
+                            sources: cleanSources
+                        });
+                    }
                 });
-                return { id: s.id, title, episodes };
+
+                if (episodes.length > 0) {
+                    seasons.push({ id: s.id, title, episodes });
+                }
             });
+            return seasons;
         }
         return [];
     }

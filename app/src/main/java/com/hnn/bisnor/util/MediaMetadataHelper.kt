@@ -15,8 +15,8 @@ object MediaMetadataHelper {
     private val AGE_REGEX = Regex("""(?i)(?:رده\s*سنی|محدودیت\s*سنی|مناسب\s*برای|گروه\s*سنی|درجه\s*بندی)\s*[:：\-]?\s*(\+?\s*\d{1,2}\s*\+?|PG-13|TV-MA|R|G|NC-17|بزرگسال)""")
     private val DIRECT_AGE_REGEX = Regex("""(?i)(?:\b|\+|\s)(\d{1,2})\s*\+|(?:بالای|برای)\s*(\d{1,2})\s*سال""")
     private val IMDB_REGEX = Regex("""(?i)(?:IMDb|نمره|امتیاز)\s*[:：\-]?\s*([0-9](?:\.[0-9])?)(?:\s*(?:از|/)\s*10)?""")
-    private val DIRECTOR_REGEX = Regex("""(?i)(?:کارگردان|کارگردانی|سازنده)\s*[:：\-]?\s*([^\n\r]+)""")
-    private val ACTORS_REGEX = Regex("""(?i)(?:بازیگران|ستارگان|با\s*حضور)\s*[:：\-]?\s*([^\n\r]+)""")
+    private val DIRECTOR_REGEX = Regex("""(?i)(?:کارگردان|کارگردانی|سازنده|director)\s*[:：\-]?\s*([^\n\r]+)""")
+    private val ACTORS_REGEX = Regex("""(?i)(?:بازیگران|ستارگان|با\s*حضور|هنرمندان|بازیگر|actors|cast|stars)\s*[:：\-]?\s*([^\n\r]+)""")
     private val SIZE_REGEX = Regex("""(?i)(?:حجم(?:\s*کل|\s*تقریبی|\s*فایل|\s*هر\s*قسمت|\s*قسمت‌ها)?)\s*[:：\-]?\s*([0-9\.]+|[۰-۹\.]+)\s*(گیگابایت|مگابایت|GB|MB|گیگ|مگ)""")
 
     fun parse(

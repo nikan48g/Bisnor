@@ -107,7 +107,13 @@ object RealMediaRepository {
         }
     }
 
+    private val inMemoryCatalog = mutableListOf<RealMedia>()
+
     suspend fun getExploreCatalog(): List<RealMedia> = withContext(Dispatchers.IO) {
+        if (inMemoryCatalog.size >= 50) {
+            return@withContext inMemoryCatalog.toList()
+        }
+
         val topImdb0 = async { getTopImdbMovies(0) }
         val topImdb1 = async { getTopImdbMovies(1) }
         val topImdb2 = async { getTopImdbMovies(2) }
@@ -131,22 +137,50 @@ object RealMediaRepository {
         try { list.addAll(series1.await()) } catch (_: Exception) {}
         try { list.addAll(series2.await()) } catch (_: Exception) {}
 
-        list.distinctBy { it.id }
+        val distinctList = list.distinctBy { it.id }
+        synchronized(inMemoryCatalog) {
+            inMemoryCatalog.clear()
+            inMemoryCatalog.addAll(distinctList)
+        }
+        distinctList
     }
 
     suspend fun search(query: String): List<RealMedia> = withContext(Dispatchers.IO) {
-        if (query.trim().isEmpty()) {
+        val q = query.trim()
+        if (q.isEmpty()) {
             return@withContext getExploreCatalog()
         }
+
+        val serverResults = mutableListOf<RealMedia>()
         try {
-            val encoded = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8.toString()).replace("+", "%20")
+            val encoded = URLEncoder.encode(q, StandardCharsets.UTF_8.toString()).replace("+", "%20")
             val json = fetchJson("/api/search/$encoded/$API_KEY/")
             val jsonObject = JSONObject(json)
             val postersArray = jsonObject.optJSONArray("posters") ?: JSONArray()
-            parseMediaList(postersArray.toString())
-        } catch (e: Exception) {
-            emptyList()
+            serverResults.addAll(parseMediaList(postersArray.toString()))
+        } catch (_: Exception) {}
+
+        // Ensure catalog is warmed up for actor/director matching
+        val catalog = if (inMemoryCatalog.isNotEmpty()) inMemoryCatalog.toList() else getExploreCatalog()
+
+        // Match against title, description, genres, actors and director
+        val qLower = q.lowercase()
+        val localMatches = catalog.filter { item ->
+            val titleLower = item.title.lowercase()
+            val descLower = item.description.lowercase()
+            val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb)
+            val directorLower = (meta.director ?: "").lowercase()
+            val actorsLower = (meta.actors ?: "").lowercase()
+
+            titleLower.contains(qLower) ||
+                    descLower.contains(qLower) ||
+                    directorLower.contains(qLower) ||
+                    actorsLower.contains(qLower) ||
+                    item.genres.any { it.title.contains(q, ignoreCase = true) }
         }
+
+        val combined = (serverResults + localMatches).distinctBy { it.id }
+        combined
     }
 
     suspend fun getSeriesSeasons(seriesId: Int): List<RealSeason> = withContext(Dispatchers.IO) {

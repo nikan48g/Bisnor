@@ -320,14 +320,52 @@ class DetailActivity : AppCompatActivity() {
                 if (!meta.director.isNullOrEmpty() || !meta.actors.isNullOrEmpty()) {
                     b.layoutHeaderCastCrew.visibility = View.VISIBLE
                     if (!meta.director.isNullOrEmpty()) {
-                        b.tvHeaderDirector.text = "🎬 کارگردان: ${meta.director}"
+                        b.tvHeaderDirector.text = "🎬 کارگردان: ${meta.director} (مشاهده آثار ↗)"
                         b.tvHeaderDirector.visibility = View.VISIBLE
+                        b.tvHeaderDirector.setOnClickListener {
+                            val intent = Intent(this@DetailActivity, com.hnn.bisnor.MainActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                putExtra("search_query", meta.director.trim())
+                                putExtra("search_scope", "director")
+                            }
+                            startActivity(intent)
+                            finish()
+                        }
                     } else {
                         b.tvHeaderDirector.visibility = View.GONE
                     }
                     if (!meta.actors.isNullOrEmpty()) {
-                        b.tvHeaderActors.text = "🎭 بازیگران: ${meta.actors}"
+                        b.tvHeaderActors.text = "🎭 بازیگران: ${meta.actors} (جستجو ↗)"
                         b.tvHeaderActors.visibility = View.VISIBLE
+                        b.tvHeaderActors.setOnClickListener {
+                            // If multiple actors, let user pick one or search the whole cast string
+                            val rawActors = meta.actors.split(Regex("[,،|]")).map { it.trim() }.filter { it.isNotEmpty() }
+                            if (rawActors.size > 1) {
+                                val choices = rawActors.toTypedArray()
+                                com.google.android.material.dialog.MaterialAlertDialogBuilder(this@DetailActivity)
+                                    .setTitle("انتخاب بازیگر برای مشاهده آثار:")
+                                    .setItems(choices) { _, which ->
+                                        val chosen = choices[which]
+                                        val intent = Intent(this@DetailActivity, com.hnn.bisnor.MainActivity::class.java).apply {
+                                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                            putExtra("search_query", chosen)
+                                            putExtra("search_scope", "actor")
+                                        }
+                                        startActivity(intent)
+                                        finish()
+                                    }
+                                    .show()
+                            } else {
+                                val singleActor = rawActors.firstOrNull() ?: meta.actors
+                                val intent = Intent(this@DetailActivity, com.hnn.bisnor.MainActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    putExtra("search_query", singleActor.trim())
+                                    putExtra("search_scope", "actor")
+                                }
+                                startActivity(intent)
+                                finish()
+                            }
+                        }
                     } else {
                         b.tvHeaderActors.visibility = View.GONE
                     }

@@ -48,6 +48,7 @@ class ExploreFragment : Fragment() {
     private var filterMinImdb: Float = 0.0f
     private var filterYearRange: String = "مهم نیست" // ۲۰۲۴ - ۲۰۲۶, ۲۰۲۰ - ۲۰۲۳, قبل از ۲۰۲۰, مهم نیست
     private var filterSort: String = "جدیدترین" // جدیدترین, بالاترین نمره IMDb
+    private var searchScope: String = "all" // all, actor, director
 
     // Randomizer
     private var randomizerIndex = 0
@@ -119,8 +120,36 @@ class ExploreFragment : Fragment() {
             showRandomMovieDialog()
         }
 
+        binding.chipGroupSearchScope.setOnCheckedStateChangeListener { _, checkedIds ->
+            val checkedId = checkedIds.firstOrNull()
+            searchScope = when (checkedId) {
+                R.id.chip_scope_actor -> "actor"
+                R.id.chip_scope_director -> "director"
+                else -> "all"
+            }
+            filterList()
+        }
+
         setupRecentSearches()
-        performSearch("")
+
+        // Handle incoming query or target filter from DetailActivity or external intent
+        val incomingQuery = arguments?.getString("search_query")
+        val incomingScope = arguments?.getString("search_scope")
+        if (!incomingScope.isNullOrEmpty()) {
+            searchScope = incomingScope
+            when (incomingScope) {
+                "actor" -> binding.chipScopeActor.isChecked = true
+                "director" -> binding.chipScopeDirector.isChecked = true
+                else -> binding.chipScopeAll.isChecked = true
+            }
+        }
+        if (!incomingQuery.isNullOrEmpty()) {
+            binding.etSearch.setText(incomingQuery)
+            binding.etSearch.setSelection(incomingQuery.length)
+            performSearch(incomingQuery)
+        } else {
+            performSearch("")
+        }
     }
 
     private fun showComprehensiveFilterDialog() {
@@ -415,6 +444,25 @@ class ExploreFragment : Fragment() {
         }
     }
 
+    fun setSearchQueryAndScope(query: String, scope: String = "all") {
+        searchScope = scope
+        if (_binding != null) {
+            when (scope) {
+                "actor" -> binding.chipScopeActor.isChecked = true
+                "director" -> binding.chipScopeDirector.isChecked = true
+                else -> binding.chipScopeAll.isChecked = true
+            }
+            binding.etSearch.setText(query)
+            binding.etSearch.setSelection(query.length)
+            performSearch(query)
+        } else {
+            arguments = Bundle().apply {
+                putString("search_query", query)
+                putString("search_scope", scope)
+            }
+        }
+    }
+
     private fun performSearch(query: String) {
         lifecycleScope.launch {
             val list = RealMediaRepository.search(query)
@@ -425,6 +473,34 @@ class ExploreFragment : Fragment() {
 
     private fun filterList() {
         var filtered = allLoaded
+        val query = binding.etSearch.text?.toString()?.trim()?.lowercase() ?: ""
+
+        // Filter by search scope (Actor / Director / All)
+        if (searchScope == "actor") {
+            filtered = filtered.filter { item ->
+                val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb)
+                val actorsLower = (meta.actors ?: "").lowercase()
+                val descLower = item.description.lowercase()
+                val hasActorsSection = actorsLower.isNotEmpty() || descLower.contains("بازیگر") || descLower.contains("ستارگان")
+                if (query.isNotEmpty()) {
+                    actorsLower.contains(query) || descLower.contains(query)
+                } else {
+                    hasActorsSection
+                }
+            }
+        } else if (searchScope == "director") {
+            filtered = filtered.filter { item ->
+                val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb)
+                val directorLower = (meta.director ?: "").lowercase()
+                val descLower = item.description.lowercase()
+                val hasDirectorSection = directorLower.isNotEmpty() || descLower.contains("کارگردان")
+                if (query.isNotEmpty()) {
+                    directorLower.contains(query) || descLower.contains(query)
+                } else {
+                    hasDirectorSection
+                }
+            }
+        }
 
         // 1. Type
         if (filterType == "سینمایی") {

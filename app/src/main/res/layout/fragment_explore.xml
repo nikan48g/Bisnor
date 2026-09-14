@@ -86,6 +86,51 @@
             app:iconTint="@color/primary" />
     </LinearLayout>
 
+    <!-- Search Scope Chips: All / Actors / Directors -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_search_scope"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_scope_all"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="همه موارد"
+                android:textColor="@color/on_surface" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_scope_actor"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="🎭 بازیگران (Actors)"
+                android:textColor="@color/on_surface" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_scope_director"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="🎬 کارگردانان (Directors)"
+                android:textColor="@color/on_surface" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
     <!-- Random Movie Button ("امشب چی ببینم؟") In Explore Screen Based On Watched/Taste -->
     <LinearLayout
         android:layout_width="match_parent"

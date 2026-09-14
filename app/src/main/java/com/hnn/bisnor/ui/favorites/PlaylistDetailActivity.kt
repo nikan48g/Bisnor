@@ -116,12 +116,18 @@ class PlaylistDetailActivity : AppCompatActivity() {
     private fun filterAndDisplayList() {
         var result = allPlaylistItems
 
-        // Search Query filter
+        // Search Query filter (Title, Description, Genres, Actors, Director)
         if (currentSearchQuery.isNotEmpty()) {
-            result = result.filter {
-                it.title.contains(currentSearchQuery, ignoreCase = true) ||
-                it.description.contains(currentSearchQuery, ignoreCase = true) ||
-                it.genres.any { g -> g.title.contains(currentSearchQuery, ignoreCase = true) }
+            val q = currentSearchQuery.lowercase()
+            result = result.filter { item ->
+                val titleMatch = item.title.contains(q, ignoreCase = true)
+                val descMatch = item.description.contains(q, ignoreCase = true)
+                val genreMatch = item.genres.any { g -> g.title.contains(q, ignoreCase = true) }
+                val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb)
+                val actorMatch = (meta.actors ?: "").contains(q, ignoreCase = true)
+                val directorMatch = (meta.director ?: "").contains(q, ignoreCase = true)
+
+                titleMatch || descMatch || genreMatch || actorMatch || directorMatch
             }
         }
 

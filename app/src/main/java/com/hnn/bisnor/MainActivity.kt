@@ -131,12 +131,21 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+            // Intent extras from DetailActivity or external search
+            val extQuery = intent.getStringExtra("search_query")
+            val extScope = intent.getStringExtra("search_scope") ?: "all"
+            if (!extQuery.isNullOrEmpty()) {
+                selectExploreTab(extQuery, extScope)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    fun selectExploreTab() {
+    fun selectExploreTab(query: String? = null, scope: String = "all") {
+        if (!query.isNullOrEmpty()) {
+            exploreFragment.setSearchQueryAndScope(query, scope)
+        }
         binding.bottomNavigation.selectedItemId = R.id.nav_explore
     }
 

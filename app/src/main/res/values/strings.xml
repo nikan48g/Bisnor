@@ -8,7 +8,7 @@
     <string name="nav_downloads">دانلودها</string>
     <string name="nav_settings">تنظیمات</string>
 
-    <string name="search_hint">جستجوی فیلم، سریال، انیمیشن یا بازیگر...</string>
+    <string name="search_hint">جستجوی فیلم، سریال، انیمیشن، بازیگر یا کارگردان...</string>
     <string name="section_latest_movies">جدیدترین فیلم‌ها</string>
     <string name="section_popular_series">سریال‌های پرطرفدار</string>
     <string name="section_top_rated">برترین آثار IMDb</string>
@@ -41,5 +41,5 @@
     <string name="settings_player">تنظیمات پلیر و ویدیو</string>
     <string name="settings_downloads">مدیریت حافظه و دانلودها</string>
     <string name="settings_about">درباره بیسنور</string>
-    <string name="settings_version">نسخه ۵.۰.۵ - بیسنور سینما (بهبود سایدبار شیشه‌ای و ناوبری، بهینه‌سازی کادر تنظیمات و حساب کاربری برای انواع گوشی‌ها)</string>
+    <string name="settings_version">نسخه ۵.۰.۶ - بیسنور سینما (افزودن سرچ بازیگر، کارگردان و واچ‌لیست)</string>
 </resources>

@@ -36,6 +36,7 @@ class FavoritesFragment : Fragment() {
     private lateinit var historyManager: PlaybackHistoryManager
     private lateinit var playlistAdapter: PlaylistCardAdapter
     private var watchFilter: String = "all"
+    private var favoritesSearchQuery: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -53,6 +54,20 @@ class FavoritesFragment : Fragment() {
         playlistAdapter = PlaylistCardAdapter()
         binding.recyclerPlaylistCards.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerPlaylistCards.adapter = playlistAdapter
+
+        binding.etFavoritesSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                favoritesSearchQuery = s?.toString()?.trim()?.lowercase() ?: ""
+                binding.btnClearFavoritesSearch.visibility = if (favoritesSearchQuery.isNotEmpty()) View.VISIBLE else View.GONE
+                playlistAdapter.notifyDataSetChanged()
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+
+        binding.btnClearFavoritesSearch.setOnClickListener {
+            binding.etFavoritesSearch.setText("")
+        }
 
         binding.btnCreatePlaylist.setOnClickListener {
             showCreatePlaylistDialog()
@@ -126,7 +141,32 @@ class FavoritesFragment : Fragment() {
             val favs = favoritesManager.favoritesFlow.value
             val mainFavPlaylist = CustomPlaylist(id = "fav", name = "⭐ واچ‌لیست اصلی (نشان‌شده‌ها)", items = favs.toMutableList())
             val userPlaylists = playlistsManager.playlistsFlow.value
-            return listOf(mainFavPlaylist) + userPlaylists
+            val allLists = listOf(mainFavPlaylist) + userPlaylists
+
+            if (favoritesSearchQuery.isEmpty()) {
+                return allLists
+            }
+
+            // Filter playlists that either match by playlist name or contain matching items
+            return allLists.mapNotNull { pl ->
+                val matchingItems = pl.items.filter { item ->
+                    val titleMatch = item.title.lowercase().contains(favoritesSearchQuery)
+                    val descMatch = item.description.lowercase().contains(favoritesSearchQuery)
+                    val genreMatch = item.genres.any { it.title.contains(favoritesSearchQuery, ignoreCase = true) }
+                    val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb)
+                    val actorMatch = (meta.actors ?: "").lowercase().contains(favoritesSearchQuery)
+                    val directorMatch = (meta.director ?: "").lowercase().contains(favoritesSearchQuery)
+
+                    titleMatch || descMatch || genreMatch || actorMatch || directorMatch
+                }
+                val plNameMatch = pl.name.lowercase().contains(favoritesSearchQuery)
+
+                if (plNameMatch || matchingItems.isNotEmpty()) {
+                    pl.copy(items = if (matchingItems.isNotEmpty()) matchingItems.toMutableList() else pl.items)
+                } else {
+                    null
+                }
+            }
         }
 
         inner class Holder(val b: ItemPlaylistRowBinding) : RecyclerView.ViewHolder(b.root)
@@ -138,6 +178,7 @@ class FavoritesFragment : Fragment() {
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
             val allLists = getDisplayPlaylists()
+            if (position >= allLists.size) return
             val pl = allLists[position]
 
             holder.b.tvPlaylistName.text = pl.name

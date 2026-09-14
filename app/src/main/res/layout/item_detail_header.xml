@@ -179,14 +179,18 @@
             android:layout_marginTop="12dp"
             android:background="@drawable/badge_background"
             android:orientation="vertical"
-            android:padding="12dp"
+            android:padding="8dp"
             android:visibility="gone">
 
             <TextView
                 android:id="@+id/tv_header_director"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:fontFamily="@font/vazirmatn_medium"
+                android:padding="6dp"
                 android:textColor="@color/on_surface"
                 android:textSize="12sp"
                 android:visibility="gone" />
@@ -195,8 +199,12 @@
                 android:id="@+id/tv_header_actors"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:fontFamily="@font/vazirmatn_regular"
+                android:padding="6dp"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="12sp"
                 android:visibility="gone" />

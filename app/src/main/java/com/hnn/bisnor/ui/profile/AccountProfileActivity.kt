@@ -20,6 +20,7 @@ import com.hnn.bisnor.data.remote.AuthManager
 import com.hnn.bisnor.data.repository.RealMediaRepository
 import com.hnn.bisnor.databinding.ActivityAccountProfileBinding
 import com.hnn.bisnor.ui.detail.DetailActivity
+import com.hnn.bisnor.util.ThemeHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,6 +32,7 @@ class AccountProfileActivity : AppCompatActivity() {
     private lateinit var tasteDb: SmartTasteDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityAccountProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)

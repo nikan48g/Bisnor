@@ -17,6 +17,7 @@ import com.hnn.bisnor.data.repository.SegmentedTask
 import com.hnn.bisnor.databinding.ActivityDownloadsBinding
 import com.hnn.bisnor.databinding.ItemDownloadFileBinding
 import com.hnn.bisnor.ui.player.PlayerActivity
+import com.hnn.bisnor.util.ThemeHelper
 
 class DownloadsActivity : AppCompatActivity() {
 
@@ -25,6 +26,7 @@ class DownloadsActivity : AppCompatActivity() {
     private lateinit var adapter: DownloadAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityDownloadsBinding.inflate(layoutInflater)
         setContentView(binding.root)

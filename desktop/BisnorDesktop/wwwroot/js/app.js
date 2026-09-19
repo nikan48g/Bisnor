@@ -410,6 +410,7 @@ class BisnorApp {
     createMediaCard(media) {
         const card = document.createElement("div");
         card.className = "media-card";
+        card.tabIndex = 0;
 
         const genreTitle = (media.genres && media.genres[0]) ? media.genres[0].title : 'فیلم';
         const fallbackSvg = window.getPosterFallbackSvg ? 
@@ -477,21 +478,12 @@ class BisnorApp {
             }
         };
 
-        // 1. Render immediately from verified offline real catalog synchronously (NO await blocking!)
+        // Never display the old bundled snapshot as though it were live content.
         const initialHero = window.mediaService.getHeroFeaturedSync ? 
-            window.mediaService.getHeroFeaturedSync() : 
-            FALLBACK_CATALOG[0];
+            window.mediaService.getHeroFeaturedSync() : null;
         updateHero(initialHero);
 
-        renderRow("row-latest-movies", FALLBACK_CATALOG.filter(x => x.type === 'movie'));
-        renderRow("row-popular-series", FALLBACK_CATALOG.filter(x => x.type === 'serie'));
-        renderRow("row-top-imdb", [...FALLBACK_CATALOG].sort((a, b) => (b.imdb || 0) - (a.imdb || 0)));
-        renderRow("row-animations", FALLBACK_CATALOG.filter(x => {
-            const g = (x.genres || []).map(item => item.title).join(' ');
-            return g.includes('انیمیشن') || g.includes('کارتون') || g.includes('انیمه');
-        }));
-
-        // 2. Fetch fresh live data in parallel in background
+        // Fetch live data in parallel; empty rows are preferable to false metadata.
         Promise.allSettled([
             window.mediaService.getLatestMovies().then(latest => {
                 if (latest && latest.length > 0) {

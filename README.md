@@ -223,16 +223,23 @@ app/build/outputs/apk/release/
 desktop/BisnorDesktop/
 ```
 
-این نسخه از **WPF + Microsoft WebView2** استفاده می‌کند.
+این نسخه از **WPF + Microsoft WebView2** با فریم‌ورک **.NET 10** بهره می‌برد.
 
-## نیازمندی‌ها
+> ⚠️ **توجه:** نسخه Desktop در حال حاضر **آزمایشی (Experimental)** است و در مسیر پایدارسازی قرار دارد. قابلیت‌های پایه، پخش آنلاین، پلیرهای خارجی و همگام‌سازی ابری کار می‌کنند، اما ممکن است در به‌روزرسانی‌های آتی دستخوش تغییرات شوند.
 
-- Windows 10 یا Windows 11
-- .NET 10 SDK
-- Microsoft Edge WebView2 Runtime
+---
+
+## 🛠️ نیازمندی‌های توسعه و بیلد
+
+- Windows 10 یا Windows 11 (نسخه ۶۴ بیتی x64)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Inno Setup 6+](https://jrsoftware.org/isdl.php) (جهت کامپایل نصاب ویندوز - نصب سریع: `winget install JRSoftware.InnoSetup`)
+- Microsoft Edge WebView2 Runtime (به صورت پیش‌فرض در ویندوز ۱۰/۱۱ موجود است)
 - Git
 
-## اجرا در حالت Development
+---
+
+## 🚀 اجرا در حالت Development
 
 ```powershell
 cd desktop/BisnorDesktop
@@ -240,21 +247,128 @@ dotnet restore
 dotnet run
 ```
 
-## Build
+---
 
+## 🏗️ فرآیند Build و Publish
+
+### ۱. بیلد پروژه دسکتاپ
 ```powershell
-dotnet build -c Release
+dotnet build desktop/BisnorDesktop/BisnorDesktop.csproj -c Release
 ```
 
-## Publish برای Windows x64
-
+### ۲. انتشار مستقل (Publish) برای ویندوز x64
 ```powershell
-dotnet publish -c Release -r win-x64 --self-contained false
+dotnet publish desktop/BisnorDesktop/BisnorDesktop.csproj `
+  -c Release `
+  -r win-x64 `
+  --self-contained false `
+  -p:PublishSingleFile=false `
+  -o desktop/publish
 ```
 
-خروجی Publish داخل پوشه `bin/Release` پروژه ساخته می‌شود.
+فایل‌های آماده انتشار در مسیر `desktop/publish/` تولید می‌شوند.
 
-> نسخه Desktop هنوز Experimental است. قبل از توزیع عمومی روی چند سیستم، پخش، WebView2، Login و مسیرهای شبکه را جداگانه تست کنید.
+---
+
+## 📦 ساخت نصاب رسمی ویندوز (Inno Setup Installer)
+
+اسکریپت استاندارد ساخت نصاب در مسیر `packaging/innosetup/Bisnor.iss` قرار دارد:
+
+```powershell
+# کامپایل نصاب با نسخه دلخواه (پیش‌فرض 5.1.1)
+& "C:\Users\<User>\AppData\Local\Programs\Inno Setup 6\ISCC.exe" /DMyAppVersion="5.1.1" packaging/innosetup/Bisnor.iss
+```
+
+خروجی نصاب در پوشه زیر ایجاد می‌شود:
+```text
+packaging/innosetup/Output/Bisnor-5.1.1-win-x64.exe
+```
+
+### ویژگی‌های نصاب ویندوز بیسنور:
+- **نصب بدون نیاز به دسترسی ادمین (Per-User / Lowest Privileges):** به طور پیش‌فرض در مسیر استانداردی چون `%LOCALAPPDATA%\Programs\Bisnor` نصب می‌شود و برای نصب سریع با WinGet نیازی به تاییدیه UAC ندارد.
+- **امکان نصب برای تمام سیستم:** با سوئیچ یا انتخاب کاربر قابلیت نصب سیستمی را دارد.
+- **حفظ ۱۰۰٪ تنظیمات و اطلاعات کاربر در آپگرید:** داده‌های واچ‌لیست، تنظیمات و کوکی‌های WebView2 در `%LOCALAPPDATA%\BisnorDesktop\WebView2Data` نگهداری می‌شوند و حین آپگرید یا نصب مجدد هیچ فایلی از بین نمی‌رود.
+- **شورت‌کات منوی استارت و دسکتاپ:** ایجاد آیکون در منوی استارت ویندوز.
+
+---
+
+## 🤫 نصب و حذف سایلنت (Silent Install & Uninstall)
+
+برای اتوماسیون و ابزارهایی مانند WinGet:
+
+### نصب سایلنت:
+```powershell
+.\packaging\innosetup\Output\Bisnor-5.1.1-win-x64.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
+```
+
+### حذف سایلنت:
+```powershell
+& "$env:LOCALAPPDATA\Programs\Bisnor\unins000.exe" /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
+```
+
+---
+
+## 🧪 تست در محیط ایزوله Windows Sandbox
+
+برای اطمینان از سلامت نصاب و عدم وابستگی به محیط توسعه، می‌توانید فایل پیکربندی زیر را با پسوند `.wsb` (مثلاً `test-bisnor.wsb`) ذخیره و اجرا کنید:
+
+```xml
+<Configuration>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>D:\Projects\Bisnor\packaging\innosetup\Output</HostFolder>
+      <SandboxFolder>C:\BisnorInstaller</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <Command>C:\BisnorInstaller\Bisnor-5.1.1-win-x64.exe</Command>
+  </LogonCommand>
+</Configuration>
+```
+
+---
+
+## 🪟 راهنمای بسته‌بندی و اعتبارسنجی WinGet
+
+مانیفست‌های WinGet در ساختار رسمی مایکروسافت در مسیر زیر نگهداری می‌شوند:
+```text
+packaging/winget/manifests/h/HNN/Bisnor/5.1.1/
+  ├─ HNN.Bisnor.yaml
+  ├─ HNN.Bisnor.installer.yaml
+  └─ HNN.Bisnor.locale.en-US.yaml
+```
+
+### اعتبارسنجی مانیفست‌ها:
+```powershell
+winget validate --manifest packaging/winget/manifests/h/HNN/Bisnor/5.1.1
+```
+
+### به‌روزرسانی مانیفست‌ها با ابزار رسمی wingetcreate:
+```powershell
+wingetcreate update HNN.Bisnor `
+  --urls https://github.com/nikan48g/Bisnor/releases/download/v5.1.1-beta/Bisnor-5.1.1-win-x64.exe `
+  --version 5.1.1
+```
+
+> ⚠️ **توجه:** مانیفست‌ها تا زمان تأیید پایداری و انتشار نسخه رسمی در مخزن عمومی `microsoft/winget-pkgs` ثبت نمی‌شوند. ارتقای برنامه با `winget upgrade HNN.Bisnor` بدون تداخل با آپدیتر داخلی برنامه طراحی شده است.
+
+---
+
+## 🤖 پایپ‌لاین GitHub Actions و Code Signing
+
+پایپ‌لاین `.github/workflows/desktop-release.yml` به طور خودکار هنگام ارسال تگ نسخه (`v*`) اجرا می‌شود:
+1. کامپایل پروژه دات‌نت ۱۰
+2. ساخت اینستالر Inno Setup
+3. محاسبه هش امنیتی SHA-256 و ایجاد فایل `SHA256SUMS.txt`
+4. آپلود آرتیفکت و ضمیمه کردن به GitHub Release
+
+### تنظیم امضای دیجیتال (Code Signing):
+در صورت تمایل به امضای رسمی فایل نصاب جهت رفع هشدار SmartScreen ویندوز، دو متغیر محرمانه زیر را در **GitHub Secrets** مخزن تعریف کنید:
+- `WINDOWS_SIGNING_CERT_BASE64`: فایل گواهی PFX به صورت Base64
+- `WINDOWS_SIGNING_PASSWORD`: رمز عبور فایل PFX
+
+در صورت عدم وجود این Secretها، پایپ‌لاین به طور خودکار نصاب معتبر ولی امضا‌نشده تولید می‌کند. هیچ کلید، پسورد یا گواهی در مخزن ذخیره نمی‌شود.
 
 ---
 

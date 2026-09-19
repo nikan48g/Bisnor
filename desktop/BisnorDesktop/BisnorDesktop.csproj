@@ -9,6 +9,15 @@
     <ApplicationIcon>wwwroot\assets\logo.ico</ApplicationIcon>
     <AssemblyName>Bisnor</AssemblyName>
     <RootNamespace>BisnorDesktop</RootNamespace>
+    <Product>Bisnor</Product>
+    <Company>HNN</Company>
+    <Authors>HNN</Authors>
+    <Description>Bisnor Cinema Desktop - Modern Iranian Media Streaming Client (Experimental)</Description>
+    <Copyright>Copyright © 2026 HNN</Copyright>
+    <Version>5.1.1.0</Version>
+    <AssemblyVersion>5.1.1.0</AssemblyVersion>
+    <FileVersion>5.1.1.0</FileVersion>
+    <PackageId>HNN.Bisnor</PackageId>
     <PublishSingleFile>false</PublishSingleFile>
     <SelfContained>false</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>

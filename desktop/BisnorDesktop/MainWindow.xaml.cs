@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -29,7 +30,8 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) BisnorDesktop/5.0.5");
+        var appVersion = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "5.1.1";
+        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd($"Mozilla/5.0 (Windows NT 10.0; Win64; x64) BisnorDesktop/{appVersion}");
         InitializeComponent();
 
         try
@@ -155,6 +157,14 @@ public partial class MainWindow : Window
                     {
                         Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
                     }
+                    break;
+
+                case "getAppInfo":
+                    _ = PostAppInfoAsync();
+                    break;
+
+                case "checkUpdates":
+                    _ = CheckForUpdatesAsync();
                     break;
             }
         }
@@ -322,5 +332,99 @@ public partial class MainWindow : Window
             if (File.Exists(p)) return p;
         }
         return null;
+    }
+
+    private async Task PostAppInfoAsync()
+    {
+        try
+        {
+            var appVersion = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "5.1.1";
+            var payload = new
+            {
+                action = "appInfoResponse",
+                version = appVersion,
+                channel = "Experimental",
+                runtime = ".NET 10 & WebView2",
+                packageId = "HNN.Bisnor"
+            };
+            var json = JsonSerializer.Serialize(payload);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                webView?.CoreWebView2?.PostWebMessageAsString(json);
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[PostAppInfoError] {ex.Message}");
+        }
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            var currentVersionStr = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "5.1.1";
+            string latestTag = "";
+            string releaseUrl = "https://github.com/nikan48g/Bisnor/releases";
+            string releaseNotes = "";
+            bool hasNewVersion = false;
+
+            try
+            {
+                using var req = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/nikan48g/Bisnor/releases/latest");
+                req.Headers.UserAgent.ParseAdd("BisnorDesktop-UpdateChecker");
+                var resp = await _httpClient.SendAsync(req);
+                if (resp.IsSuccessStatusCode)
+                {
+                    var jsonStr = await resp.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(jsonStr);
+                    latestTag = doc.RootElement.TryGetProperty("tag_name", out var t) ? t.GetString() ?? "" : "";
+                    releaseUrl = doc.RootElement.TryGetProperty("html_url", out var u) ? u.GetString() ?? releaseUrl : releaseUrl;
+                    releaseNotes = doc.RootElement.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "";
+
+                    var cleanRemote = latestTag.TrimStart('v', 'V').Split('-')[0];
+                    hasNewVersion = IsNewerVersion(cleanRemote, currentVersionStr);
+                }
+            }
+            catch (Exception fetchEx)
+            {
+                Debug.WriteLine($"[UpdateFetchError] {fetchEx.Message}");
+            }
+
+            var payload = new
+            {
+                action = "updateCheckResult",
+                currentVersion = currentVersionStr,
+                latestVersion = string.IsNullOrEmpty(latestTag) ? currentVersionStr : latestTag,
+                hasNewVersion,
+                releaseUrl,
+                notes = releaseNotes,
+                wingetCommand = "winget upgrade HNN.Bisnor"
+            };
+
+            var json = JsonSerializer.Serialize(payload);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                webView?.CoreWebView2?.PostWebMessageAsString(json);
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[CheckUpdatesError] {ex.Message}");
+        }
+    }
+
+    private static bool IsNewerVersion(string remote, string local)
+    {
+        var rParts = remote.Split('.').Select(p => int.TryParse(p, out var v) ? v : 0).ToList();
+        var lParts = local.Split('.').Select(p => int.TryParse(p, out var v) ? v : 0).ToList();
+        for (int i = 0; i < Math.Max(rParts.Count, lParts.Count); i++)
+        {
+            int r = i < rParts.Count ? rParts[i] : 0;
+            int l = i < lParts.Count ? lParts[i] : 0;
+            if (r > l) return true;
+            if (r < l) return false;
+        }
+        return false;
     }
 }

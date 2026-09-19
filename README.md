@@ -79,8 +79,6 @@ Bisnor یک **client / frontend مستقل** است و برای دریافت ا�
 
 ## 📚 مستندات
 
-README عمداً خلاصه نگه داشته شده تا صفحه اصلی پروژه تبدیل به دفترچه تعمیرات هواپیما نشود 😅
-
 - 🛠️ [راهنمای کامل Build برای Android، Windows و Tizen](docs/BUILD.md)
 - 🐛 [راهنمای Troubleshooting و خطاهای رایج](docs/TROUBLESHOOTING.md)
 
@@ -102,9 +100,9 @@ Bisnor/
 ├─ desktop/
 │  └─ BisnorDesktop/       # Windows experimental app
 ├─ tizen-tv/               # Samsung Tizen TV experimental app
-├─ packaging/              # Inno Setup + WinGet manifests
-├─ docs/                   # Build & Troubleshooting docs
-├─ .github/workflows/      # CI / Release workflows
+├─ packaging/              # Windows packaging / WinGet
+├─ docs/                   # Project documentation
+├─ .github/workflows/      # CI / release workflows
 ├─ gradle/
 ├─ local.properties.example
 ├─ logo.png
@@ -135,53 +133,6 @@ Bisnor/
 
 ---
 
-## 🤖 Android
-
-نسخه Android پلتفرم اصلی پروژه است.
-
-نیازمندی اصلی:
-- Android 7.0+
-- SDK 35
-- JDK 17
-
-Build، تنظیم `local.properties`، Release build و تست‌ها در سند زیر توضیح داده شده‌اند:
-
-👉 **[docs/BUILD.md](docs/BUILD.md#-android)**
-
----
-
-## 🖥️ Windows Desktop — Experimental
-
-نسخه Windows در مسیر زیر قرار دارد:
-
-```text
-desktop/BisnorDesktop/
-```
-
-این نسخه از **WPF + Microsoft WebView2 + .NET 10** استفاده می‌کند و مسیر انتشار آن شامل **Inno Setup، GitHub Actions و WinGet** است.
-
-جزئیات Build، Publish، Installer، Silent Install، WinGet و Code Signing:
-
-👉 **[docs/BUILD.md](docs/BUILD.md#️-windows-desktop--experimental)**
-
----
-
-## 📺 Samsung Tizen TV — Experimental
-
-نسخه آزمایشی Tizen در مسیر:
-
-```text
-tizen-tv/
-```
-
-قرار دارد و شامل پشتیبانی از Remote navigation و Tizen AVPlay است.
-
-مراحل Build، Package، Certificate و نصب روی TV:
-
-👉 **[docs/BUILD.md](docs/BUILD.md#-samsung-tizen-tv--experimental)**
-
----
-
 ## 🔐 امنیت و تنظیمات
 
 فایل‌های محیطی و credentialهای خصوصی نباید وارد Git شوند.
@@ -205,32 +156,9 @@ Private connection information
 
 ---
 
-## 🧪 تست
-
-پروژه شامل Unit Test و Android Instrumented Test است.
-
-```bash
-./gradlew test
-./gradlew connectedAndroidTest
-```
-
-هنگام تغییر بخش‌های حساس حداقل Fresh Install، Login/Logout، Search، Player، Watchlist، Downloads، Theme، Deep Links و حالت بدون اینترنت بررسی شوند.
-
-برای خطاهای Build، CI، WinGet یا Tizen:
-
-👉 **[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)**
-
----
-
 ## 🤝 مشارکت
 
 Pull Request و Bug Report پذیرفته می‌شود.
-
-```bash
-git checkout -b feature/my-feature
-git commit -m "feat: add my feature"
-git push origin feature/my-feature
-```
 
 در PR بهتر است توضیح دهید:
 - چه چیزی تغییر کرده

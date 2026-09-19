@@ -27,7 +27,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -39,8 +39,6 @@ import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.data.repository.RealMediaRepository
 import com.hnn.bisnor.databinding.ActivityPlayerBinding
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 class PlayerActivity : AppCompatActivity() {
@@ -494,54 +492,9 @@ class PlayerActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun sanitizeMediaUrl(rawUrl: String): String {
-        val trimmed = rawUrl.trim()
-        if (trimmed.isEmpty()) return ""
-        return try {
-            trimmed.replace(" ", "%20")
-                .replace("[", "%5B")
-                .replace("]", "%5D")
-                .replace("{", "%7B")
-                .replace("}", "%7D")
-                .replace("|", "%7C")
-        } catch (e: Exception) {
-            trimmed
-        }
-    }
-
-    private fun createOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .followRedirects(true)
-            .followSslRedirects(true)
-            .retryOnConnectionFailure(true)
-            .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
-                    .header("Accept", "*/*")
-                    .build()
-                chain.proceed(request)
-            }
-            .apply {
-                try {
-                    val trustAllCerts = arrayOf<javax.net.ssl.TrustManager>(object : javax.net.ssl.X509TrustManager {
-                        override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>?, authType: String?) {}
-                        override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>?, authType: String?) {}
-                        override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
-                    })
-                    val sslContext = javax.net.ssl.SSLContext.getInstance("SSL")
-                    sslContext.init(null, trustAllCerts, java.security.SecureRandom())
-                    sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as javax.net.ssl.X509TrustManager)
-                    hostnameVerifier { _, _ -> true }
-                } catch (_: Exception) {}
-            }
-            .build()
-    }
-
     private fun openWithExternalPlayer() {
         try {
-            val cleanUrl = sanitizeMediaUrl(videoUrl)
+            val cleanUrl = videoUrl.trim().replace(" ", "%20")
             if (cleanUrl.isEmpty()) {
                 Toast.makeText(this, "آدرس ویدیو یافت نشد", Toast.LENGTH_SHORT).show()
                 return
@@ -549,6 +502,7 @@ class PlayerActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(Uri.parse(cleanUrl), "video/*")
                 putExtra("title", mediaTitle)
+                putExtra(Intent.EXTRA_TITLE, mediaTitle)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(Intent.createChooser(intent, "پخش ویدیو با:"))
@@ -582,8 +536,8 @@ class PlayerActivity : AppCompatActivity() {
 
         val detailText = if (isNetworkOrSource) {
             "سرور ویدیو پاسخ نداد یا اتصال اینترنت با خطا مواجه شد.\n\n" +
-            "💡 نکته بسیار مهم:\n" +
-            "اکثر سرورهای دانلود داخل ایران (مخابرات، شاتل، همراه اول و...) در صورت روشن بودن فیلترشکن (VPN) دسترسی آی‌پی‌های خارجی را مسدود می‌کنند.\n\n" +
+            "💡 نکته مهم:\n" +
+            "اکثر سرورهای دانلود داخل ایران در صورت روشن بودن فیلترشکن (VPN) دسترسی آی‌پی‌های خارجی را مسدود می‌کنند.\n\n" +
             "راهکارهای سریع:\n" +
             "۱. فیلترشکن خود را موقتاً خاموش کنید و «تلاش مجدد» را بزنید.\n" +
             "۲. یا با دکمه «پخش با VLC / MX Player» ویدیو را در برنامه‌های جانبی باز کنید."
@@ -619,10 +573,15 @@ class PlayerActivity : AppCompatActivity() {
             exoPlayer?.release()
             exoPlayer = null
 
-            val cleanUrl = sanitizeMediaUrl(url)
+            val cleanUrl = url.trim().replace(" ", "%20")
 
-            val okHttpClient = createOkHttpClient()
-            val httpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
+            val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                .setAllowCrossProtocolRedirects(true)
+                .setConnectTimeoutMs(30000)
+                .setReadTimeoutMs(30000)
+                .setKeepPostFor302Redirects(true)
+
             val dataSourceFactory = DefaultDataSource.Factory(this, httpDataSourceFactory)
             val mediaSourceFactory = DefaultMediaSourceFactory(dataSourceFactory)
             trackSelector = DefaultTrackSelector(this)
@@ -630,9 +589,9 @@ class PlayerActivity : AppCompatActivity() {
             val loadControl = DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
                     /* minBufferMs = */ 15000,
-                    /* maxBufferMs = */ 60000,
-                    /* bufferForPlaybackMs = */ 1000,
-                    /* bufferForPlaybackAfterRebufferMs = */ 2000
+                    /* maxBufferMs = */ 50000,
+                    /* bufferForPlaybackMs = */ 500,
+                    /* bufferForPlaybackAfterRebufferMs = */ 1000
                 )
                 .setPrioritizeTimeOverSizeThresholds(true)
                 .build()
@@ -643,15 +602,8 @@ class PlayerActivity : AppCompatActivity() {
                 .setLoadControl(loadControl)
                 .build().apply {
                     binding.playerView.player = this
-                    
-                    val builder = MediaItem.Builder().setUri(Uri.parse(cleanUrl))
-                    val lowerUrl = cleanUrl.lowercase()
-                    when {
-                        lowerUrl.contains(".mkv") -> builder.setMimeType(MimeTypes.APPLICATION_MATROSKA)
-                        lowerUrl.contains(".mp4") -> builder.setMimeType(MimeTypes.APPLICATION_MP4)
-                        lowerUrl.contains(".m3u8") -> builder.setMimeType(MimeTypes.APPLICATION_M3U8)
-                    }
-                    setMediaItem(builder.build())
+                    val mediaItem = MediaItem.fromUri(Uri.parse(cleanUrl))
+                    setMediaItem(mediaItem)
 
                     if (startPositionMs > 0L) {
                         seekTo(startPositionMs)

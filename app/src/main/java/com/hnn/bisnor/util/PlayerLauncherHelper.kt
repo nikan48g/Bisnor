@@ -119,24 +119,26 @@ object PlayerLauncherHelper {
         mediaType: String = "movie",
         genres: ArrayList<String> = arrayListOf()
     ) {
-        if (url.isEmpty()) return
+        val cleanUrl = url.trim().replace(" ", "%20")
+        if (cleanUrl.isEmpty()) return
 
         when (playerChoice) {
-            "vlc" -> launchExternal(activity, PKG_VLC, title, url)
-            "mx" -> launchExternal(activity, PKG_MX_PLAYER, title, url)
-            "kmplayer" -> launchExternal(activity, PKG_KM_PLAYER, title, url)
-            "justplayer" -> launchExternal(activity, PKG_JUST_PLAYER, title, url)
+            "vlc" -> launchExternal(activity, PKG_VLC, title, cleanUrl)
+            "mx" -> launchExternal(activity, PKG_MX_PLAYER, title, cleanUrl)
+            "kmplayer" -> launchExternal(activity, PKG_KM_PLAYER, title, cleanUrl)
+            "justplayer" -> launchExternal(activity, PKG_JUST_PLAYER, title, cleanUrl)
             "system" -> {
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(Uri.parse(url), "video/*")
+                    setDataAndType(Uri.parse(cleanUrl), "video/*")
                     putExtra("title", title)
+                    putExtra(Intent.EXTRA_TITLE, title)
                 }
                 activity.startActivity(Intent.createChooser(intent, "پخش با:"))
             }
             else -> {
                 val intent = Intent(activity, PlayerActivity::class.java).apply {
                     putExtra("video_title", title)
-                    putExtra("video_url", url)
+                    putExtra("video_url", cleanUrl)
                     putExtra("media_id", mediaId)
                     putExtra("media_title", title)
                     putExtra("media_cover", mediaCover)
@@ -163,6 +165,7 @@ object PlayerLauncherHelper {
                 setPackage(packageName)
                 setDataAndType(Uri.parse(url), "video/*")
                 putExtra("title", title)
+                putExtra(Intent.EXTRA_TITLE, title)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             activity.startActivity(intent)

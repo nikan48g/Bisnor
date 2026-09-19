@@ -4214,8 +4214,9 @@ const FALLBACK_CATALOG = [
 
 class MediaDataService {
     constructor() {
-        // Pre-populate with verified offline real Iranian & International catalog immediately
-        this.catalog = [...FALLBACK_CATALOG];
+        // The bundled snapshot is historical and contains known title/metadata mismatches.
+        // Only show records returned by the live provider.
+        this.catalog = [];
         this.pendingRequests = new Map();
         this.initBridgeListener();
         this.servers = [
@@ -4391,7 +4392,7 @@ class MediaDataService {
             this.mergeIntoCatalog(items);
             return items;
         }
-        return FALLBACK_CATALOG.filter(x => x.type === 'movie');
+        return [];
     }
 
     async getPopularSeries() {
@@ -4401,7 +4402,7 @@ class MediaDataService {
             this.mergeIntoCatalog(items);
             return items;
         }
-        return FALLBACK_CATALOG.filter(x => x.type === 'serie');
+        return [];
     }
 
     async getTopImdb() {
@@ -4411,7 +4412,7 @@ class MediaDataService {
             this.mergeIntoCatalog(items);
             return items;
         }
-        return [...FALLBACK_CATALOG].sort((a, b) => (b.imdb || 0) - (a.imdb || 0));
+        return [];
     }
 
     async getAnimations() {
@@ -4421,10 +4422,7 @@ class MediaDataService {
             this.mergeIntoCatalog(items);
             return items;
         }
-        return FALLBACK_CATALOG.filter(x => {
-            const g = (x.genres || []).map(g => g.title).join(' ');
-            return g.includes('انیمیشن') || g.includes('کارتون') || g.includes('انیمه');
-        });
+        return [];
     }
 
     async getExploreCatalog() {
@@ -4437,7 +4435,7 @@ class MediaDataService {
             this.getPopularSeries(),
             this.getTopImdb()
         ]).catch(() => {});
-        return this.catalog.length > 0 ? this.catalog : FALLBACK_CATALOG;
+        return this.catalog;
     }
 
     async search(query) {
@@ -4512,11 +4510,11 @@ class MediaDataService {
     }
 
     getHeroFeaturedSync() {
-        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : FALLBACK_CATALOG[0];
+        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : null;
     }
 
     async getHeroFeatured() {
-        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : FALLBACK_CATALOG[0];
+        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : null;
     }
 }
 

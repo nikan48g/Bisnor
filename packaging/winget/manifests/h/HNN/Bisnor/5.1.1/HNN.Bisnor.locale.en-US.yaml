@@ -4,17 +4,17 @@ PackageIdentifier: HNN.Bisnor
 PackageVersion: 5.1.1
 PackageLocale: en-US
 Publisher: HNN
-PublisherUrl: https://github.com/nikan48g
+PublisherUrl: https://github.com/nikan48g/Bisnor
 PublisherSupportUrl: https://github.com/nikan48g/Bisnor/issues
 PackageName: Bisnor
 PackageUrl: https://github.com/nikan48g/Bisnor
 License: MIT
 Copyright: Copyright (c) 2026 HNN
-ShortDescription: Modern Iranian media streaming client powered by .NET 10 and WebView2 (Experimental)
+ShortDescription: Open-source movie and TV streaming client for Windows (Experimental)
 Description: |-
-  Bisnor Cinema Desktop is a modern, high-performance streaming application for movies and TV shows,
-  built with .NET 10 and Microsoft WebView2. It features seamless integration with external media
-  players (VLC, PotPlayer, KMPlayer, MPC-HC) and Internet Download Manager (IDM).
+  Bisnor Cinema Desktop is an experimental open-source movie and TV streaming client for Windows,
+  built with .NET 10 and Microsoft WebView2. It supports internal playback, external media players,
+  downloads, account sync, and a Persian-focused interface.
 Moniker: bisnor
 Tags:
 - cinema
@@ -24,7 +24,7 @@ Tags:
 - video-player
 - entertainment
 - media
-- iran
+- persian
 ReleaseNotesUrl: https://github.com/nikan48g/Bisnor/releases/tag/v5.1.1-beta
 ManifestType: defaultLocale
 ManifestVersion: 1.9.0

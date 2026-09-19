@@ -57,6 +57,8 @@ class BisnorApp {
         this.renderExploreTab();
         this.renderFavoritesTab();
         this.renderAvatarPickerGrid();
+        this.setupNativeMessageListener();
+        this.postNative("getAppInfo");
     }
 
     // --- Native Windows Interop ---
@@ -65,6 +67,41 @@ class BisnorApp {
             window.chrome.webview.postMessage({ action, ...payload });
         } else {
             console.log("[Native Interop Simulated]", action, payload);
+        }
+    }
+
+    setupNativeMessageListener() {
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener("message", (event) => {
+                const msg = event.data;
+                if (!msg) return;
+                if (msg.action === "appInfoResponse") {
+                    const tvVersion = document.getElementById("tv-app-version-about");
+                    if (tvVersion) {
+                        tvVersion.textContent = `نسخه v${msg.version} (${msg.channel}) • مجهز به ${msg.runtime}`;
+                    }
+                } else if (msg.action === "updateCheckResult") {
+                    this.handleUpdateCheckResult(msg);
+                }
+            });
+        }
+    }
+
+    handleUpdateCheckResult(msg) {
+        if (msg.hasNewVersion) {
+            const accept = confirm(
+                `نسخه جدید بیسنور دسکتاپ (${msg.latestVersion}) در دسترس است!\n\n` +
+                `نسخه فعلی شما: v${msg.currentVersion}\n\n` +
+                `روش‌های ارتقا:\n` +
+                `۱. دستور ترمینال WinGet:\n   ${msg.wingetCommand}\n\n` +
+                `۲. دانلود مستقیم فایل نصاب از صفحه رسمی گیت‌هاب.\n\n` +
+                `آیا می‌خواهید صفحه انتشار گیت‌هاب باز شود؟`
+            );
+            if (accept && msg.releaseUrl) {
+                this.postNative("openUrl", { url: msg.releaseUrl });
+            }
+        } else {
+            alert(`شما از جدیدترین نسخه بیسنور دسکتاپ (v${msg.currentVersion}) استفاده می‌کنید. 🚀`);
         }
     }
 
@@ -342,7 +379,7 @@ class BisnorApp {
 
         // Settings Category 4: About & GitHub
         document.getElementById("btn-check-update")?.addEventListener("click", () => {
-            alert("شما از جدیدترین نسخه بیسنور دسکتاپ (v5.0.3) با هسته .NET 10 استفاده می‌کنید. 🚀");
+            this.postNative("checkUpdates");
         });
 
         document.getElementById("btn-open-github")?.addEventListener("click", () => {

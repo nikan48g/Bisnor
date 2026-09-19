@@ -1,0 +1,139 @@
+name: Windows Desktop Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version string (e.g. 5.1.1)'
+        required: false
+        default: '5.1.1'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build & Package Windows Desktop (x64)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Version
+        id: get_version
+        shell: pwsh
+        run: |
+          $rawVer = "${{ github.event.inputs.version }}"
+          if (-not $rawVer -and "${{ github.ref_name }}") {
+            $rawVer = "${{ github.ref_name }}" -replace '^v',''
+          }
+          if (-not $rawVer) {
+            $rawVer = "5.1.1"
+          }
+          # Extract clean SemVer (e.g., 5.1.1-beta -> 5.1.1)
+          $cleanVer = ($rawVer -split '-')[0]
+          Write-Host "Detected Raw Version: $rawVer"
+          Write-Host "Clean Application Version: $cleanVer"
+          echo "VERSION=$cleanVer" >> $env:GITHUB_OUTPUT
+          echo "FULL_VERSION=$rawVer" >> $env:GITHUB_OUTPUT
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish Bisnor Desktop
+        shell: pwsh
+        run: |
+          dotnet publish desktop/BisnorDesktop/BisnorDesktop.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained false `
+            -p:PublishSingleFile=false `
+            -p:Version="${{ steps.get_version.outputs.VERSION }}.0" `
+            -p:AssemblyVersion="${{ steps.get_version.outputs.VERSION }}.0" `
+            -p:FileVersion="${{ steps.get_version.outputs.VERSION }}.0" `
+            -o desktop/publish
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress
+
+      - name: Compile Inno Setup Installer
+        shell: pwsh
+        run: |
+          $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $isccPath)) {
+            $isccPath = "ISCC.exe"
+          }
+          & $isccPath /DMyAppVersion="${{ steps.get_version.outputs.VERSION }}" packaging/innosetup/Bisnor.iss
+
+      - name: Code Signing (Pluggable via Secrets)
+        shell: pwsh
+        env:
+          CERT_BASE64: ${{ secrets.WINDOWS_SIGNING_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
+          APP_VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          if ($env:CERT_BASE64 -and $env:CERT_PASSWORD) {
+            Write-Host "Code signing secret detected. Signing installer..."
+            $certBytes = [Convert]::FromBase64String($env:CERT_BASE64)
+            $certPath = [IO.Path]::Combine($env:RUNNER_TEMP, "sign_cert.pfx")
+            [IO.File]::WriteAllBytes($certPath, $certBytes)
+            
+            $installerPath = "packaging\innosetup\Output\Bisnor-$env:APP_VERSION-win-x64.exe"
+            & "C:\Program Files (x86)\Windows Kits\10\bin\x64\signtool.exe" sign `
+              /f $certPath `
+              /p $env:CERT_PASSWORD `
+              /tr http://timestamp.digicert.com `
+              /td sha256 `
+              /fd sha256 `
+              $installerPath
+              
+            Remove-Item $certPath -Force
+            Write-Host "Installer successfully signed with timestamp."
+          } else {
+            Write-Host "Note: WINDOWS_SIGNING_CERT_BASE64 secret not set. Skipping binary code signing (generating standard unsigned installer)."
+          }
+
+      - name: Calculate Checksums
+        id: checksums
+        shell: pwsh
+        run: |
+          $installer = Get-Item "packaging\innosetup\Output\Bisnor-*-win-x64.exe"
+          $hash = (Get-FileHash -Path $installer.FullName -Algorithm SHA256).Hash
+          "$hash  $($installer.Name)" | Out-File -FilePath "packaging\innosetup\Output\SHA256SUMS.txt" -Encoding ascii
+          Write-Host "============================================="
+          Write-Host "Generated Installer: $($installer.Name)"
+          Write-Host "SHA256: $hash"
+          Write-Host "============================================="
+          echo "INSTALLER_NAME=$($installer.Name)" >> $env:GITHUB_OUTPUT
+          echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_OUTPUT
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bisnor-windows-x64-installer
+          path: |
+            packaging/innosetup/Output/*.exe
+            packaging/innosetup/Output/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Attach Assets to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packaging/innosetup/Output/*.exe
+            packaging/innosetup/Output/SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

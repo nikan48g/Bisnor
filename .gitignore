@@ -28,3 +28,13 @@ tizen-tv/Debug/
 keystore.properties
 *.jks
 *.keystore
+
+# Windows Packaging & Certificates
+packaging/innosetup/Output/
+*.pfx
+*.p12
+*.cer
+*.snk
+*.key
+*.log
+

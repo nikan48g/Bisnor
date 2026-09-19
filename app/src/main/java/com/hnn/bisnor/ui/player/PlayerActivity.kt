@@ -75,11 +75,9 @@ class PlayerActivity : AppCompatActivity() {
     // Screen Touch Lock
     private var isScreenLocked = false
 
-    // Next Episode logic
-    private var nextEpisodeSource: RealSource? = null
-    private var isNextCardShown = false
-    private var isNextCardDismissed = false
-    private var countdownSeconds = 10
+    // Modular Controllers
+    private lateinit var gestureController: PlayerGestureController
+    private lateinit var nextEpisodeManager: NextEpisodeManager
 
     private val handler = Handler(Looper.getMainLooper())
     private val hideControlsRunnable = Runnable {
@@ -98,22 +96,12 @@ class PlayerActivity : AppCompatActivity() {
         }.start()
     }
 
-    private val countdownRunnable = object : Runnable {
-        override fun run() {
-            if (countdownSeconds > 0) {
-                binding.tvNextCountdown.text = "پخش خودکار تا $countdownSeconds ثانیه..."
-                countdownSeconds--
-                handler.postDelayed(this, 1000)
-            } else {
-                playNextEpisodeNow()
-            }
-        }
-    }
-
     private val progressSaveRunnable = object : Runnable {
         override fun run() {
             saveCurrentPlaybackProgress()
-            checkNextEpisodeTrigger()
+            exoPlayer?.let { player ->
+                nextEpisodeManager.checkTrigger(player.currentPosition, player.duration, isScreenLocked)
+            }
             handler.postDelayed(this, 2000)
         }
     }
@@ -217,121 +205,48 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         binding.btnPlayNextNow.setOnClickListener {
-            playNextEpisodeNow()
+            nextEpisodeManager.playNextNow()
         }
 
         binding.btnCloseNextCard.setOnClickListener {
-            isNextCardDismissed = true
-            handler.removeCallbacks(countdownRunnable)
-            binding.cardNextEpisode.visibility = View.GONE
+            nextEpisodeManager.dismissCard()
         }
 
-        setupGestures()
+        gestureController = PlayerGestureController(
+            activity = this,
+            audioManager = audioManager,
+            playerView = binding.playerView,
+            onDoubleTapSeek = { forward ->
+                exoPlayer?.let {
+                    val delta = if (forward) 10000L else -10000L
+                    val newPos = (it.currentPosition + delta).coerceIn(0L, it.duration)
+                    it.seekTo(newPos)
+                    showIndicator(if (forward) "⏩ ۱۰+ ثانیه" else "⏪ ۱۰- ثانیه", "")
+                }
+            },
+            onIndicatorUpdate = { title, subtitle ->
+                showIndicator(title, subtitle)
+            },
+            isScreenLocked = { isScreenLocked }
+        )
+        gestureController.attach()
+
+        nextEpisodeManager = NextEpisodeManager(
+            context = this,
+            binding = binding,
+            historyManager = historyManager,
+            scope = lifecycleScope,
+            mediaId = mediaId,
+            mediaTitle = mediaTitle,
+            mediaCover = mediaCover,
+            currentVideoUrl = videoUrl,
+            currentEpisodeTitle = episodeTitle,
+            currentEpisodeIndex = episodeIndex,
+            onSaveProgress = { saveCurrentPlaybackProgress() }
+        )
+        nextEpisodeManager.preload()
+
         initializePlayer(videoUrl)
-        preloadNextEpisode()
-    }
-
-    private fun extractEpisodeNumber(text: String): Int? {
-        val normalized = text
-            .replace('۰', '0').replace('۱', '1').replace('۲', '2').replace('۳', '3').replace('۴', '4')
-            .replace('۵', '5').replace('۶', '6').replace('۷', '7').replace('۸', '8').replace('۹', '9')
-
-        val regex = Regex("""(?:قسمت|ep|episode|e)\s*(\d+)""", RegexOption.IGNORE_CASE)
-        val match = regex.find(normalized)
-        if (match != null) {
-            return match.groupValues[1].toIntOrNull()
-        }
-
-        val allDigits = Regex("""\b(\d+)\b""").findAll(normalized).toList()
-        return allDigits.lastOrNull()?.groupValues?.get(1)?.toIntOrNull()
-    }
-
-    private fun preloadNextEpisode() {
-        if (mediaId == 0) return
-        lifecycleScope.launch {
-            try {
-                val seasons = RealMediaRepository.getSeriesSeasons(mediaId)
-                val allEps = seasons.flatMap { it.episodes }
-                if (allEps.isEmpty()) return@launch
-
-                // 1. Try finding current episode index by matching video URL
-                var currentFoundIndex = allEps.indexOfFirst { ep -> ep.sources.any { it.url == videoUrl } }
-
-                // 2. If not found by URL, try matching exact episode number from title (e.g. 1169 -> next is 1170)
-                val currentEpNum = extractEpisodeNumber(episodeTitle) ?: extractEpisodeNumber(mediaTitle)
-                if (currentFoundIndex == -1 && currentEpNum != null) {
-                    currentFoundIndex = allEps.indexOfFirst { ep -> extractEpisodeNumber(ep.title) == currentEpNum }
-                }
-
-                // 3. Fallback to passed episodeIndex if within bounds
-                if (currentFoundIndex == -1 && episodeIndex in allEps.indices) {
-                    currentFoundIndex = episodeIndex
-                }
-
-                // Now locate the NEXT episode:
-                var nextEp: com.hnn.bisnor.data.model.RealEpisode? = null
-
-                // If we know current episode number, look directly for epNum + 1 first
-                if (currentEpNum != null) {
-                    nextEp = allEps.find { ep -> extractEpisodeNumber(ep.title) == currentEpNum + 1 }
-                }
-
-                // Otherwise, sequential index + 1
-                if (nextEp == null && currentFoundIndex != -1 && currentFoundIndex + 1 < allEps.size) {
-                    nextEp = allEps[currentFoundIndex + 1]
-                }
-
-                if (nextEp != null) {
-                    val src = nextEp.sources.firstOrNull()
-                    if (src != null) {
-                        val displayTitle = if (nextEp.title.isNotBlank()) nextEp.title else "قسمت بعدی"
-                        nextEpisodeSource = src.copy(quality = displayTitle)
-                    }
-                }
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
-    }
-
-    private fun checkNextEpisodeTrigger() {
-        if (!historyManager.isAutoNextEnabled || isNextCardShown || isNextCardDismissed || isScreenLocked) return
-        val nextSrc = nextEpisodeSource ?: return
-
-        exoPlayer?.let { player ->
-            val pos = player.currentPosition
-            val dur = player.duration
-            if (dur > 60000 && pos > 0) {
-                val triggerThresholdMs = historyManager.autoNextMinutes * 60 * 1000L
-                val remainingMs = dur - pos
-                if (remainingMs in 1000..triggerThresholdMs) {
-                    isNextCardShown = true
-                    binding.tvNextEpisodeTitle.text = "قسمت بعدی: ${nextSrc.quality}"
-                    binding.cardNextEpisode.visibility = View.VISIBLE
-                    binding.cardNextEpisode.animate().alpha(1f).setDuration(300).start()
-                    countdownSeconds = historyManager.autoNextCountdownSeconds
-                    handler.post(countdownRunnable)
-                }
-            }
-        }
-    }
-
-    private fun playNextEpisodeNow() {
-        val nextSrc = nextEpisodeSource ?: return
-        handler.removeCallbacks(countdownRunnable)
-        saveCurrentPlaybackProgress()
-
-        val intent = Intent(this, PlayerActivity::class.java).apply {
-            putExtra("video_title", "$mediaTitle - ${nextSrc.quality}")
-            putExtra("video_url", nextSrc.url)
-            putExtra("media_id", mediaId)
-            putExtra("media_title", mediaTitle)
-            putExtra("media_cover", mediaCover)
-            putExtra("episode_title", nextSrc.quality)
-            putExtra("episode_index", episodeIndex + 1)
-        }
-        startActivity(intent)
-        finish()
     }
 
     private fun hideSystemBars() {
@@ -345,72 +260,6 @@ class PlayerActivity : AppCompatActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
             hideSystemBars()
-        }
-    }
-
-    private fun setupGestures() {
-        val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onDoubleTap(e: MotionEvent): Boolean {
-                if (isScreenLocked) return false
-                val screenWidth = binding.playerView.width
-                if (e.x < screenWidth / 3) {
-                    exoPlayer?.let {
-                        val newPos = (it.currentPosition - 10000).coerceAtLeast(0L)
-                        it.seekTo(newPos)
-                        showIndicator("⏪ ۱۰- ثانیه", "")
-                    }
-                    return true
-                } else if (e.x > (screenWidth * 2) / 3) {
-                    exoPlayer?.let {
-                        val newPos = (it.currentPosition + 10000).coerceAtMost(it.duration)
-                        it.seekTo(newPos)
-                        showIndicator("⏩ ۱۰+ ثانیه", "")
-                    }
-                    return true
-                }
-                return false
-            }
-        })
-
-        var initialY = 0f
-        var isLeftSwipe = false
-        var maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-
-        binding.playerView.setOnTouchListener { _, event ->
-            if (isScreenLocked) return@setOnTouchListener false
-            gestureDetector.onTouchEvent(event)
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    initialY = event.y
-                    isLeftSwipe = event.x < (binding.playerView.width / 2)
-                    maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val deltaY = initialY - event.y
-                    if (abs(deltaY) > 40) {
-                        if (isLeftSwipe) {
-                            val currentVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                            val step = if (deltaY > 0) 1 else -1
-                            val newVol = (currentVol + step).coerceIn(0, maxVolume)
-                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVol, 0)
-                            val pct = (newVol * 100) / maxVolume
-                            showIndicator("🔊 بلندی صدا", "$pct%")
-                        } else {
-                            val lp = window.attributes
-                            var currentB = lp.screenBrightness
-                            if (currentB < 0) currentB = 0.5f
-                            val step = if (deltaY > 0) 0.05f else -0.05f
-                            val newB = (currentB + step).coerceIn(0.01f, 1.0f)
-                            lp.screenBrightness = newB
-                            window.attributes = lp
-                            val pct = (newB * 100).toInt()
-                            showIndicator("☀️ روشنایی", "$pct%")
-                        }
-                        initialY = event.y
-                    }
-                }
-            }
-            false
         }
     }
 
@@ -688,7 +537,9 @@ class PlayerActivity : AppCompatActivity() {
         handler.removeCallbacks(hideControlsRunnable)
         handler.removeCallbacks(progressSaveRunnable)
         handler.removeCallbacks(hideIndicatorRunnable)
-        handler.removeCallbacks(countdownRunnable)
+        if (::nextEpisodeManager.isInitialized) {
+            nextEpisodeManager.destroy()
+        }
         try {
             exoPlayer?.release()
         } catch (e: Exception) {

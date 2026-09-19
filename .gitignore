@@ -25,3 +25,6 @@ desktop/real_*.json
 *.wgt
 tizen-tv/Debug/
 .tizen-rds/
+keystore.properties
+*.jks
+*.keystore

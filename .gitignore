@@ -18,3 +18,10 @@ local.properties
 desktop/build_output/
 desktop/**/bin/
 desktop/**/obj/
+desktop/publish/
+desktop/real_*.json
+.kotlin/
+*.apk
+*.wgt
+tizen-tv/Debug/
+.tizen-rds/

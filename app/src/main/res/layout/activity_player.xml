@@ -262,6 +262,19 @@
             android:textSize="11sp"
             app:backgroundTint="@color/surface_container_high"
             app:cornerRadius="10dp" />
+
+        <!-- External Player Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_external_player"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:text="پلیر خارجی"
+            android:textSize="11sp"
+            app:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="10dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

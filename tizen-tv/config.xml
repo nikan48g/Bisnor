@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" 
+        xmlns:tizen="http://tizen.org/ns/widgets" 
+        id="http://bisnor.app/tizen/BisnorCinema" 
+        version="5.0.14" 
+        viewmodes="fullscreen">
+    <access origin="*" subdomains="true"/>
+    <access origin="http://192.168.100.254:8787" subdomains="false"/>
+    <tizen:application id="hnn00bisnr.BisnorCinema" 
+                       package="hnn00bisnr" 
+                       type="c++" 
+                       required_version="3.0"/>
+    <tizen:app-control>
+        <tizen:src name="index.html"/>
+        <tizen:operation name="http://tizen.org/appcontrol/operation/default"/>
+    </tizen:app-control>
+    <tizen:content src="index.html"/>
+    <tizen:feature name="http://tizen.org/feature/screen.size.all"/>
+    <tizen:feature name="http://tizen.org/feature/network.internet"/>
+    <tizen:icon src="assets/logo.png"/>
+    <tizen:metadata key="http://samsung.com/tv/metadata/use.preview" value="false"/>
+    <name>بیسنور سینما</name>
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.audio"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.display"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:privilege name="http://developer.samsung.com/privilege/network.public"/>
+    <tizen:privilege name="http://developer.samsung.com/privilege/avplay"/>
+    <tizen:profile name="tv"/>
+    <tizen:setting screen-orientation="landscape" context-menu="enable" pointing-device-support="enable" background-support="disable" encryption="disable" install-location="auto"/>
+</widget>

@@ -437,7 +437,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/vazirmatn_regular"
-                                android:text="🌐 مصرف دیتا"
+                                android:text="🌐 ترافیک تخمینی"
                                 android:textColor="@color/on_surface_variant"
                                 android:textSize="11sp" />
 

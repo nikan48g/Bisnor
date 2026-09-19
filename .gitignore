@@ -23,6 +23,7 @@ desktop/real_*.json
 .kotlin/
 *.apk
 *.wgt
+*.exe
 tizen-tv/Debug/
 .tizen-rds/
 keystore.properties

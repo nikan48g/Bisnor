@@ -1,0 +1,87 @@
+# Project type [web_app, test_runner]
+project_type: web_app
+
+# Default profile, Tizen API version
+profile: tv
+api_version: "3.0"
+
+# Build type [Debug/ Release/ Test]
+build_type: Debug
+
+# Output name for application
+output_name: BisnorCinema
+
+# Output path for build
+output_path: ""
+
+# Enable size optimization of wgt for web workspace
+opt: false
+
+# Signing profile to be used for Tizen package signing
+# If value is empty: "", active signing profile will be used
+# Else If value is ".", default signing profile will be used
+signing_profile: ""
+
+# list of certs in web project (.trust-anchor)
+trust_anchor: []
+
+# list of files in web project (.html,.css etc) and resources
+files:
+  - assets/avatars/avatar_bingo.png
+  - assets/avatars/avatar_bluey.png
+  - assets/avatars/avatar_breakingbad.png
+  - assets/avatars/avatar_carmen.png
+  - assets/avatars/avatar_film.png
+  - assets/avatars/avatar_garfield.png
+  - assets/avatars/avatar_luffy.png
+  - assets/avatars/avatar_nami.png
+  - assets/avatars/avatar_star.png
+  - assets/avatars/avatar_theater.png
+  - assets/avatars/avatar_wednesday.png
+  - assets/fonts/vazirmatn_bold.ttf
+  - assets/fonts/vazirmatn_medium.ttf
+  - assets/fonts/vazirmatn_regular.ttf
+  - assets/logo.ico
+  - assets/logo.png
+  - assets/players/ic_player_bisnor.png
+  - assets/players/ic_player_justplayer.png
+  - assets/players/ic_player_kmplayer.png
+  - assets/players/ic_player_mx.png
+  - assets/players/ic_player_vlc.png
+  - css/app.css
+  - index.html
+  - js/app.js
+  - js/data.js
+  - js/poster-fallback.js
+  - js/supabase.js
+  - js/tizen-app.js
+  - js/tizen-avplay.js
+  - js/tizen-tv-keys.js
+
+# list of files to exclude based on the matched patterns
+excludes:
+  - Build/*
+  - Debug/*
+  - Directory.Build.targets
+  - Release/*
+  - Test/*
+  - \.Build/.*
+  - \.buildResult/.*
+  - \.csproj
+  - \.externalToolBuilders/.*
+  - \.gn
+  - \.obj/.*
+  - \.package/.*
+  - \.project
+  - \.rds_delta
+  - \.sdk_delta.info
+  - \.settings/.*
+  - \.sign/.*
+  - \.tizen-ui-builder-tool.xml
+  - \.tproject
+  - \.wgt
+  - tizen_web_project.yaml
+  - webUnitTest/*
+
+# project dependencies
+deps: []

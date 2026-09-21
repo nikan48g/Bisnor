@@ -257,6 +257,19 @@ public partial class MainWindow : Window
 
         switch (player?.ToLower())
         {
+            case "auto":
+                exePath = FindExecutable(
+                    @"C:\Program Files\VideoLAN\VLC\vlc.exe",
+                    @"C:\Program Files\DAUM\PotPlayer\PotPlayer64.exe",
+                    @"C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe",
+                    @"C:\Program Files\MPC-HC\mpc-hc64.exe",
+                    @"C:\Program Files\KMPlayer 64X\KMPlayer64.exe",
+                    @"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe",
+                    @"C:\Program Files (x86)\DAUM\PotPlayer\PotPlayer.exe",
+                    @"C:\Program Files (x86)\MPC-HC\mpc-hc.exe"
+                );
+                break;
+
             case "vlc":
                 exePath = FindExecutable(
                     @"C:\Program Files\VideoLAN\VLC\vlc.exe",
@@ -268,6 +281,7 @@ public partial class MainWindow : Window
             case "potplayer":
                 exePath = FindExecutable(
                     @"C:\Program Files\DAUM\PotPlayer\PotPlayer64.exe",
+                    @"C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe",
                     @"C:\Program Files (x86)\DAUM\PotPlayer\PotPlayer.exe"
                 );
                 break;

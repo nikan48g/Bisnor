@@ -8,6 +8,14 @@ const catalogClient = fs.readFileSync(
     path.join(repositoryRoot, "tizen-tv", "js", "data.js"),
     "utf8"
 );
+const desktopController = fs.readFileSync(
+    path.join(repositoryRoot, "desktop", "BisnorDesktop", "wwwroot", "js", "app.js"),
+    "utf8"
+);
+const tizenPlayer = fs.readFileSync(
+    path.join(repositoryRoot, "tizen-tv", "js", "tizen-avplay.js"),
+    "utf8"
+);
 
 const context = {
     window: {},
@@ -65,8 +73,12 @@ service.getPopularSeries = stub("series");
     const searchResults = await service.search("one piece");
     assert.equal(searchPath, "/api/search/one%20piece/{API_KEY}/");
     assert.equal(searchResults[0].title, "One Piece");
+    assert.match(desktopController, /episode-source-row/);
+    assert.doesNotMatch(desktopController, /class="episode-cover"/);
+    assert.match(desktopController, /player: "auto"/);
+    assert.match(tizenPlayer, /setDisplayRect\(0, 0, 1920, 1080\)/);
 
-    console.log("Catalog pagination and multi-word search parity tests passed.");
+    console.log("Catalog, episode UI, player routing and Tizen fullscreen tests passed.");
 })().catch((error) => {
     console.error(error);
     process.exitCode = 1;

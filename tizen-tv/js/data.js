@@ -1,5 +1,5 @@
 /**
- * Bisnor Desktop - Media Data Service
+ * Bisnor Web Clients - Media Data Service
  * 100% Real Live Media Catalog from Iranflix (Movies, Series, Top IMDb, Animations)
  */
 
@@ -12,8 +12,9 @@ class MediaDataService {
         this.pendingRequests = new Map();
         this.initBridgeListener();
         this.servers = [
+            "https://server-hi-speed-iran.info",
             "https://hostinnegar.com",
-            "https://server-hi-speed-iran.info"
+            "https://windowsdiba.info"
         ];
         this.apiKey = "4F5A9C3D9A86FA54EACEDDD635185";
         this.adKeywords = [
@@ -72,7 +73,7 @@ class MediaDataService {
                     const timer = setTimeout(() => {
                         this.pendingRequests.delete(requestId);
                         reject(new Error("Bridge Timeout (3.5s)"));
-                    }, 3500);
+                    }, 22000);
                     this.pendingRequests.set(requestId, {
                         resolve: (data) => { clearTimeout(timer); resolve(data); },
                         reject: (err) => { clearTimeout(timer); reject(err); }
@@ -114,28 +115,7 @@ class MediaDataService {
             }
         }
 
-        // Temporary compatibility attempt for old installations.  This service is allowed
-        // to fail; it is never used as the only production path.
-        for (const server of this.servers) {
-            try {
-                const directUrl = `${server.replace(/\/+$/, "")}${cleanPath}`;
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`;
-                const resp = await fetch(proxyUrl, {
-                    headers: { "Accept": "application/json" },
-                    signal: (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") ? AbortSignal.timeout(12000) : undefined
-                });
-                if (resp.ok) {
-                    const text = await resp.text();
-                    if (text && text.trim().startsWith("[") || text.trim().startsWith("{")) {
-                        try { return JSON.parse(text); } catch (_) {}
-                    }
-                }
-            } catch (proxyErr) {
-                console.warn("[Proxy Fetch Failed]", proxyErr);
-            }
-        }
-
-        // Direct fetch fallback (last resort)
+        // Direct live API fallback. No public proxy and no bundled catalog are used.
         for (const server of this.servers) {
             try {
                 const url = `${server.replace(/\/+$/, "")}${cleanPath}`;

@@ -14,14 +14,14 @@ public partial class MainWindow : Window
 {
     private static readonly string[] IranflixServers = new[]
     {
+        "https://server-hi-speed-iran.info",
         "https://hostinnegar.com",
-        "https://server-hi-speed-iran.info"
+        "https://windowsdiba.info"
     };
     private const string ApiKey = "4F5A9C3D9A86FA54EACEDDD635185";
 
     private readonly HttpClient _httpClient = new(new HttpClientHandler
     {
-        ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
         AllowAutoRedirect = true
     })
     {

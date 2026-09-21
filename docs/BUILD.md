@@ -51,6 +51,13 @@ dotnet restore
 dotnet run
 ```
 
+پیش از Build، کلاینت کاتالوگ زنده را از منبع مشترک تایزن همگام کنید. این اسکریپت
+هر snapshot آفلاین قدیمی را نیز حذف می‌کند:
+
+```powershell
+.\desktop\sync-live-web-assets.ps1
+```
+
 Build:
 
 ```powershell
@@ -71,7 +78,7 @@ dotnet publish desktop/BisnorDesktop/BisnorDesktop.csproj `
 ساخت Installer:
 
 ```powershell
-& "C:\Users\<User>\AppData\Local\Programs\Inno Setup 6\ISCC.exe" /DMyAppVersion="5.1.1" packaging/innosetup/Bisnor.iss
+& "C:\Users\<User>\AppData\Local\Programs\Inno Setup 6\ISCC.exe" /DMyAppVersion="5.1.3" packaging/innosetup/Bisnor.iss
 ```
 
 WinGet manifest:

@@ -269,7 +269,9 @@ class MediaDataService {
 
     async search(query) {
         if (!query || !query.trim()) return this.getExploreCatalog();
-        const encoded = encodeURIComponent(query.trim()).replace(/%20/g, "+");
+        // Iranflix expects path-safe percent encoding. A '+' is treated literally by
+        // this endpoint, so multi-word titles such as "One Piece" otherwise return 0.
+        const encoded = encodeURIComponent(query.trim());
         const raw = await this.fetchEndpoint(`/api/search/${encoded}/{API_KEY}/`);
         if (raw && Array.isArray(raw.posters) && raw.posters.length > 0) {
             const items = raw.posters.map(x => this.cleanMedia(x)).filter(Boolean);

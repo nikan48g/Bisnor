@@ -27,6 +27,7 @@ class BisnorApp {
         this.authMode = "login";
         this.currentGenre = "all";
         this.searchQuery = "";
+        this.searchDebounceTimer = null;
         this.sortBy = "imdb";
         this.suggestedMedia = null;
 
@@ -173,13 +174,19 @@ class BisnorApp {
             searchInput.addEventListener("input", (e) => {
                 this.searchQuery = e.target.value;
                 if (clearBtn) clearBtn.style.display = this.searchQuery ? "block" : "none";
-                this.renderExploreTab();
+                clearTimeout(this.searchDebounceTimer);
+                if (!this.searchQuery.trim()) {
+                    this.renderExploreTab();
+                    return;
+                }
+                this.searchDebounceTimer = setTimeout(() => this.renderExploreTab(), 350);
             });
         }
         if (clearBtn) {
             clearBtn.addEventListener("click", () => {
                 if (searchInput) searchInput.value = "";
                 this.searchQuery = "";
+                clearTimeout(this.searchDebounceTimer);
                 clearBtn.style.display = "none";
                 this.renderExploreTab();
             });
@@ -560,7 +567,13 @@ class BisnorApp {
 
     // --- Explore Tab with Search & Filtering ---
     async renderExploreTab() {
-        let items = await window.mediaService.getExploreCatalog();
+        const requestedQuery = this.searchQuery.trim();
+        let items = requestedQuery
+            ? await window.mediaService.search(requestedQuery)
+            : await window.mediaService.getExploreCatalog();
+
+        // Ignore a slower response for text the user has already replaced.
+        if (requestedQuery !== this.searchQuery.trim()) return;
 
         // 1. Filter by Genre
         if (this.currentGenre && this.currentGenre !== "all") {
@@ -570,18 +583,7 @@ class BisnorApp {
             });
         }
 
-        // 2. Search query
-        if (this.searchQuery && this.searchQuery.trim()) {
-            const q = this.searchQuery.trim().toLowerCase();
-            items = items.filter(x => {
-                const title = (x.title || '').toLowerCase();
-                const desc = (x.description || '').toLowerCase();
-                const genres = (x.genres || []).map(g => g.title).join(' ').toLowerCase();
-                return title.includes(q) || desc.includes(q) || genres.includes(q);
-            });
-        }
-
-        // 3. Sort
+        // 2. Sort
         if (this.sortBy === "imdb") {
             items.sort((a, b) => (b.imdb || 0) - (a.imdb || 0));
         } else if (this.sortBy === "year") {

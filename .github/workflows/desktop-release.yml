@@ -70,6 +70,10 @@ jobs:
             throw "Offline/public-proxy catalog fallback detected."
           }
 
+      - name: Test Android-parity catalog pagination
+        shell: pwsh
+        run: node desktop/tests/catalog-pagination.test.js
+
       - name: Publish Bisnor Desktop
         shell: pwsh
         run: |

@@ -418,10 +418,18 @@ class BisnorApp {
                 document.querySelectorAll(".time-opt-btn").forEach(b => b.classList.remove("active"));
                 btn.classList.add("active");
                 const mins = parseInt(btn.getAttribute("data-minutes"), 10);
-                this.settings.autoNextMinutes = mins;
-                localStorage.setItem("bisnor_auto_next_min", mins);
                 const label = document.getElementById("tv-auto-next-minutes-label");
-                if (label) label.textContent = `${mins} دقیقه مانده به پایان`;
+                if (mins === 0) {
+                    this.settings.autoNext = false;
+                    localStorage.setItem("bisnor_auto_next", "false");
+                    if (label) label.textContent = "غیرفعال";
+                } else {
+                    this.settings.autoNext = true;
+                    this.settings.autoNextMinutes = mins;
+                    localStorage.setItem("bisnor_auto_next", "true");
+                    localStorage.setItem("bisnor_auto_next_min", mins);
+                    if (label) label.textContent = `${mins} دقیقه مانده به پایان`;
+                }
                 setTimeout(() => this.closeAutoNextTimeModal(), 200);
             });
         });
@@ -1117,7 +1125,11 @@ class BisnorApp {
         if (!modal) return;
         document.querySelectorAll(".time-opt-btn").forEach(btn => {
             const mins = parseInt(btn.getAttribute("data-minutes"), 10);
-            btn.classList.toggle("active", mins === this.settings.autoNextMinutes);
+            if (this.settings.autoNext === false) {
+                btn.classList.toggle("active", mins === 0);
+            } else {
+                btn.classList.toggle("active", mins === this.settings.autoNextMinutes);
+            }
         });
         modal.style.display = "flex";
     }
@@ -1149,7 +1161,7 @@ class BisnorApp {
         // Auto next time label
         const nextTimeLabel = document.getElementById("tv-auto-next-minutes-label");
         if (nextTimeLabel) {
-            nextTimeLabel.textContent = `${this.settings.autoNextMinutes} دقیقه مانده به پایان`;
+            nextTimeLabel.textContent = this.settings.autoNext ? `${this.settings.autoNextMinutes} دقیقه مانده به پایان` : "غیرفعال";
         }
 
         // Player label

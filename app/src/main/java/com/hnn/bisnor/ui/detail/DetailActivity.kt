@@ -505,4 +505,9 @@ class DetailActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        com.hnn.bisnor.util.ThemeHelper.applyTheme(this)
+    }
 }

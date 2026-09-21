@@ -28,6 +28,7 @@ import com.hnn.bisnor.databinding.FragmentSettingsBinding
 import com.hnn.bisnor.ui.downloads.DownloadsActivity
 import com.hnn.bisnor.ui.profile.AccountProfileActivity
 import com.hnn.bisnor.util.PlayerLauncherHelper
+import com.hnn.bisnor.util.ThemeHelper
 import com.hnn.bisnor.util.UpdateChecker
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -77,6 +78,7 @@ class SettingsFragment : Fragment() {
                     else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
                 }
                 AppCompatDelegate.setDefaultNightMode(targetNight)
+                ThemeHelper.applyTheme(requireActivity())
                 requireActivity().recreate()
             }
         }
@@ -97,6 +99,7 @@ class SettingsFragment : Fragment() {
         binding.switchAutoNext.isChecked = historyManager.isAutoNextEnabled
         binding.switchAutoNext.setOnCheckedChangeListener { _, isChecked ->
             historyManager.isAutoNextEnabled = isChecked
+            updateAutoNextLabel()
         }
 
         updateAutoNextLabel()
@@ -363,19 +366,46 @@ class SettingsFragment : Fragment() {
     }
 
     private fun updateAutoNextLabel() {
-        val mins = historyManager.autoNextMinutes
-        binding.tvAutoNextMinutesLabel.text = "$mins دقیقه مانده به پایان"
+        if (!historyManager.isAutoNextEnabled) {
+            binding.tvAutoNextMinutesLabel.text = "غیرفعال"
+            binding.tvAutoNextMinutesLabel.setTextColor(resources.getColor(R.color.outline, null))
+            binding.btnSettingAutoNextTime.alpha = 0.6f
+        } else {
+            val mins = historyManager.autoNextMinutes
+            binding.tvAutoNextMinutesLabel.text = "$mins دقیقه مانده به پایان"
+            binding.tvAutoNextMinutesLabel.setTextColor(resources.getColor(R.color.primary, null))
+            binding.btnSettingAutoNextTime.alpha = 1.0f
+        }
     }
 
     private fun showAutoNextTimeDialog() {
-        val options = arrayOf("۱ دقیقه مانده به پایان", "۲ دقیقه مانده به پایان", "۳ دقیقه مانده به پایان", "۵ دقیقه مانده به پایان")
-        val values = intArrayOf(1, 2, 3, 5)
-        val currentIndex = values.indexOf(historyManager.autoNextMinutes).coerceAtLeast(0)
+        val options = arrayOf(
+            "غیرفعال (عدم پخش خودکار قسمت بعدی)",
+            "۱ دقیقه مانده به پایان",
+            "۲ دقیقه مانده به پایان",
+            "۳ دقیقه مانده به پایان",
+            "۵ دقیقه مانده به پایان"
+        )
+        val values = intArrayOf(0, 1, 2, 3, 5)
+        val currentIndex = if (!historyManager.isAutoNextEnabled) {
+            0
+        } else {
+            val idx = values.indexOf(historyManager.autoNextMinutes)
+            if (idx > 0) idx else 2
+        }
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("زمان شروع پیشنهاد قسمت بعدی")
+            .setTitle("پیشنهاد و پخش خودکار قسمت بعدی")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
-                historyManager.autoNextMinutes = values[which]
+                val selected = values[which]
+                if (selected == 0) {
+                    historyManager.isAutoNextEnabled = false
+                    binding.switchAutoNext.isChecked = false
+                } else {
+                    historyManager.isAutoNextEnabled = true
+                    historyManager.autoNextMinutes = selected
+                    binding.switchAutoNext.isChecked = true
+                }
                 updateAutoNextLabel()
                 dialog.dismiss()
             }

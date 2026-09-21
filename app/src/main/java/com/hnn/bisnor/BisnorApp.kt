@@ -58,6 +58,7 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks {
 
     override fun onCreate() {
         super.onCreate()
+        com.hnn.bisnor.util.ThemeHelper.initAppTheme(this)
         registerActivityLifecycleCallbacks(this)
         com.hnn.bisnor.data.repository.SegmentedDownloadManager.init(this)
 

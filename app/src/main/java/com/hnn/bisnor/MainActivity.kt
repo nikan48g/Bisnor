@@ -159,4 +159,9 @@ class MainActivity : AppCompatActivity() {
             .commit()
         return true
     }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        ThemeHelper.applyTheme(this)
+    }
 }

@@ -44,10 +44,10 @@
                 // Open new stream
                 avplay.open(url);
 
-                // Set TV Display coordinates: x, y, width, height (Fullscreen 1920x1080 or 3840x2160)
-                var screenW = window.screen.width || 1920;
-                var screenH = window.screen.height || 1080;
-                avplay.setDisplayRect(0, 0, screenW, screenH);
+                // Samsung AVPlay coordinates use the logical 1920x1080 TV plane and
+                // are scaled by the TV. Browser screen dimensions can report 960x540
+                // or 1280x720 and would leave playback covering only part of the panel.
+                avplay.setDisplayRect(0, 0, 1920, 1080);
                 avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_AUTO_ASPECT_RATIO');
 
                 var self = this;

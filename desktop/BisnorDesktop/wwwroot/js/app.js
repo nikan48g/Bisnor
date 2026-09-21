@@ -692,16 +692,8 @@ class BisnorApp {
         if (!media.seasons || media.seasons.length === 0) return;
         if (avgBox) {
             avgBox.style.display = "block";
-            let totalMB = 0;
-            let epCount = 0;
-            media.seasons.forEach(s => {
-                (s.episodes || []).forEach(() => {
-                    epCount++;
-                    totalMB += 450;
-                });
-            });
-            const avg = epCount > 0 ? Math.round(totalMB / epCount) : 450;
-            avgBox.textContent = `میانگین هر قسمت: ~${avg} مگابایت (کدک فشرده)`;
+            const epCount = media.seasons.reduce((count, season) => count + (season.episodes || []).length, 0);
+            avgBox.textContent = `${media.seasons.length} فصل • ${epCount} قسمت در ایران‌فلیکس`;
         }
         this.renderSeasonsAndEpisodes(media.seasons);
     }
@@ -772,21 +764,31 @@ class BisnorApp {
         seasons.forEach((season, index) => {
             const btn = document.createElement("button");
             btn.className = `season-tab-btn ${index === 0 ? 'active' : ''}`;
-            btn.textContent = season.title;
+            btn.textContent = this.formatSeasonTitle(season.title, index);
+            btn.title = season.title || btn.textContent;
             btn.addEventListener("click", () => {
                 document.querySelectorAll(".season-tab-btn").forEach(b => b.classList.remove("active"));
                 btn.classList.add("active");
-                this.renderEpisodeItems(season.episodes);
+                this.renderEpisodeItems(season.episodes, btn.textContent);
             });
             tabsWrap.appendChild(btn);
         });
 
         if (seasons.length > 0) {
-            this.renderEpisodeItems(seasons[0].episodes);
+            this.renderEpisodeItems(seasons[0].episodes, this.formatSeasonTitle(seasons[0].title, 0));
         }
     }
 
-    renderEpisodeItems(episodes) {
+    formatSeasonTitle(title, index) {
+        const cleaned = String(title || "")
+            .replace(/(?:480|720|1080|2160)p?/gi, "")
+            .replace(/(?:زیرنویس|چسبیده|فارسی|دوبله|کیفیت)/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+        return cleaned && cleaned !== "null" ? cleaned : `فصل ${index + 1}`;
+    }
+
+    renderEpisodeItems(episodes, seasonTitle = "") {
         const epsWrap = document.getElementById("detail-episodes-list");
         if (!epsWrap) return;
         epsWrap.innerHTML = "";
@@ -800,40 +802,49 @@ class BisnorApp {
             return;
         }
 
-        episodes.forEach(ep => {
-            const card = document.createElement("div");
-            card.className = "episode-card";
-            card.innerHTML = `
-                <div class="episode-cover">
-                    <img src="${this.activeMedia.cover || this.activeMedia.image}" alt="${ep.title}">
-                    <span class="ep-duration">${ep.duration || '45 دقیقه'}</span>
-                </div>
-                <div class="episode-details">
-                    <h4 class="ep-title">${ep.title}</h4>
-                    <p class="ep-desc">${ep.description || ''}</p>
-                    <div class="ep-actions">
-                        <button class="btn-play-ep btn-primary-gradient">پخش این قسمت</button>
-                        <button class="btn-dl-ep glass-pill-btn">دانلود با IDM</button>
-                    </div>
-                </div>
-            `;
-            const epUrl = (ep.sources && ep.sources.length > 0) ? ep.sources[0].url : "";
-            card.querySelector(".btn-play-ep").addEventListener("click", () => {
-                if (epUrl) {
-                    this.playStream(epUrl, `${this.activeMedia.title} - ${ep.title}`);
-                } else {
-                    alert("لینکی برای پخش این قسمت موجود نیست.");
-                }
+        const heading = document.createElement("div");
+        heading.className = "episodes-section-heading";
+        heading.textContent = `قسمت‌های ${seasonTitle} • ${episodes.length} قسمت`;
+        epsWrap.appendChild(heading);
+
+        episodes.forEach((ep, epIndex) => {
+            const sources = ep.sources || [];
+            sources.forEach((source) => {
+                const row = document.createElement("div");
+                row.className = "episode-source-row";
+
+                const playIcon = document.createElement("span");
+                playIcon.className = "episode-play-icon";
+                playIcon.textContent = "▶";
+
+                const info = document.createElement("div");
+                info.className = "episode-source-info";
+                const title = document.createElement("strong");
+                const episodeTitle = ep.title && ep.title !== "null" ? ep.title : `قسمت ${epIndex + 1}`;
+                title.textContent = `${episodeTitle}${source.quality ? ` (${source.quality})` : ""}`;
+                const meta = document.createElement("span");
+                meta.textContent = `استریم مستقیم ایران‌فلیکس • ${(source.type || "MKV").toUpperCase()}`;
+                info.append(title, meta);
+
+                const download = document.createElement("button");
+                download.className = "episode-download-btn";
+                download.title = "دانلود با IDM";
+                download.textContent = "⬇";
+                download.addEventListener("click", () => {
+                    this.postNative("downloadWithIDM", { url: source.url });
+                    this.addDownloadTask(this.activeMedia, episodeTitle);
+                });
+
+                const play = document.createElement("button");
+                play.className = "episode-play-btn";
+                play.textContent = "پخش";
+                play.addEventListener("click", () => {
+                    this.playStream(source.url, `${this.activeMedia.title} - ${episodeTitle} - ${source.quality || "کیفیت اصلی"}`);
+                });
+
+                row.append(playIcon, info, download, play);
+                epsWrap.appendChild(row);
             });
-            card.querySelector(".btn-dl-ep").addEventListener("click", () => {
-                if (epUrl) {
-                    this.postNative("downloadWithIDM", { url: epUrl });
-                    this.addDownloadTask(this.activeMedia, ep.title);
-                } else {
-                    alert("لینکی برای دانلود این قسمت موجود نیست.");
-                }
-            });
-            epsWrap.appendChild(card);
         });
     }
 
@@ -879,6 +890,15 @@ class BisnorApp {
             return;
         }
         this.currentPlayingUrl = url;
+
+        // WebView2 cannot reliably decode MKV/HEVC. Route known incompatible
+        // containers straight to the first installed Windows player instead of
+        // opening a player that is guaranteed to fail.
+        const cleanUrl = url.split("?")[0].toLowerCase();
+        if (/\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(cleanUrl)) {
+            this.postNative("launchExternalPlayer", { player: "auto", url, title });
+            return;
+        }
 
         if (this.settings.player !== "bisnor") {
             // Launch Windows external player configured in Settings

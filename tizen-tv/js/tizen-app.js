@@ -69,6 +69,7 @@
         closeDetail();
         text(byId('player-media-title'), title);
         show(modal, 'flex');
+        document.body.classList.add('avplay-active');
         if (modal && modal.requestFullscreen) { try { modal.requestFullscreen(); } catch (_) {} }
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.isTizen()) {
             window.TizenAVPlayEngine.play(source.url, title, function () {}, function () { show(modal, 'none'); }, function () {});
@@ -78,6 +79,7 @@
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.stop) window.TizenAVPlayEngine.stop();
         var video = byId('html-video-player'); if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
         show(byId('modal-player'), 'none');
+        document.body.classList.remove('avplay-active');
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
     }
     window.bisnorTvClosePlayer = closePlayer;
@@ -104,7 +106,14 @@
         function choose(index) {
             var buttons = tabs.querySelectorAll('button'); for (var b = 0; b < buttons.length; b += 1) buttons[b].classList.remove('active'); buttons[index].classList.add('active');
             episodes.innerHTML = ''; var list = seasons[index].episodes;
-            for (var i = 0; i < list.length; i += 1) { var ep = document.createElement('div'); ep.className = 'episode-card'; ep.innerHTML = '<strong>' + escapeHtml(list[i].title) + '</strong><span>' + escapeHtml(list[i].duration) + '</span>'; ep.appendChild(sourceButton(list[i].sources[0], title + ' — ' + list[i].title)); episodes.appendChild(ep); }
+            for (var i = 0; i < list.length; i += 1) {
+                var sources = list[i].sources || [];
+                for (var s = 0; s < sources.length; s += 1) {
+                    var ep = document.createElement('div'); ep.className = 'episode-source-row';
+                    ep.innerHTML = '<span class="episode-play-icon">▶</span><div class="episode-source-info"><strong>' + escapeHtml(list[i].title) + (sources[s].quality ? ' (' + escapeHtml(sources[s].quality) + ')' : '') + '</strong><span>استریم مستقیم ایران‌فلیکس • ' + escapeHtml((sources[s].type || 'MKV').toUpperCase()) + '</span></div>';
+                    var play = sourceButton(sources[s], title + ' — ' + list[i].title); play.className = 'episode-play-btn'; play.textContent = 'پخش'; ep.appendChild(play); episodes.appendChild(ep);
+                }
+            }
         }
         tabs.innerHTML = ''; for (var i = 0; i < seasons.length; i += 1) { (function (index) { var btn = document.createElement('button'); btn.className = 'season-tab'; btn.textContent = seasons[index].title; btn.addEventListener('click', function () { choose(index); }); tabs.appendChild(btn); }(i)); } choose(0);
     }

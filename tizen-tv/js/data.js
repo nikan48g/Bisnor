@@ -9,6 +9,8 @@ class MediaDataService {
         // title and metadata no longer match.  Only data returned by the live provider is
         // eligible for display.
         this.catalog = [];
+        this.exploreLoaded = false;
+        this.exploreLoadPromise = null;
         this.pendingRequests = new Map();
         this.initBridgeListener();
         this.servers = [
@@ -195,8 +197,8 @@ class MediaDataService {
         };
     }
 
-    async getLatestMovies() {
-        const raw = await this.fetchEndpoint("/api/movie/by/filtres/0/created/0/{API_KEY}/");
+    async getLatestMovies(page = 0) {
+        const raw = await this.fetchEndpoint(`/api/movie/by/filtres/0/created/${page}/{API_KEY}/`);
         if (Array.isArray(raw) && raw.length > 0) {
             const items = raw.map(x => this.cleanMedia(x)).filter(Boolean);
             this.mergeIntoCatalog(items);
@@ -205,8 +207,8 @@ class MediaDataService {
         return [];
     }
 
-    async getPopularSeries() {
-        const raw = await this.fetchEndpoint("/api/serie/by/filtres/0/created/0/{API_KEY}/");
+    async getPopularSeries(page = 0) {
+        const raw = await this.fetchEndpoint(`/api/serie/by/filtres/0/created/${page}/{API_KEY}/`);
         if (Array.isArray(raw) && raw.length > 0) {
             const items = raw.map(x => this.cleanMedia(x)).filter(Boolean);
             this.mergeIntoCatalog(items);
@@ -215,8 +217,8 @@ class MediaDataService {
         return [];
     }
 
-    async getTopImdb() {
-        const raw = await this.fetchEndpoint("/api/movie/by/filtres/0/imdb/0/{API_KEY}/");
+    async getTopImdb(page = 0) {
+        const raw = await this.fetchEndpoint(`/api/movie/by/filtres/0/imdb/${page}/{API_KEY}/`);
         if (Array.isArray(raw) && raw.length > 0) {
             const items = raw.map(x => this.cleanMedia(x)).filter(Boolean);
             this.mergeIntoCatalog(items);
@@ -236,18 +238,33 @@ class MediaDataService {
     }
 
     async getExploreCatalog() {
-        if (this.catalog && this.catalog.length >= 20) {
+        if (this.exploreLoaded) return this.catalog;
+        if (this.exploreLoadPromise) return this.exploreLoadPromise;
+
+        // Match Android's Explore contract: four IMDb pages, three latest-movie
+        // pages and three series pages. Page zero may already be present from Home;
+        // mergeIntoCatalog de-duplicates those records by their live API id.
+        const requests = [
+            this.getTopImdb(0),
+            this.getTopImdb(1),
+            this.getTopImdb(2),
+            this.getTopImdb(3),
+            this.getLatestMovies(0),
+            this.getLatestMovies(1),
+            this.getLatestMovies(2),
+            this.getPopularSeries(0),
+            this.getPopularSeries(1),
+            this.getPopularSeries(2)
+        ];
+
+        this.exploreLoadPromise = Promise.allSettled(requests).then(() => {
+            this.exploreLoaded = true;
             return this.catalog;
-        }
-        // On TV the initial catalog must not be rendered before the network work
-        // completes; returning an empty array here left the Explore tab blank
-        // forever because nothing asked it to render again.
-        await Promise.all([
-            this.getLatestMovies().catch(function () { return []; }),
-            this.getPopularSeries().catch(function () { return []; }),
-            this.getTopImdb().catch(function () { return []; })
-        ]);
-        return this.catalog;
+        }).finally(() => {
+            this.exploreLoadPromise = null;
+        });
+
+        return this.exploreLoadPromise;
     }
 
     async search(query) {

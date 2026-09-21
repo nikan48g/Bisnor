@@ -6,7 +6,7 @@
 ; =====================================================================
 
 #ifndef MyAppVersion
-#define MyAppVersion "5.1.2"
+#define MyAppVersion "5.1.3"
 #endif
 
 #define MyAppName "Bisnor"

@@ -11,7 +11,7 @@ on:
       version:
         description: 'Version string (e.g. 5.1.1)'
         required: false
-        default: '5.1.1'
+        default: '5.1.3'
 
 permissions:
   contents: write
@@ -36,7 +36,7 @@ jobs:
             $rawVer = "${{ github.ref_name }}" -replace '^v',''
           }
           if (-not $rawVer) {
-            $rawVer = "5.1.1"
+            $rawVer = "5.1.3"
           }
           # Extract clean SemVer (e.g., 5.1.1-beta -> 5.1.1)
           $cleanVer = ($rawVer -split '-')[0]
@@ -49,6 +49,26 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Verify API-only web catalog
+        shell: pwsh
+        run: |
+          $canonical = "tizen-tv/js/data.js"
+          $desktop = "desktop/BisnorDesktop/wwwroot/js/data.js"
+          if ((Get-FileHash $canonical).Hash -ne (Get-FileHash $desktop).Hash) {
+            throw "Windows catalog client drifted from the canonical API-only client. Run desktop/sync-live-web-assets.ps1."
+          }
+          $forbiddenFiles = @(
+            "tizen-tv/js/real_catalog_seed.json",
+            "desktop/BisnorDesktop/wwwroot/js/real_catalog_seed.json"
+          )
+          if ($forbiddenFiles | Where-Object { Test-Path $_ }) {
+            throw "Bundled catalog seed files are forbidden."
+          }
+          $forbiddenText = Select-String -Path $canonical,$desktop -Pattern "REAL_CATALOG","allorigins.win" -SimpleMatch
+          if ($forbiddenText) {
+            throw "Offline/public-proxy catalog fallback detected."
+          }
 
       - name: Publish Bisnor Desktop
         shell: pwsh

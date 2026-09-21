@@ -48,7 +48,25 @@ service.getPopularSeries = stub("series");
     await service.getExploreCatalog();
     assert.equal(calls.length, 10, "the hydrated catalog must not refetch every visit");
 
-    console.log("Catalog pagination parity test passed.");
+    let searchPath = "";
+    service.fetchEndpoint = async (path) => {
+        searchPath = path;
+        return {
+            posters: [{
+                id: 999,
+                type: "serie",
+                title: "One Piece",
+                description: "Anime series",
+                genres: [{ id: 3, title: "انیمه" }],
+                sources: []
+            }]
+        };
+    };
+    const searchResults = await service.search("one piece");
+    assert.equal(searchPath, "/api/search/one%20piece/{API_KEY}/");
+    assert.equal(searchResults[0].title, "One Piece");
+
+    console.log("Catalog pagination and multi-word search parity tests passed.");
 })().catch((error) => {
     console.error(error);
     process.exitCode = 1;

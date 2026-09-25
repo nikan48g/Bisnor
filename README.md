@@ -69,6 +69,12 @@ Bisnor یک **client / frontend مستقل** است و برای دریافت ا�
 
 [![Download Latest Release](https://img.shields.io/badge/Download-Latest%20Release-2ea44f?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/releases/latest)
 
+### 🪟 نصب نسخه Windows با WinGet
+
+```powershell
+winget install --id HNN.Bisnor -e
+```
+
 > Android پلتفرم اصلی پروژه است. نسخه‌های Desktop و Tizen فعلاً Experimental هستند.
 
 ---

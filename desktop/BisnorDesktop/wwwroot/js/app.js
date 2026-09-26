@@ -757,26 +757,38 @@ class BisnorApp {
     renderSeasonsAndEpisodes(seasons) {
         const tabsWrap = document.getElementById("detail-seasons-tabs");
         const epsWrap = document.getElementById("detail-episodes-list");
+        const position = document.getElementById("detail-season-position");
+        const previous = document.getElementById("btn-season-prev");
+        const next = document.getElementById("btn-season-next");
         if (!tabsWrap || !epsWrap) return;
         tabsWrap.innerHTML = "";
         epsWrap.innerHTML = "";
+        let selectedIndex = 0;
+        const selectSeason = (index, moveFocus = false) => {
+            if (index < 0 || index >= seasons.length) return;
+            selectedIndex = index;
+            const buttons = Array.from(tabsWrap.querySelectorAll(".season-tab-btn"));
+            buttons.forEach(button => button.classList.remove("active"));
+            const button = buttons[index];
+            if (!button) return;
+            button.classList.add("active");
+            button.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            if (moveFocus) button.focus();
+            if (position) position.textContent = `فصل ${index + 1} از ${seasons.length} — با دکمه‌های دو طرف یا اسکرول جابه‌جا شوید`;
+            this.renderEpisodeItems(seasons[index].episodes, button.textContent);
+        };
 
         seasons.forEach((season, index) => {
             const btn = document.createElement("button");
             btn.className = `season-tab-btn ${index === 0 ? 'active' : ''}`;
             btn.textContent = this.formatSeasonTitle(season.title, index);
             btn.title = season.title || btn.textContent;
-            btn.addEventListener("click", () => {
-                document.querySelectorAll(".season-tab-btn").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-                this.renderEpisodeItems(season.episodes, btn.textContent);
-            });
+            btn.addEventListener("click", () => selectSeason(index, true));
             tabsWrap.appendChild(btn);
         });
-
-        if (seasons.length > 0) {
-            this.renderEpisodeItems(seasons[0].episodes, this.formatSeasonTitle(seasons[0].title, 0));
-        }
+        if (previous) previous.onclick = () => selectSeason(selectedIndex - 1, true);
+        if (next) next.onclick = () => selectSeason(selectedIndex + 1, true);
+        if (seasons.length > 0) selectSeason(0);
     }
 
     formatSeasonTitle(title, index) {
@@ -917,6 +929,9 @@ class BisnorApp {
         video.src = url;
         video.load();
         modal.style.display = "flex";
+        if (modal.requestFullscreen) {
+            modal.requestFullscreen().catch(() => {});
+        }
         video.play().catch(e => console.log("Auto-play blocked", e));
     }
 
@@ -931,6 +946,7 @@ class BisnorApp {
             video.load();
         }
         if (modal) modal.style.display = "none";
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
     }
 
     // --- Favorites Tab ---

@@ -781,12 +781,21 @@ body {
 /* Android-parity seasons and episode source rows */
 .seasons-tab-bar {
     display: flex;
+    flex: 1;
     gap: 10px;
     overflow-x: auto;
     padding: 4px 2px 12px;
-    margin-bottom: 12px;
-    scrollbar-width: thin;
+    scrollbar-width: auto;
+    scrollbar-color: var(--primary) var(--surface-container);
 }
+
+.seasons-tabs-shell { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.seasons-tab-bar::-webkit-scrollbar { height: 10px; }
+.seasons-tab-bar::-webkit-scrollbar-track { background: var(--surface-container); border-radius: 999px; }
+.seasons-tab-bar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 999px; border: 2px solid var(--surface-container); }
+.season-scroll-btn { flex: 0 0 42px; width: 42px; height: 42px; border: 1px solid var(--glass-border); border-radius: 50%; background: var(--surface-container); color: var(--primary); font: 800 28px/1 sans-serif; cursor: pointer; }
+.season-scroll-btn:hover, .season-scroll-btn:focus { background: var(--primary); color: var(--on-primary); }
+.season-position { color: var(--on-surface-variant); font-size: 13px; font-weight: 700; margin: 0 4px 16px; }
 
 .season-tab-btn {
     flex: 0 0 auto;

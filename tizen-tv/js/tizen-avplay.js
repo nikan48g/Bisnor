@@ -91,8 +91,29 @@
                 // Prepare and start
                 avplay.prepareAsync(function () {
                     self.duration = avplay.getDuration();
+                    // Reapply after preparation: several Tizen 5 models discard the
+                    // display rectangle set while the player is still IDLE.
+                    avplay.setDisplayRect(0, 0, 1920, 1080);
                     avplay.play();
                     self.playerState = 'PLAYING';
+                    // Prefer the first embedded text track. This is deliberately
+                    // best-effort: a source without an embedded subtitle cannot
+                    // receive one from AVPlay alone.
+                    setTimeout(function () {
+                        try {
+                            var tracks = avplay.getTotalTrackInfo() || [];
+                            for (var i = 0; i < tracks.length; i += 1) {
+                                if (tracks[i].type === 'TEXT') {
+                                    avplay.setSelectTrack('TEXT', tracks[i].index);
+                                    if (typeof avplay.setSilentSubtitle === 'function') avplay.setSilentSubtitle(false);
+                                    console.log('[TizenAVPlay] Selected subtitle track ' + tracks[i].index);
+                                    break;
+                                }
+                            }
+                        } catch (trackError) {
+                            console.log('[TizenAVPlay] No selectable embedded subtitle track.', trackError);
+                        }
+                    }, 400);
                     console.log("[TizenAVPlay] Hardware Playback Started Successfully!");
                 }, function (err) {
                     console.error("[TizenAVPlay] Prepare error:", err);

@@ -62,17 +62,27 @@
         show(modal, 'flex');
     }
 
-    function firstSource(media) { return media.sources && media.sources[0] ? media.sources[0] : null; }
+    function firstSource(media) {
+        var sources = media && media.sources ? media.sources : [];
+        for (var i = 0; i < sources.length; i += 1) {
+            if (sources[i] && sources[i].url && !/تیزر|trailer/i.test(String(sources[i].quality || ''))) return sources[i];
+        }
+        return sources.length ? sources[0] : null;
+    }
     function playSource(source, title) {
         if (!source || !source.url) return alert('لینک پخش برای این مورد موجود نیست.');
         var modal = byId('modal-player');
         closeDetail();
         text(byId('player-media-title'), title);
-        show(modal, 'flex');
+        show(modal, 'block');
         document.body.classList.add('avplay-active');
-        if (modal && modal.requestFullscreen) { try { modal.requestFullscreen(); } catch (_) {} }
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.isTizen()) {
-            window.TizenAVPlayEngine.play(source.url, title, function () {}, function () { show(modal, 'none'); }, function () {});
+            window.TizenAVPlayEngine.play(source.url, title, function () {}, function () { closePlayer(); }, function (error) {
+                document.body.classList.remove('avplay-active');
+                show(byId('player-error-overlay'), 'flex');
+                text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
+                text(byId('player-error-desc'), 'پخش‌کنندهٔ تلویزیون خطا داد: ' + String(error || 'نامشخص'));
+            });
         } else { var video = byId('html-video-player'); if (video) { video.src = source.url; video.play(); } }
     }
     function closePlayer() {
@@ -98,13 +108,20 @@
         show(byId('detail-sources-section'), 'none'); show(byId('detail-series-section'), 'block');
         text(byId('detail-episodes-list'), 'در حال دریافت فصل‌ها و قسمت‌ها…');
         byId('detail-seasons-tabs').innerHTML = '';
+        text(byId('detail-season-position'), '');
         window.mediaService.getSeriesSeasons(media.id).then(function (seasons) { renderSeasons(seasons, media.title); }).catch(function () { text(byId('detail-episodes-list'), 'فصل یا قسمتی پیدا نشد.'); });
     }
     function renderSeasons(seasons, title) {
         var tabs = byId('detail-seasons-tabs'); var episodes = byId('detail-episodes-list');
         if (!seasons.length) { text(episodes, 'فصل یا قسمتی پیدا نشد.'); return; }
-        function choose(index) {
+        var selectedIndex = 0;
+        function choose(index, focusButton) {
+            if (index < 0 || index >= seasons.length) return;
+            selectedIndex = index;
             var buttons = tabs.querySelectorAll('button'); for (var b = 0; b < buttons.length; b += 1) buttons[b].classList.remove('active'); buttons[index].classList.add('active');
+            text(byId('detail-season-position'), 'فصل ' + (index + 1) + ' از ' + seasons.length + ' — برای جابه‌جایی از دکمه‌های دو طرف یا ریموت استفاده کنید');
+            try { buttons[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (ignore) { buttons[index].scrollIntoView(); }
+            if (focusButton) buttons[index].focus();
             episodes.innerHTML = ''; var list = seasons[index].episodes;
             for (var i = 0; i < list.length; i += 1) {
                 var sources = list[i].sources || [];
@@ -115,7 +132,11 @@
                 }
             }
         }
-        tabs.innerHTML = ''; for (var i = 0; i < seasons.length; i += 1) { (function (index) { var btn = document.createElement('button'); btn.className = 'season-tab'; btn.textContent = seasons[index].title; btn.addEventListener('click', function () { choose(index); }); tabs.appendChild(btn); }(i)); } choose(0);
+        tabs.innerHTML = ''; for (var i = 0; i < seasons.length; i += 1) { (function (index) { var btn = document.createElement('button'); btn.className = 'season-tab'; btn.textContent = seasons[index].title; btn.addEventListener('click', function () { choose(index, true); }); tabs.appendChild(btn); }(i)); }
+        var prev = byId('btn-season-prev'); var next = byId('btn-season-next');
+        if (prev) prev.onclick = function () { choose(selectedIndex - 1, true); };
+        if (next) next.onclick = function () { choose(selectedIndex + 1, true); };
+        choose(0);
     }
     function renderSimilar(media) { var row = byId('detail-similar-row'); if (!row) return; row.innerHTML = ''; for (var i = 0; i < catalog.length && i < 12; i += 1) if (catalog[i].id !== media.id) row.appendChild(card(catalog[i])); }
 

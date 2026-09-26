@@ -7,6 +7,8 @@
 
     var catalog = [];
     var currentGenre = 'all';
+    var activeMedia = null;
+    var playerPosition = 0;
 
     function byId(id) { return document.getElementById(id); }
     function text(el, value) { if (el) el.textContent = value || ''; }
@@ -30,7 +32,19 @@
             (media.type === 'serie' ? 'سریال' : 'سینمایی') + '</span></div><div class="card-info"><h4 class="card-title">' +
             escapeHtml(media.title) + '</h4><div class="card-sub"><span>' + escapeHtml(media.year || '—') +
             '</span> • <span>' + escapeHtml(genre) + '</span></div></div>';
-        el.addEventListener('click', function () { openDetail(media); });
+        el.addEventListener('click', function (event) {
+            // Samsung's IME keeps the focused search field alive after a pointer
+            // click. Blur it first, then open the detail after the IME closes so
+            // remote input cannot be appended to the old query.
+            var search = byId('input-explore-search');
+            if (search && document.activeElement === search) {
+                event.preventDefault();
+                search.blur();
+                setTimeout(function () { openDetail(media); }, 120);
+                return;
+            }
+            openDetail(media);
+        });
         return el;
     }
 
@@ -44,6 +58,7 @@
     function openDetail(media) {
         var modal = byId('modal-detail');
         if (!modal) return;
+        activeMedia = media;
         text(byId('detail-title'), media.title);
         text(byId('detail-storyline'), media.description || 'توضیحی برای این اثر ثبت نشده است.');
         text(byId('detail-badge-year'), media.year || '—');
@@ -64,8 +79,13 @@
 
     function firstSource(media) {
         var sources = media && media.sources ? media.sources : [];
+        // AVPlay supports many formats, but a directly playable MP4/HLS source
+        // is safer than an MKV when the API offers both.
         for (var i = 0; i < sources.length; i += 1) {
-            if (sources[i] && sources[i].url && !/تیزر|trailer/i.test(String(sources[i].quality || ''))) return sources[i];
+            if (sources[i] && sources[i].url && !/تیزر|trailer/i.test(String(sources[i].quality || '')) && /\.(mp4|m3u8)(?:$|[?#])/i.test(sources[i].url)) return sources[i];
+        }
+        for (var j = 0; j < sources.length; j += 1) {
+            if (sources[j] && sources[j].url && !/تیزر|trailer/i.test(String(sources[j].quality || ''))) return sources[j];
         }
         return sources.length ? sources[0] : null;
     }
@@ -74,10 +94,18 @@
         var modal = byId('modal-player');
         closeDetail();
         text(byId('player-media-title'), title);
+        playerPosition = 0;
         show(modal, 'block');
         document.body.classList.add('avplay-active');
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.isTizen()) {
-            window.TizenAVPlayEngine.play(source.url, title, function () {}, function () { closePlayer(); }, function (error) {
+            window.TizenAVPlayEngine.play(source.url, title, function (position, duration) {
+                playerPosition = position || 0;
+                var seek = byId('player-seekbar');
+                if (seek && duration) seek.value = Math.min(100, (playerPosition / duration) * 100);
+                var label = byId('player-time-label');
+                if (label) label.textContent = formatTime(playerPosition) + ' / ' + formatTime(duration || 0);
+                rememberContinue(playerPosition, duration || 0);
+            }, function () { closePlayer(); }, function (error) {
                 document.body.classList.remove('avplay-active');
                 show(byId('player-error-overlay'), 'flex');
                 text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
@@ -93,6 +121,26 @@
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
     }
     window.bisnorTvClosePlayer = closePlayer;
+    function formatTime(value) { value = Math.max(0, Math.floor(value || 0)); return ('0' + Math.floor(value / 60)).slice(-2) + ':' + ('0' + (value % 60)).slice(-2); }
+    function rememberContinue(position, duration) {
+        if (!activeMedia || !duration || position < 8) return;
+        var items = [];
+        try { items = JSON.parse(localStorage.getItem('bisnor-tizen-continue') || '[]'); } catch (ignore) {}
+        var kept = [];
+        for (var i = 0; i < items.length; i += 1) if (items[i].media && items[i].media.id !== activeMedia.id) kept.push(items[i]);
+        kept.unshift({ media: activeMedia, position: position, duration: duration });
+        try { localStorage.setItem('bisnor-tizen-continue', JSON.stringify(kept.slice(0, 12))); } catch (ignore2) {}
+        renderContinueWatching();
+    }
+    function renderContinueWatching() {
+        var section = byId('continue-watching-section'); var row = byId('continue-watching-row');
+        if (!section || !row) return;
+        var items = [];
+        try { items = JSON.parse(localStorage.getItem('bisnor-tizen-continue') || '[]'); } catch (ignore) {}
+        row.innerHTML = '';
+        for (var i = 0; i < items.length; i += 1) if (items[i].media) row.appendChild(card(items[i].media));
+        section.style.display = row.children.length ? 'block' : 'none';
+    }
     function sourceButton(source, title) {
         var btn = document.createElement('button'); btn.className = 'source-chip-btn';
         btn.textContent = '▶ ' + (source.quality || 'کیفیت اصلی');
@@ -221,8 +269,16 @@
         if (close) close.addEventListener('click', closeDetail);
         var closePlayerBtn = byId('btn-close-player');
         if (closePlayerBtn) closePlayerBtn.addEventListener('click', closePlayer);
-        var fullscreenBtn = byId('btn-player-fullscreen');
-        if (fullscreenBtn) fullscreenBtn.addEventListener('click', function () { var modal = byId('modal-player'); if (modal && modal.requestFullscreen) modal.requestFullscreen(); });
+        var playPause = byId('btn-player-play-pause');
+        if (playPause) playPause.addEventListener('click', function () {
+            if (!window.TizenAVPlayEngine) return;
+            if (window.TizenAVPlayEngine.playerState === 'PLAYING') { window.TizenAVPlayEngine.pause(); this.textContent = '▶️'; }
+            else { window.TizenAVPlayEngine.resume(); this.textContent = '⏸️'; }
+        });
+        var forward = byId('btn-player-forward'); if (forward) forward.addEventListener('click', function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(playerPosition + 10); });
+        var rewind = byId('btn-player-rewind'); if (rewind) rewind.addEventListener('click', function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(Math.max(0, playerPosition - 10)); });
+        var seek = byId('player-seekbar'); if (seek) seek.addEventListener('change', function () { if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.duration) window.TizenAVPlayEngine.seek((Number(this.value) / 100) * (window.TizenAVPlayEngine.duration / 1000)); });
+        var external = byId('btn-player-open-external'); if (external) external.style.display = 'none';
         var headerSearch = byId('btn-header-search');
         if (headerSearch) headerSearch.addEventListener('click', function () { switchTab('explore'); var field = byId('input-explore-search'); if (field) field.focus(); });
         var input = byId('input-explore-search');
@@ -235,6 +291,7 @@
             for (var z = 0; z < chips.length; z += 1) chips[z].classList.remove('active');
             this.classList.add('active'); renderExplore(catalog);
         });
+        renderContinueWatching();
         loadLiveCatalog();
     }
 

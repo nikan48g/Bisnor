@@ -760,6 +760,7 @@ class BisnorApp {
         const position = document.getElementById("detail-season-position");
         const previous = document.getElementById("btn-season-prev");
         const next = document.getElementById("btn-season-next");
+        const selector = document.getElementById("detail-season-select");
         if (!tabsWrap || !epsWrap) return;
         tabsWrap.innerHTML = "";
         epsWrap.innerHTML = "";
@@ -771,6 +772,7 @@ class BisnorApp {
             buttons.forEach(button => button.classList.remove("active"));
             const button = buttons[index];
             if (!button) return;
+            if (selector) selector.value = String(index);
             button.classList.add("active");
             button.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
             if (moveFocus) button.focus();
@@ -778,6 +780,7 @@ class BisnorApp {
             this.renderEpisodeItems(seasons[index].episodes, button.textContent);
         };
 
+        if (selector) selector.innerHTML = "";
         seasons.forEach((season, index) => {
             const btn = document.createElement("button");
             btn.className = `season-tab-btn ${index === 0 ? 'active' : ''}`;
@@ -785,9 +788,16 @@ class BisnorApp {
             btn.title = season.title || btn.textContent;
             btn.addEventListener("click", () => selectSeason(index, true));
             tabsWrap.appendChild(btn);
+            if (selector) {
+                const option = document.createElement("option");
+                option.value = String(index);
+                option.textContent = btn.textContent;
+                selector.appendChild(option);
+            }
         });
         if (previous) previous.onclick = () => selectSeason(selectedIndex - 1, true);
         if (next) next.onclick = () => selectSeason(selectedIndex + 1, true);
+        if (selector) selector.onchange = () => selectSeason(Number(selector.value), true);
         if (seasons.length > 0) selectSeason(0);
     }
 

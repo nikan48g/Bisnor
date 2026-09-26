@@ -790,6 +790,7 @@ body {
 }
 
 .seasons-tabs-shell { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.season-select { flex: 0 0 175px; max-width: 28%; min-height: 42px; border: 1px solid var(--primary); border-radius: 10px; background: var(--surface-container); color: var(--on-surface); font-family: inherit; font-weight: 700; padding: 0 10px; }
 .seasons-tab-bar::-webkit-scrollbar { height: 10px; }
 .seasons-tab-bar::-webkit-scrollbar-track { background: var(--surface-container); border-radius: 999px; }
 .seasons-tab-bar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 999px; border: 2px solid var(--surface-container); }

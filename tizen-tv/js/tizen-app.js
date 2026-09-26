@@ -121,6 +121,22 @@
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
     }
     window.bisnorTvClosePlayer = closePlayer;
+    window.bisnorTvPlayerCommand = function (command) {
+        var engine = window.TizenAVPlayEngine;
+        if (!engine) return;
+        if (command === 'close') { closePlayer(); return; }
+        if (command === 'toggle') {
+            if (engine.playerState === 'PLAYING') engine.pause(); else engine.resume();
+            var toggleButton = byId('btn-player-play-pause'); if (toggleButton) toggleButton.textContent = engine.playerState === 'PLAYING' ? '⏸️' : '▶️';
+            return;
+        }
+        if (command === 'forward') { engine.seek(playerPosition + 10); return; }
+        if (command === 'rewind') { engine.seek(Math.max(0, playerPosition - 10)); return; }
+        if (command === 'subtitle') {
+            var result = engine.selectSubtitle ? engine.selectSubtitle(1) : { ok: false, message: 'زیرنویس در دسترس نیست.' };
+            var subtitleButton = byId('btn-player-subtitles'); if (subtitleButton) subtitleButton.textContent = result.ok ? '✓ ' + result.message : '⚠ ' + result.message;
+        }
+    };
     function formatTime(value) { value = Math.max(0, Math.floor(value || 0)); return ('0' + Math.floor(value / 60)).slice(-2) + ':' + ('0' + (value % 60)).slice(-2); }
     function rememberContinue(position, duration) {
         if (!activeMedia || !duration || position < 8) return;

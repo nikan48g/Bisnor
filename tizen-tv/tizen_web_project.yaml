@@ -80,6 +80,7 @@ excludes:
   - \.tizen-ui-builder-tool.xml
   - \.tproject
   - \.wgt
+  - local_catalog_proxy\.js
   - tizen_web_project.yaml
   - webUnitTest/*
 

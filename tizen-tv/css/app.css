@@ -884,7 +884,7 @@ body.avplay-active { background: transparent !important; }
 .player-controls {
     position: absolute;
     inset: 0;
-    background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.85) 100%);
+    background: linear-gradient(0deg, rgba(8,9,13,0.96) 0%, rgba(8,9,13,0.96) 16%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 72%, rgba(8,9,13,0.96) 84%, rgba(8,9,13,0.96) 100%);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -938,15 +938,17 @@ body.avplay-active { background: transparent !important; }
 }
 
 .player-btn {
-    background: transparent;
-    border: none;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #FFF;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    padding: 6px 12px;
+    padding: 10px 16px;
     border-radius: 8px;
 }
+.player-btn:focus, .player-btn:hover { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.player-subtitle-btn { font-family: inherit; font-size: 14px; }
 
 .player-time {
     color: #FFF;

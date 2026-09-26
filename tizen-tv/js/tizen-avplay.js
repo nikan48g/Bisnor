@@ -25,6 +25,7 @@
 
         play: function (url, title, onProgress, onEnded, onError) {
             this.currentUrl = url;
+            this.subtitleIndex = -1;
             console.log("[TizenAVPlay] Starting playback for:", title, url);
 
             if (!this.isTizen()) {
@@ -47,7 +48,9 @@
                 // Samsung AVPlay coordinates use the logical 1920x1080 TV plane and
                 // are scaled by the TV. Browser screen dimensions can report 960x540
                 // or 1280x720 and would leave playback covering only part of the panel.
-                avplay.setDisplayRect(0, 0, 1920, 1080);
+                // Reserve top/bottom safe areas for the custom TV controls. On
+                // Q-series firmware AVPlay's hardware plane otherwise covers DOM.
+                avplay.setDisplayRect(0, 124, 1920, 820);
                 avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_AUTO_ASPECT_RATIO');
 
                 var self = this;
@@ -93,27 +96,13 @@
                     self.duration = avplay.getDuration();
                     // Reapply after preparation: several Tizen 5 models discard the
                     // display rectangle set while the player is still IDLE.
-                    avplay.setDisplayRect(0, 0, 1920, 1080);
+                    avplay.setDisplayRect(0, 124, 1920, 820);
                     avplay.play();
                     self.playerState = 'PLAYING';
                     // Prefer the first embedded text track. This is deliberately
                     // best-effort: a source without an embedded subtitle cannot
                     // receive one from AVPlay alone.
-                    setTimeout(function () {
-                        try {
-                            var tracks = avplay.getTotalTrackInfo() || [];
-                            for (var i = 0; i < tracks.length; i += 1) {
-                                if (tracks[i].type === 'TEXT') {
-                                    avplay.setSelectTrack('TEXT', tracks[i].index);
-                                    if (typeof avplay.setSilentSubtitle === 'function') avplay.setSilentSubtitle(false);
-                                    console.log('[TizenAVPlay] Selected subtitle track ' + tracks[i].index);
-                                    break;
-                                }
-                            }
-                        } catch (trackError) {
-                            console.log('[TizenAVPlay] No selectable embedded subtitle track.', trackError);
-                        }
-                    }, 400);
+                    setTimeout(function () { self.selectSubtitle(0); }, 1000);
                     console.log("[TizenAVPlay] Hardware Playback Started Successfully!");
                 }, function (err) {
                     console.error("[TizenAVPlay] Prepare error:", err);
@@ -151,6 +140,25 @@
                 try {
                     window.webapis.avplay.seekTo(timeSeconds * 1000);
                 } catch (e) {}
+            }
+        },
+
+        selectSubtitle: function (offset) {
+            if (!this.isTizen()) return { ok: false, message: 'پخش‌کنندهٔ تلویزیون در دسترس نیست.' };
+            try {
+                var avplay = window.webapis.avplay;
+                var tracks = avplay.getTotalTrackInfo() || [];
+                var textTracks = [];
+                for (var i = 0; i < tracks.length; i += 1) if (String(tracks[i].type || '').toUpperCase() === 'TEXT') textTracks.push(tracks[i]);
+                if (!textTracks.length) return { ok: false, message: 'این فایل ترک زیرنویس داخلی قابل‌پخش روی TV ندارد.' };
+                var current = typeof this.subtitleIndex === 'number' ? this.subtitleIndex : -1;
+                var next = (current + (offset || 1) + textTracks.length) % textTracks.length;
+                if (typeof avplay.setSilentSubtitle === 'function') avplay.setSilentSubtitle(false);
+                avplay.setSelectTrack('TEXT', textTracks[next].index);
+                this.subtitleIndex = next;
+                return { ok: true, message: 'زیرنویس ' + (next + 1) + ' از ' + textTracks.length + ' فعال شد.' };
+            } catch (error) {
+                return { ok: false, message: 'فعال‌سازی زیرنویس ممکن نشد: ' + String(error) };
             }
         },
 

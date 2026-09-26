@@ -276,17 +276,30 @@
         }
         var close = byId('btn-close-detail');
         if (close) close.addEventListener('click', closeDetail);
+        function bindPlayerAction(element, action) {
+            if (!element) return;
+            var lastRun = 0;
+            function run(event) {
+                if (event) { event.preventDefault(); event.stopPropagation(); }
+                var now = Date.now(); if (now - lastRun < 250) return;
+                lastRun = now; action.call(element);
+            }
+            element.addEventListener('click', run, false);
+            element.addEventListener('mouseup', run, false);
+            element.addEventListener('touchend', run, false);
+            element.addEventListener('pointerup', run, false);
+        }
         var closePlayerBtn = byId('btn-close-player');
-        if (closePlayerBtn) closePlayerBtn.addEventListener('click', closePlayer);
+        bindPlayerAction(closePlayerBtn, closePlayer);
         var playPause = byId('btn-player-play-pause');
-        if (playPause) playPause.addEventListener('click', function () {
+        bindPlayerAction(playPause, function () {
             if (!window.TizenAVPlayEngine) return;
             if (window.TizenAVPlayEngine.playerState === 'PLAYING') { window.TizenAVPlayEngine.pause(); this.textContent = '▶️'; }
             else { window.TizenAVPlayEngine.resume(); this.textContent = '⏸️'; }
         });
-        var forward = byId('btn-player-forward'); if (forward) forward.addEventListener('click', function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(playerPosition + 10); });
-        var rewind = byId('btn-player-rewind'); if (rewind) rewind.addEventListener('click', function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(Math.max(0, playerPosition - 10)); });
-        var subtitles = byId('btn-player-subtitles'); if (subtitles) subtitles.addEventListener('click', function () {
+        var forward = byId('btn-player-forward'); bindPlayerAction(forward, function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(playerPosition + 10); });
+        var rewind = byId('btn-player-rewind'); bindPlayerAction(rewind, function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(Math.max(0, playerPosition - 10)); });
+        var subtitles = byId('btn-player-subtitles'); bindPlayerAction(subtitles, function () {
             var result = window.TizenAVPlayEngine && window.TizenAVPlayEngine.selectSubtitle ? window.TizenAVPlayEngine.selectSubtitle(1) : { ok: false, message: 'زیرنویس در دسترس نیست.' };
             this.textContent = result.ok ? '✓ ' + result.message : '⚠ ' + result.message;
         });

@@ -50,7 +50,7 @@
                 // or 1280x720 and would leave playback covering only part of the panel.
                 // Reserve top/bottom safe areas for the custom TV controls. On
                 // Q-series firmware AVPlay's hardware plane otherwise covers DOM.
-                avplay.setDisplayRect(0, 124, 1920, 820);
+                avplay.setDisplayRect(0, 220, 1920, 640);
                 avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_AUTO_ASPECT_RATIO');
 
                 var self = this;
@@ -96,7 +96,7 @@
                     self.duration = avplay.getDuration();
                     // Reapply after preparation: several Tizen 5 models discard the
                     // display rectangle set while the player is still IDLE.
-                    avplay.setDisplayRect(0, 124, 1920, 820);
+                    avplay.setDisplayRect(0, 220, 1920, 640);
                     avplay.play();
                     self.playerState = 'PLAYING';
                     // Prefer the first embedded text track. This is deliberately

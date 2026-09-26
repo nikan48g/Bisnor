@@ -47,7 +47,10 @@
                 // Samsung AVPlay coordinates use the logical 1920x1080 TV plane and
                 // are scaled by the TV. Browser screen dimensions can report 960x540
                 // or 1280x720 and would leave playback covering only part of the panel.
-                avplay.setDisplayRect(0, 0, 1920, 1080);
+                // Keep a real TV-safe control strip outside AVPlay's hardware
+                // plane. On older Q-series firmware the plane can cover DOM
+                // elements, so a 120px top/bottom safe area keeps controls visible.
+                avplay.setDisplayRect(0, 120, 1920, 840);
                 avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_AUTO_ASPECT_RATIO');
 
                 var self = this;
@@ -93,7 +96,7 @@
                     self.duration = avplay.getDuration();
                     // Reapply after preparation: several Tizen 5 models discard the
                     // display rectangle set while the player is still IDLE.
-                    avplay.setDisplayRect(0, 0, 1920, 1080);
+                    avplay.setDisplayRect(0, 120, 1920, 840);
                     avplay.play();
                     self.playerState = 'PLAYING';
                     // Prefer the first embedded text track. This is deliberately

@@ -820,6 +820,7 @@ body {
 .avplay-active .player-overlay { display: block !important; }
 .avplay-active .player-container { display: block; }
 .avplay-active #html-video-player { visibility: hidden; }
+.avplay-active .player-controls { z-index: 20; pointer-events: auto; }
 
 .player-container video {
     width: 100%;

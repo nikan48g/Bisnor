@@ -286,6 +286,10 @@
         });
         var forward = byId('btn-player-forward'); if (forward) forward.addEventListener('click', function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(playerPosition + 10); });
         var rewind = byId('btn-player-rewind'); if (rewind) rewind.addEventListener('click', function () { if (window.TizenAVPlayEngine) window.TizenAVPlayEngine.seek(Math.max(0, playerPosition - 10)); });
+        var subtitles = byId('btn-player-subtitles'); if (subtitles) subtitles.addEventListener('click', function () {
+            var result = window.TizenAVPlayEngine && window.TizenAVPlayEngine.selectSubtitle ? window.TizenAVPlayEngine.selectSubtitle(1) : { ok: false, message: 'زیرنویس در دسترس نیست.' };
+            this.textContent = result.ok ? '✓ ' + result.message : '⚠ ' + result.message;
+        });
         var seek = byId('player-seekbar'); if (seek) seek.addEventListener('change', function () { if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.duration) window.TizenAVPlayEngine.seek((Number(this.value) / 100) * (window.TizenAVPlayEngine.duration / 1000)); });
         var external = byId('btn-player-open-external'); if (external) external.style.display = 'none';
         var headerSearch = byId('btn-header-search');

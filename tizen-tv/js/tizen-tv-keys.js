@@ -78,6 +78,26 @@
     // Keydown listener for standard keyboard and Samsung TV remote
     window.addEventListener('keydown', function (e) {
         var key = e.keyCode;
+        var playerModal = document.getElementById('modal-player');
+        var playerOpen = playerModal && playerModal.style.display !== 'none' && playerModal.style.display !== '';
+
+        // AVPlay can consume the default D-pad focus movement. Handle the
+        // physical Samsung remote first while playback is active.
+        if (playerOpen && typeof window.bisnorTvPlayerCommand === 'function') {
+            var command = null;
+            if (key === 37 || e.key === 'ArrowLeft' || key === 412) command = 'rewind';
+            else if (key === 39 || e.key === 'ArrowRight' || key === 417) command = 'forward';
+            else if (key === 13 || e.key === 'Enter' || key === 415 || key === 10252) command = 'toggle';
+            else if (key === 19 || e.key === 'MediaPause') command = 'toggle';
+            else if (key === 10009 || key === 27) command = 'close';
+            else if (key === 38 || e.key === 'ArrowUp') command = 'subtitle';
+            if (command) {
+                window.bisnorTvPlayerCommand(command);
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        }
 
         switch (key) {
             case 10009: // Tizen Return / Back

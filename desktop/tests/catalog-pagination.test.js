@@ -76,7 +76,7 @@ service.getPopularSeries = stub("series");
     assert.match(desktopController, /episode-source-row/);
     assert.doesNotMatch(desktopController, /class="episode-cover"/);
     assert.match(desktopController, /player: "auto"/);
-    assert.match(tizenPlayer, /setDisplayRect\(0, 124, 1920, 820\)/);
+    assert.match(tizenPlayer, /setDisplayRect\(0, 220, 1920, 640\)/);
     assert.match(tizenPlayer, /setSelectTrack\('TEXT'/);
 
     console.log("Catalog, episode UI, player routing and Tizen fullscreen tests passed.");

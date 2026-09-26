@@ -825,7 +825,8 @@ body.avplay-active { background: transparent !important; }
 .avplay-active .player-overlay { display: block !important; }
 .avplay-active .player-container { display: block; }
 .avplay-active #html-video-player { visibility: hidden; }
-.avplay-active .player-controls { z-index: 20; pointer-events: auto; }
+.avplay-active .player-controls { z-index: 2147483647 !important; pointer-events: auto !important; }
+.avplay-active .player-controls button, .avplay-active .player-controls input { position: relative; z-index: 2147483647 !important; pointer-events: auto !important; touch-action: manipulation; }
 
 .player-container video {
     width: 100%;

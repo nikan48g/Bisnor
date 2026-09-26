@@ -161,12 +161,14 @@
     }
     function renderSeasons(seasons, title) {
         var tabs = byId('detail-seasons-tabs'); var episodes = byId('detail-episodes-list');
+        var selector = byId('detail-season-select');
         if (!seasons.length) { text(episodes, 'فصل یا قسمتی پیدا نشد.'); return; }
         var selectedIndex = 0;
         function choose(index, focusButton) {
             if (index < 0 || index >= seasons.length) return;
             selectedIndex = index;
             var buttons = tabs.querySelectorAll('button'); for (var b = 0; b < buttons.length; b += 1) buttons[b].classList.remove('active'); buttons[index].classList.add('active');
+            if (selector) selector.value = String(index);
             text(byId('detail-season-position'), 'فصل ' + (index + 1) + ' از ' + seasons.length + ' — برای جابه‌جایی از دکمه‌های دو طرف یا ریموت استفاده کنید');
             try { buttons[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (ignore) { buttons[index].scrollIntoView(); }
             if (focusButton) buttons[index].focus();
@@ -180,10 +182,17 @@
                 }
             }
         }
-        tabs.innerHTML = ''; for (var i = 0; i < seasons.length; i += 1) { (function (index) { var btn = document.createElement('button'); btn.className = 'season-tab'; btn.textContent = seasons[index].title; btn.addEventListener('click', function () { choose(index, true); }); tabs.appendChild(btn); }(i)); }
+        tabs.innerHTML = '';
+        if (selector) selector.innerHTML = '';
+        for (var i = 0; i < seasons.length; i += 1) { (function (index) {
+            var label = seasons[index].title || ('فصل ' + (index + 1));
+            var btn = document.createElement('button'); btn.className = 'season-tab'; btn.textContent = label; btn.addEventListener('click', function () { choose(index, true); }); tabs.appendChild(btn);
+            if (selector) { var option = document.createElement('option'); option.value = String(index); option.textContent = label; selector.appendChild(option); }
+        }(i)); }
         var prev = byId('btn-season-prev'); var next = byId('btn-season-next');
         if (prev) prev.onclick = function () { choose(selectedIndex - 1, true); };
         if (next) next.onclick = function () { choose(selectedIndex + 1, true); };
+        if (selector) selector.onchange = function () { choose(Number(this.value), true); };
         choose(0);
     }
     function renderSimilar(media) { var row = byId('detail-similar-row'); if (!row) return; row.innerHTML = ''; for (var i = 0; i < catalog.length && i < 12; i += 1) if (catalog[i].id !== media.id) row.appendChild(card(catalog[i])); }

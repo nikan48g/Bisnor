@@ -782,6 +782,7 @@ body {
 }
 
 .seasons-tabs-shell { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.season-select { flex: 0 0 175px; max-width: 28%; min-height: 42px; border: 1px solid var(--primary); border-radius: 10px; background: var(--surface-container); color: var(--on-surface); font-family: inherit; font-weight: 700; padding: 0 10px; }
 .seasons-tab-bar { display: flex; flex: 1; gap: 10px; overflow-x: auto; overscroll-behavior-inline: contain; padding: 5px 2px 12px; scrollbar-width: auto; scrollbar-color: var(--primary) var(--surface-container); }
 .seasons-tab-bar::-webkit-scrollbar { height: 10px; }
 .seasons-tab-bar::-webkit-scrollbar-track { background: var(--surface-container); border-radius: 999px; }
@@ -815,6 +816,7 @@ body {
 }
 
 .player-overlay { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 20000; background: #000; }
+.avplay-active #app > :not(#modal-player) { visibility: hidden !important; }
 .avplay-active .player-overlay,
 .avplay-active .player-container { background: transparent !important; }
 .avplay-active .player-overlay { display: block !important; }

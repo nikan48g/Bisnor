@@ -816,6 +816,9 @@ body {
 }
 
 .player-overlay { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 20000; background: #000; }
+/* AVPlay is drawn below the web page plane. The page itself must therefore be
+   transparent while playing; hiding the sibling UI alone leaves body black. */
+body.avplay-active { background: transparent !important; }
 .avplay-active #app > :not(#modal-player) { visibility: hidden !important; }
 .avplay-active .player-overlay,
 .avplay-active .player-container { background: transparent !important; }

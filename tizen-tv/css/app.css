@@ -781,8 +781,15 @@ body {
     color: var(--on-primary);
 }
 
-.seasons-tab-bar { display: flex; gap: 10px; overflow-x: auto; margin: 0 0 16px; }
-.season-tab { background: var(--surface-container); border: 1px solid var(--glass-border); color: var(--on-surface); padding: 9px 16px; border-radius: 12px; cursor: pointer; white-space: nowrap; }
+.seasons-tabs-shell { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+.seasons-tab-bar { display: flex; flex: 1; gap: 10px; overflow-x: auto; overscroll-behavior-inline: contain; padding: 5px 2px 12px; scrollbar-width: auto; scrollbar-color: var(--primary) var(--surface-container); }
+.seasons-tab-bar::-webkit-scrollbar { height: 10px; }
+.seasons-tab-bar::-webkit-scrollbar-track { background: var(--surface-container); border-radius: 999px; }
+.seasons-tab-bar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 999px; border: 2px solid var(--surface-container); }
+.season-scroll-btn { flex: 0 0 42px; width: 42px; height: 42px; border: 1px solid var(--glass-border); border-radius: 50%; background: var(--surface-container); color: var(--primary); font: 800 28px/1 sans-serif; cursor: pointer; }
+.season-scroll-btn:focus, .season-scroll-btn:hover { background: var(--primary); color: var(--on-primary); }
+.season-position { color: var(--on-surface-variant); font-size: 13px; font-weight: 700; margin: 0 4px 16px; }
+.season-tab { flex: 0 0 auto; background: var(--surface-container); border: 1px solid var(--glass-border); color: var(--on-surface); padding: 9px 16px; border-radius: 12px; cursor: pointer; white-space: nowrap; }
 .season-tab.active, .season-tab:hover { background: var(--primary); color: var(--on-primary); }
 .episodes-list-grid { display: grid; gap: 10px; }
 .episode-card { display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: var(--surface-container); border: 1px solid var(--glass-border); border-radius: 12px; }
@@ -810,6 +817,8 @@ body {
 .player-overlay { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 20000; background: #000; }
 .avplay-active .player-overlay,
 .avplay-active .player-container { background: transparent !important; }
+.avplay-active .player-overlay { display: block !important; }
+.avplay-active .player-container { display: block; }
 .avplay-active #html-video-player { visibility: hidden; }
 
 .player-container video {

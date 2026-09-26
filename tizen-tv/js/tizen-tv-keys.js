@@ -127,7 +127,7 @@
         }
 
         var candidates = Array.from(scope.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex=\"0\"], .media-card, .episode-card, .season-tab-btn, .btn-play-quality, .nav-item, .btn-play-primary'
+            'button, [href], input, select, textarea, [tabindex=\"0\"], .media-card, .episode-card, .season-tab, .season-tab-btn, .season-scroll-btn, .source-chip-btn, .episode-source-row, .episode-play-btn, .btn-play-quality, .nav-item, .btn-play-primary'
         ));
 
         return candidates.filter(function (el) {

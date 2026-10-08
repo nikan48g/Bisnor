@@ -90,7 +90,11 @@ class AuthManager(private val context: Context) {
         val (ok, message) = SupabaseManager.signUp(context, cleanUser, cleanPass, userAvatarId)
         if (ok) {
             currentUsername = cleanUser
-            syncUp(context)
+            if (SupabaseManager.claimLegacyAccount(context, cleanUser, cleanPass)) {
+                SupabaseManager.fetchProfile(context)?.let { syncDown(context, it) }
+            } else {
+                syncUp(context)
+            }
             Pair(true, "ثبت‌نام با موفقیت انجام شد! حساب شما فعال گردید.")
         } else {
             Pair(false, message)
@@ -128,7 +132,6 @@ class AuthManager(private val context: Context) {
         if (!isLoggedIn) return@withContext true
         val payload = JSONObject().apply {
             put("avatar_id", newAvatarId)
-            put("updated_at", System.currentTimeMillis())
         }
         SupabaseManager.patchProfile(context, payload)
     }
@@ -143,7 +146,6 @@ class AuthManager(private val context: Context) {
             put("favorites_data", SupabaseManager.compressString(favs))
             put("playlists_data", SupabaseManager.compressString(pls))
             put("avatar_id", userAvatarId)
-            put("updated_at", System.currentTimeMillis())
         }
 
         val ok = SupabaseManager.patchProfile(c, payload)
@@ -230,7 +232,7 @@ object SupabaseManager {
         }
     }
 
-    private fun usernameToEmail(username: String): String = "${username.trim().lowercase()}@bisnor.internal"
+    internal fun usernameToEmail(username: String): String = "bisnor.${username.trim().lowercase()}@lerio.ir"
 
     private fun toBase64(bytes: ByteArray): String {
         return try {
@@ -312,7 +314,9 @@ object SupabaseManager {
 
                 val (code, responseStr) = executeRequest(c, "/auth/v1/signup", "POST", body, useAuthToken = false)
                 if (code in 200..299) {
-                    saveSession(c, responseStr)
+                    if (!saveSession(c, responseStr)) {
+                        return@withContext Pair(false, "ثبت‌نام انجام شد اما حساب فعال نشد. تنظیمات تأیید ایمیل سرور باید غیرفعال باشد.")
+                    }
 
                     // Ensure profile record exists in profiles table
                     val userId = getUserId(c)
@@ -321,7 +325,6 @@ object SupabaseManager {
                             put("user_id", userId)
                             put("username", username)
                             put("avatar_id", avatarId)
-                            put("created_at", System.currentTimeMillis())
                         }
                         executeRequest(c, "/rest/v1/profiles", "POST", profileBody, useAuthToken = true)
                     }
@@ -333,6 +336,8 @@ object SupabaseManager {
                             "این نام کاربری قبلاً ثبت شده است."
                         lower.contains("weak_password") || lower.contains("least") ->
                             "رمز عبور ضعیف است. حداقل ۶ کاراکتر وارد کنید."
+                        lower.contains("email_address_invalid") ->
+                            "خطا در پیکربندی حساب کاربری. لطفاً برنامه را به آخرین نسخه به‌روزرسانی کنید."
                         else -> "خطا در ثبت‌نام (${code}). اتصال اینترنت خود را بررسی کنید."
                     }
                     Pair(false, errorMsg)
@@ -365,6 +370,23 @@ object SupabaseManager {
             } catch (e: Exception) {
                 Pair(false, "خطا در ارتباط با سرور: ${e.message}")
             }
+        }
+
+    suspend fun claimLegacyAccount(c: Context, username: String, pass: String): Boolean =
+        withContext(Dispatchers.IO) {
+            if (!hasSession(c)) return@withContext false
+            val body = JSONObject().apply {
+                put("legacy_username", username)
+                put("legacy_password", pass)
+            }
+            val (code, responseStr) = executeRequest(
+                c,
+                "/rest/v1/rpc/claim_legacy_account",
+                "POST",
+                body,
+                useAuthToken = true
+            )
+            code in 200..299 && responseStr.trim().equals("true", ignoreCase = true)
         }
 
     suspend fun fetchProfile(c: Context): JSONObject? = withContext(Dispatchers.IO) {

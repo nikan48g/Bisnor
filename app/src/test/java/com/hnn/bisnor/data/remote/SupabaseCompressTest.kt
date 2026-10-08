@@ -6,6 +6,11 @@ import org.junit.Test
 class SupabaseCompressTest {
 
     @Test
+    fun usernameUsesAValidInternalEmailDomain() {
+        assertEquals("bisnor.test_user@lerio.ir", SupabaseManager.usernameToEmail(" Test_User "))
+    }
+
+    @Test
     fun compressAndDecompress_preservesPersianTextAndJsonStructure() {
         val originalJson = """
             [

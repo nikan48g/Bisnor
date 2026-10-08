@@ -135,7 +135,6 @@ async function preview(chatId: number, draft: Draft) {
   const keyboard = [
     ...(draft.use_release_template ? [[
       { text: "دانلود از گیت‌هاب", url: release.html_url, style: "danger" },
-      { text: "دانلود از تلگرام", url: "https://t.me/Bisnor", style: "primary" },
     ]] : []),
     ...draft.buttons.map((button) => [button]),
   ];
@@ -170,7 +169,7 @@ async function uploadAsset(asset: { name: string; browser_download_url: string }
 async function publish(chatId: number, draft: Draft) {
   if (!draft.body.trim()) throw new Error("متن پست خالی است.");
   const release = await latestRelease();
-  let telegramUrl = "https://t.me/Bisnor";
+  let telegramUrl: string | undefined;
   if (draft.include_files) {
     const assets = release.assets.filter((asset: { name: string; size: number }) =>
       /\.(apk|exe)$/i.test(asset.name) && asset.size <= 50 * 1024 * 1024
@@ -189,7 +188,7 @@ async function publish(chatId: number, draft: Draft) {
       inline_keyboard: [
         ...(draft.use_release_template ? [[
           { text: "دانلود از گیت‌هاب", url: release.html_url, style: "danger" },
-          { text: "دانلود از تلگرام", url: telegramUrl, style: "primary" },
+          ...(telegramUrl ? [{ text: "دانلود از تلگرام", url: telegramUrl, style: "primary" }] : []),
         ]] : []),
         ...draft.buttons.map((button) => [button]),
       ],

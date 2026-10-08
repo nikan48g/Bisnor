@@ -19,3 +19,6 @@ The bot accepts messages only from Telegram user `5997592961`. Send `/new`, then
 the announcement text. The editor supports custom URL buttons, file delivery, a
 preview, an optional two-button release template, and explicit confirmation
 before posting to `@Bisnor`.
+
+The Telegram download button is added only when file delivery is enabled and an
+APK was uploaded successfully. Its URL points to that APK message in the channel.

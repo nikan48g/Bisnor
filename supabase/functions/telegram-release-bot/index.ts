@@ -97,6 +97,25 @@ async function saveDraft(patch: Partial<Draft>) {
 const escapeHtml = (value: string) =>
   value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
+function formatTelegramText(value: string) {
+  const pattern = /\*\*([^*\n]+)\*\*|\*([^*\n]+)\*|\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  let output = "";
+  let cursor = 0;
+  for (const match of value.matchAll(pattern)) {
+    const index = match.index ?? 0;
+    output += escapeHtml(value.slice(cursor, index));
+    if (match[1] || match[2]) {
+      output += `<b>${escapeHtml(match[1] ?? match[2])}</b>`;
+    } else {
+      const label = escapeHtml(match[3]);
+      const url = escapeHtml(match[4]).replaceAll('"', "&quot;");
+      output += `<a href="${url}">${label}</a>`;
+    }
+    cursor = index + match[0].length;
+  }
+  return output + escapeHtml(value.slice(cursor));
+}
+
 async function latestRelease() {
   const response = await fetch(`https://api.github.com/repos/${REPOSITORY}/releases/latest`, {
     headers: { accept: "application/vnd.github+json", "user-agent": "Bisnor-Telegram-Bot" },
@@ -140,7 +159,7 @@ async function preview(chatId: number, draft: Draft) {
   ];
   await tg("sendMessage", {
     chat_id: chatId,
-    text: `${escapeHtml(draft.body)}\n\n${WATERMARK}`,
+    text: `${formatTelegramText(draft.body)}\n\n${WATERMARK}`,
     parse_mode: "HTML",
     link_preview_options: { is_disabled: true },
     reply_markup: { inline_keyboard: keyboard },
@@ -181,7 +200,7 @@ async function publish(chatId: number, draft: Draft) {
   }
   await tg("sendMessage", {
     chat_id: CHANNEL,
-    text: `${escapeHtml(draft.body)}\n\n${WATERMARK}`,
+    text: `${formatTelegramText(draft.body)}\n\n${WATERMARK}`,
     parse_mode: "HTML",
     link_preview_options: { is_disabled: true },
     reply_markup: {

@@ -22,6 +22,8 @@ before posting to `@Bisnor`.
 
 The Telegram download button is added only when file delivery is enabled and an
 APK was uploaded successfully. Its URL points to that APK message in the channel.
+The announcement is posted first, followed by the APK and Windows files. Each
+file caption contains its computed SHA256 and the standard watermark.
 
 Announcement text supports safe Markdown-style bold (`**text**` or `*text*`) and
 links (`[label](https://example.com)`), converted to Telegram HTML before sending.

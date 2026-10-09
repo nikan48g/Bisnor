@@ -4,10 +4,25 @@ const http = require("http");
 const https = require("https");
 
 const UPSTREAMS = ["https://hostinnegar.com", "https://server-hi-speed-iran.info"];
+const PATH_BASE = "https://catalog.invalid";
+
+function buildUpstreamUrl(base, rawPath) {
+  if (!rawPath.startsWith("/api/") || rawPath.includes("\\") || /[\u0000-\u001f]/.test(rawPath)) {
+    throw new Error("invalid catalog path");
+  }
+  const requested = new URL(rawPath, PATH_BASE);
+  if (requested.origin !== PATH_BASE || !requested.pathname.startsWith("/api/")) {
+    throw new Error("invalid catalog path");
+  }
+  const target = new URL(base);
+  target.pathname = requested.pathname;
+  target.search = requested.search;
+  return target;
+}
 
 function fetchUpstream(base, path) {
   return new Promise((resolve, reject) => {
-    const request = https.get(base + path, { headers: { Accept: "application/json", "User-Agent": "Bisnor-TV/5.0.8" } }, response => {
+    const request = https.get(buildUpstreamUrl(base, path), { headers: { Accept: "application/json", "User-Agent": "Bisnor-TV/5.0.8" } }, response => {
       if (response.statusCode !== 200) {
         response.resume();
         reject(new Error(`HTTP ${response.statusCode}`));
@@ -23,7 +38,7 @@ function fetchUpstream(base, path) {
   });
 }
 
-http.createServer(async (request, response) => {
+const server = http.createServer(async (request, response) => {
   response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (request.method === "OPTIONS") return response.writeHead(204).end();
@@ -40,4 +55,10 @@ http.createServer(async (request, response) => {
     } catch (_) {}
   }
   response.writeHead(502, { "Content-Type": "application/json" }).end('{"error":"catalog unavailable"}');
-}).listen(8787, "0.0.0.0", () => console.log("Bisnor TV catalog bridge listening on :8787"));
+});
+
+if (require.main === module) {
+  server.listen(8787, "0.0.0.0", () => console.log("Bisnor TV catalog bridge listening on :8787"));
+}
+
+module.exports = { buildUpstreamUrl, server };

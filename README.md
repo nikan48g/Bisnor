@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Bisnor Logo](https://github.com/nikan48g/Bisnor/raw/main/logo.png)](/nikan48g/Bisnor/blob/main/logo.png)
+<a href="https://github.com/nikan48g/Bisnor/releases/latest"><img src="logo.png" alt="Bisnor Logo" width="140"></a>
 
 # Bisnor
 
@@ -19,6 +19,8 @@
 [![Open Source](https://img.shields.io/badge/Open%20Source-MIT-red?style=flat-square)](https://img.shields.io/badge/Open%20Source-MIT-red?style=flat-square)
 
 </div>
+
+<div dir="rtl">
 
 ---
 
@@ -77,9 +79,13 @@ Bisnor یک **client / frontend مستقل** است. یعنی خودش فیلم 
 
 اگر ویندوز دارید، ساده‌ترین راه نصب این است که Terminal یا PowerShell را باز کنید و این دستور را اجرا کنید:
 
+<div dir="ltr">
+
 ```
 winget install --id HNN.Bisnor -e
 ```
+
+</div>
 
 > Android پلتفرم اصلی پروژه است. نسخه Desktop فعلاً Experimental است.
 
@@ -102,6 +108,43 @@ Bisnor برای دریافت اطلاعات و دسترسی به محتوای ف
 
 ---
 
+## 🧱 ساختار Repository
+
+اگر می‌خواهید در کد بگردید، پوشه‌های اصلی پروژه این‌ها هستند:
+
+<div dir="ltr">
+
+```
+Bisnor/
+├─ app/                    # Android
+├─ desktop/                # Windows Desktop
+├─ tizen-tv/               # Samsung Tizen TV (توسعه متوقف)
+├─ packaging/              # Windows packaging / WinGet
+├─ docs/                   # Documentation
+└─ .github/workflows/      # CI / Release workflows
+```
+
+</div>
+
+---
+
+## 🛠️ تکنولوژی‌ها
+
+<div dir="ltr">
+
+| Technology               | Usage                |
+| ------------------------ | -------------------- |
+| Android SDK / Kotlin     | Android app          |
+| Media3 / ExoPlayer       | Video playback       |
+| Retrofit / OkHttp        | Networking           |
+| Supabase                 | Account / sync       |
+| WPF / .NET 10 / WebView2 | Windows Desktop      |
+| HTML / CSS / JavaScript  | Desktop and Tizen UI |
+| Tizen Web API / AVPlay   | Samsung TV           |
+
+</div>
+
+---
 
 ## 🔐 امنیت
 
@@ -136,6 +179,8 @@ Bisnor یک نرم‌افزار **client / frontend** است و این Repositor
 Bisnor تحت مجوز **MIT License** منتشر شده است.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/nikan48g/Bisnor/blob/main/LICENSE)
+
+</div>
 
 ---
 

@@ -1,26 +1,22 @@
 <div align="center">
 
-<img src="logo.png" alt="Bisnor Logo" width="140" />
+[![Bisnor Logo](https://github.com/nikan48g/Bisnor/raw/main/logo.png)](/nikan48g/Bisnor/blob/main/logo.png)
 
 # Bisnor
 
 ### تماشا بدون مرز 💎
 
-یک کلاینت متن‌باز برای مرور، جستجو و پخش فیلم و سریال با تمرکز روی تجربه فارسی، رابط سبک و پخش انعطاف‌پذیر.
-
-<br>
+یک کلاینت متن‌باز برای مرور، جستجو و پخش فیلم و سریال، با تمرکز روی تجربه فارسی، رابط سبک و پخش انعطاف‌پذیر.
 
 [![GitHub stars](https://img.shields.io/github/stars/nikan48g/Bisnor?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/nikan48g/Bisnor?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/forks)
 [![GitHub issues](https://img.shields.io/github/issues/nikan48g/Bisnor?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/issues)
-[![License](https://img.shields.io/github/license/nikan48g/Bisnor?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/github/license/nikan48g/Bisnor?style=for-the-badge)](https://github.com/nikan48g/Bisnor/blob/main/LICENSE)
 
-<br>
-
-![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)
-![Target SDK](https://img.shields.io/badge/Target%20SDK-35-blue?style=flat-square&logo=android)
-![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square&logo=openjdk)
-![Open Source](https://img.shields.io/badge/Open%20Source-MIT-red?style=flat-square)
+[![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)
+[![Target SDK](https://img.shields.io/badge/Target%20SDK-35-blue?style=flat-square&logo=android)](https://img.shields.io/badge/Target%20SDK-35-blue?style=flat-square&logo=android)
+[![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square&logo=openjdk)](https://img.shields.io/badge/Java-17-orange?style=flat-square&logo=openjdk)
+[![Open Source](https://img.shields.io/badge/Open%20Source-MIT-red?style=flat-square)](https://img.shields.io/badge/Open%20Source-MIT-red?style=flat-square)
 
 </div>
 
@@ -28,82 +24,73 @@
 
 ## 🎬 درباره Bisnor
 
-**Bisnor** یک پروژه چندپلتفرمی برای تجربه تماشای فیلم و سریال است. **Android** خانه اصلی پروژه است، **Windows Desktop** مسیر جانبی توسعه را طی می‌کند و توسعه نسخه **Samsung Tizen TV** به‌دلیل مشکلات سازگاری پخش متوقف شده است. نسخه وب و دسترسی از iOS هنوز منتشر نشده‌اند.
+**Bisnor** یک پروژه چندپلتفرمی برای تماشای فیلم و سریال است. ایده‌اش ساده است: چیزی را که می‌خواهید ببینید پیدا کنید، پخشش کنید و لذت ببرید، بدون اینکه درگیر پیچیدگی‌های اضافه شوید. به همین دلیل تمرکز پروژه روی تجربه فارسی، رابط سبک و پخش انعطاف‌پذیر است.
 
-Bisnor یک **client / frontend مستقل** است و برای دریافت اطلاعات و دسترسی به محتوای رسانه‌ای از زیرساخت و سرویس‌های **IranFlix** استفاده می‌کند.
+نسخه اصلی و پایدار پروژه روی **Android** توسعه داده می‌شود. برای کسانی که پشت کامپیوتر می‌نشینند هم نسخه **Windows Desktop** وجود دارد، با این توضیح که فعلاً آزمایشی است.
+
+Bisnor یک **client / frontend مستقل** است. یعنی خودش فیلم و سریالی ندارد و برای دریافت اطلاعات و دسترسی به محتوای رسانه‌ای از زیرساخت و سرویس‌های **IranFlix** استفاده می‌کند.
 
 > **بیسنور، تماشا بدون مرز 💎**
 
 ---
 
-## 💎 خانواده بیسنور؛ بعضی‌ها محبوب‌ترند!
+## 🧭 وضعیت پلتفرم‌ها
 
-> پنج پلتفرم، یک الماس و البته بودجه توسعه‌ای که هنوز نامحدود نشده! 🍿
+| پلتفرم | وضعیت |
+| ------ | ----- |
+| ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) | Stable / Primary |
+| ![Windows](https://img.shields.io/badge/Windows_Desktop-0078D4?style=for-the-badge&logo=windows&logoColor=white) | Experimental |
+| ![Samsung Tizen TV](https://img.shields.io/badge/Samsung_Tizen_TV-1428A0?style=for-the-badge&logo=tizen&logoColor=white) | توسعه فعلاً متوقف شده است |
 
-<table>
-<tr>
-<td width="85" align="center">💚<br><b>Android</b></td>
-<td><b>❤️ اولویت اصلی</b><br><br>قلب بیسنور! تمام عشق، بهبود پلیر، سرعت و شب‌بیداری‌های رفع باگ تقدیم این نسخه می‌شود. بچه محبوب خانواده است، اعتراض هم وارد نیست. 👑</td>
-</tr>
-<tr>
-<td align="center">🪟<br><b>Windows</b></td>
-<td><b>🧪 توسعه جانبی</b><br><br>برای کسانی که دوست دارند روی لپ‌تاپ فیلم ببینند. دوستش داریم، اما فعلاً لازم نیست تمام امکاناتش هم‌سطح اندروید باشد. فرزند دوم خانواده هنوز سرپرست دارد! 💻</td>
-</tr>
-<tr>
-<td align="center">📺<br><b>Tizen</b></td>
-<td><b>🛑 توسعه متوقف شده</b><br><br>پلیر با بعضی فایل‌های MKV و کدک‌های سرور به توافق نرسید؛ نتیجه‌اش لگ و کرش بود. قبل از اینکه تلویزیون درخواست استعفا بدهد، این نسخه را بازنشسته کردیم. کد قدیمی ممکن است برای مراجعه و آرشیو باقی بماند. 🪦</td>
-</tr>
-<tr>
-<td align="center">🌐<br><b>Web</b></td>
-<td><b>💭 ایده آینده؛ هنوز منتشر نشده</b><br><br>شاید روزی بتوان بیسنور را مستقیم در مرورگر اجرا کرد. فعلاً مرورگر مسئول دیدن سایت و دانلود برنامه است؛ نقش بازیگر اصلی را به او نداده‌ایم. 🎬</td>
-</tr>
-<tr>
-<td align="center">🍎<br><b>iOS</b></td>
-<td><b>📱 اپ اختصاصی ندارد</b><br><br>قرار نیست فعلاً یک نسخه نیتیو iOS بسازیم. اگر نسخه وب مناسب در آینده عرضه شود، کاربران آیفون می‌توانند آن را با Safari باز کنند و در صورت پشتیبانی لازم، از گزینه <b>Add to Home Screen</b> مثل یک وب‌اپ به صفحه اصلی اضافه کنند. سیب و الماس هنوز قرارداد امضا نکرده‌اند! 🍏</td>
-</tr>
-</table>
-
-<sub>توجه: افزودن سایت به صفحه اصلی به معنی وجود اپ رسمی iOS نیست؛ قابلیت نصب‌پذیری و تجربه شبیه اپ به پیاده‌سازی نسخه وب وابسته است.</sub>
+- **Android** پلتفرم اصلی پروژه است و بیشترین توجه و به‌روزرسانی‌ها به آن می‌رسد.
+- **Windows Desktop** نسخه دسکتاپ بیسنور است. کار می‌کند، اما هنوز آزمایشی است و ممکن است به مشکل بربخورید.
+- **Samsung Tizen TV** پیش‌تر در حد یک نسخه آزمایشی وجود داشت. کدش هنوز در پوشه `tizen-tv` هست، اما فعلاً روی آن کار نمی‌شود، پس انتظار به‌روزرسانی از آن نداشته باشید.
 
 ---
 
 ## ✨ قابلیت‌های اصلی
 
-- 🎥 مرور فیلم و سریال
-- 🔎 جستجوی محتوا، بازیگر و کارگردان
-- ❤️ Watchlist و Playlist
-- 📺 پخش آنلاین
-- 🎞️ نمایش فصل‌ها و قسمت‌ها
-- ▶️ پلیر داخلی Media3 / ExoPlayer
-- 📱 پشتیبانی از پلیرهای خارجی
-- ⏯️ ادامه پخش و ذخیره موقعیت
-- ⏭️ Next Episode
-- 📥 دانلود محتوا
-- 🧠 Smart Taste و پیشنهاد محتوا
-- 👤 حساب کاربری، آواتار و Sync
-- 🌙 Light / Dark Theme
-- 🇮🇷 رابط فارسی و فونت Vazirmatn
+- 🎥 **مرور فیلم و سریال:** محتوا را ببینید و گشت‌وگذار کنید.
+- 🔎 **جستجو:** بر اساس محتوا، بازیگر و کارگردان.
+- ❤️ **Watchlist و Playlist:** چیزهایی را که می‌خواهید بعداً ببینید نگه دارید و لیست‌های خودتان را بسازید.
+- 📺 **پخش آنلاین:** مستقیم از داخل برنامه.
+- 🎞️ **نمایش فصل‌ها و قسمت‌ها:** سریال‌ها با ساختار فصل و قسمت نمایش داده می‌شوند.
+- ▶️ **پلیر داخلی Media3 / ExoPlayer:** پخش‌کننده پیش‌فرض برنامه.
+- 📱 **پشتیبانی از پلیرهای خارجی:** اگر پلیر مورد علاقه خودتان را دارید، می‌توانید از آن استفاده کنید.
+- ⏯️ **ادامه پخش و ذخیره موقعیت:** از همان‌جا که مانده بودید ادامه دهید.
+- ⏭️ **Next Episode:** رفتن به قسمت بعدی سریال.
+- 📥 **دانلود محتوا**
+- 🧠 **Smart Taste و پیشنهاد محتوا:** پیشنهادهایی که با سلیقه شما هماهنگ‌ترند.
+- 👤 **حساب کاربری، آواتار و Sync:** اطلاعات حساب شما همگام می‌شود.
+- 🌙 **Light / Dark Theme:** هر تمی که چشمتان را بیشتر دوست دارد.
+- 🇮🇷 **رابط فارسی و فونت Vazirmatn**
 
 ---
 
 ## 📦 دانلود
 
+آخرین نسخه برنامه را از بخش Releases بگیرید. نسخه اندروید به **Android 7.0 یا بالاتر** نیاز دارد.
+
 [![Download Latest Release](https://img.shields.io/badge/Download-Latest%20Release-2ea44f?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/releases/latest)
 
 ### 🪟 نصب نسخه Windows با WinGet
 
-```powershell
+اگر ویندوز دارید، ساده‌ترین راه نصب این است که Terminal یا PowerShell را باز کنید و این دستور را اجرا کنید:
+
+```
 winget install --id HNN.Bisnor -e
 ```
 
-> 💚 Android پلتفرم اصلی است؛ Windows نسخه جانبی و آزمایشی است؛ توسعه Tizen متوقف شده. نسخه وب و iOS فعلاً خروجی منتشرشده ندارند.
+> Android پلتفرم اصلی پروژه است. نسخه Desktop فعلاً Experimental است.
 
 ---
 
 ## 📚 مستندات
 
-- 🛠️ [راهنمای کامل Build برای Android، Windows و Tizen](docs/BUILD.md)
-- 🐛 [راهنمای Troubleshooting و خطاهای رایج](docs/TROUBLESHOOTING.md)
+برای ساخت پروژه از روی سورس یا رفع خطاهای رایج، این دو راهنما به کارتان می‌آیند:
+
+- 🛠️ [راهنمای کامل Build برای Android، Windows و Tizen](https://github.com/nikan48g/Bisnor/blob/main/docs/BUILD.md)
+- 🐛 [راهنمای Troubleshooting و خطاهای رایج](https://github.com/nikan48g/Bisnor/blob/main/docs/TROUBLESHOOTING.md)
 
 ---
 
@@ -115,51 +102,26 @@ Bisnor برای دریافت اطلاعات و دسترسی به محتوای ف
 
 ---
 
-## 🧱 ساختار Repository
-
-```text
-Bisnor/
-├─ app/                    # Android
-├─ desktop/                # Windows Desktop
-├─ tizen-tv/               # Samsung Tizen TV
-├─ packaging/              # Windows packaging / WinGet
-├─ docs/                   # Documentation
-└─ .github/workflows/      # CI / Release workflows
-```
-
----
-
-## 🛠️ تکنولوژی‌ها
-
-| Technology | Usage |
-|---|---|
-| Android SDK / Kotlin | Android app |
-| Media3 / ExoPlayer | Video playback |
-| Retrofit / OkHttp | Networking |
-| Supabase | Account / sync |
-| WPF / .NET 10 / WebView2 | Windows Desktop |
-| HTML / CSS / JavaScript | Desktop and Tizen UI |
-| Tizen Web API / AVPlay | Samsung TV |
-
----
 
 ## 🔐 امنیت
 
-اطلاعات حساس مانند Service Role Keys، Database Passwords، Private Tokens، Signing Keys، Keystoreها و Certificateها نباید داخل Repository عمومی قرار بگیرند.
+اطلاعات حساس مانند Service Role Keys، Database Passwords، Private Tokens، Signing Keys، Keystoreها و Certificateها نباید داخل Repository عمومی قرار بگیرند. اگر در حال مشارکت در پروژه هستید، پیش از هر commit یک بار مطمئن شوید چنین چیزی همراه آن نیست.
 
 ---
 
 ## 🤝 مشارکت
 
-Pull Request و Bug Report پذیرفته می‌شود. در PR توضیح دهید چه چیزی تغییر کرده، چرا لازم بوده و روی کدام پلتفرم اثر دارد.
+مشارکت شما خوشحالمان می‌کند. Pull Request و Bug Report پذیرفته می‌شود. در PR توضیح دهید چه چیزی تغییر کرده، چرا لازم بوده و روی کدام پلتفرم اثر دارد. هرچه توضیحات روشن‌تر باشد، بررسی سریع‌تر پیش می‌رود.
 
 ---
 
 ## 🐞 گزارش مشکل
 
+به مشکلی خوردید؟ از طریق Issue خبرمان کنید:
+
 [![Open an Issue](https://img.shields.io/badge/Open_an_Issue-GitHub-black?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/issues)
 
-در گزارش، نسخه Bisnor، پلتفرم، نسخه سیستم‌عامل، مراحل بازتولید و Log مرتبط را اضافه کنید. اطلاعات حساس را داخل Issue عمومی منتشر نکنید.
+در گزارش، نسخه Bisnor، پلتفرم، نسخه سیستم‌عامل، مراحل بازتولید و Log مرتبط را اضافه کنید تا پیدا کردن مشکل ساده‌تر شود. اطلاعات حساس را داخل Issue عمومی منتشر نکنید.
 
 ---
 
@@ -173,7 +135,7 @@ Bisnor یک نرم‌افزار **client / frontend** است و این Repositor
 
 Bisnor تحت مجوز **MIT License** منتشر شده است.
 
-[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/nikan48g/Bisnor/blob/main/LICENSE)
 
 ---
 
@@ -181,9 +143,9 @@ Bisnor تحت مجوز **MIT License** منتشر شده است.
 
 [![Star Bisnor](https://img.shields.io/github/stars/nikan48g/Bisnor?style=social)](https://github.com/nikan48g/Bisnor)
 
-<br>
+اگر بیسنور به کارتان آمد، یک ⭐ فراموش نشود.
 
-**Bisnor**  
+**Bisnor**
 تماشا بدون مرز 💎
 
 Powered by **IranFlix**

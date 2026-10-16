@@ -90,6 +90,10 @@ service.getPopularSeries = stub("series");
     assert.match(desktopController, /explore-people-results/);
     assert.match(desktopController, /event\.stopPropagation\(\)/);
     assert.match(desktopController, /renderForYou/);
+    assert.match(desktopController, /beforeinstallprompt/);
+    assert.match(desktopController, /bisnor_pwa_taste_v1/);
+    assert.match(desktopController, /Add to Home Screen/);
+    assert.match(desktopController, /applyPlatformIdentity/);
 
     console.log("Catalog, people profiles, For You, episode UI and player routing tests passed.");
 })().catch((error) => {

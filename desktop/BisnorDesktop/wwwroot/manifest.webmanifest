@@ -1,9 +1,11 @@
 {
   "name": "Bisnor",
   "short_name": "بیسنور",
+  "id": "/",
   "lang": "fa",
   "dir": "rtl",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#10131f",
   "theme_color": "#10131f",

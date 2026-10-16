@@ -18,8 +18,19 @@ const CHARACTERS = [
     { id: "avatar_star", name: "ستاره طلایی", file: "avatar_star.png" }
 ];
 
+let deferredPwaInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredPwaInstallPrompt = event;
+    window.app?.refreshInstallButton();
+});
+
 class BisnorApp {
     constructor() {
+        this.isNativeDesktop = Boolean(window.chrome?.webview);
+        this.isStandalonePwa = window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
+        this.isMobileWeb = !this.isNativeDesktop && (navigator.userAgentData?.mobile ?? /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent));
+        this.tasteStorageKey = this.isNativeDesktop ? "bisnor_taste_v1" : "bisnor_pwa_taste_v1";
         this.currentTab = "home";
         this.activeMedia = null;
         this.selectedAvatarForPicker = "avatar_breakingbad";
@@ -54,6 +65,8 @@ class BisnorApp {
 
     init() {
         this.applyTheme(this.settings.theme);
+        this.applyPlatformIdentity();
+        this.setupInstallExperience();
         this.setupNavigation();
         this.setupEventListeners();
         this.loadProfile();
@@ -71,7 +84,7 @@ class BisnorApp {
 
     loadTaste() {
         try {
-            const stored = JSON.parse(localStorage.getItem("bisnor_taste_v1") || "{}");
+            const stored = JSON.parse(localStorage.getItem(this.tasteStorageKey) || "{}");
             return { genres: stored.genres || {}, people: stored.people || {}, viewed: stored.viewed || {}, watched: stored.watched || {} };
         } catch (_) {
             return { genres: {}, people: {}, viewed: {}, watched: {} };
@@ -79,7 +92,61 @@ class BisnorApp {
     }
 
     saveTaste() {
-        localStorage.setItem("bisnor_taste_v1", JSON.stringify(this.taste));
+        localStorage.setItem(this.tasteStorageKey, JSON.stringify(this.taste));
+    }
+
+    applyPlatformIdentity() {
+        if (this.isNativeDesktop) return;
+        document.body.classList.add("web-client");
+        const text = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+        text("platform-brand-badge", "نسخه وب • PWA برای iOS");
+        text("downloads-setting-title", "مدیریت دانلودهای مرورگر");
+        text("platform-about-title", "بیسنور وب (Bisnor PWA)");
+        text("tv-app-version-about", "نسخه آزمایشی وب • نصب‌پذیر روی iOS، اندروید و ویندوز");
+        text("detail-external-player-label", "پخش در مرورگر");
+        text("player-error-desc", "این فرمت در مرورگر فعلی قابل کدگشایی نیست. می‌توانید فایل را دانلود کنید یا کیفیت دیگری را انتخاب کنید.");
+    }
+
+    setupInstallExperience() {
+        if (this.isNativeDesktop) return;
+        const installButton = document.getElementById("btn-install-pwa");
+        const guide = document.getElementById("pwa-install-guide");
+        const closeGuide = () => { if (guide) guide.style.display = "none"; };
+        document.getElementById("btn-close-install-guide")?.addEventListener("click", closeGuide);
+        document.getElementById("btn-install-guide-done")?.addEventListener("click", closeGuide);
+        guide?.addEventListener("click", event => { if (event.target === guide) closeGuide(); });
+        installButton?.addEventListener("click", async () => {
+            if (deferredPwaInstallPrompt) {
+                deferredPwaInstallPrompt.prompt();
+                await deferredPwaInstallPrompt.userChoice;
+                deferredPwaInstallPrompt = null;
+                this.refreshInstallButton();
+                return;
+            }
+            const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const title = document.getElementById("pwa-install-title");
+            const description = document.getElementById("pwa-install-description");
+            if (title) title.textContent = isIos ? "نصب بیسنور روی آیفون" : "نصب بیسنور روی گوشی";
+            if (description) description.innerHTML = isIos
+                ? "در Safari روی دکمهٔ <strong>Share</strong> بزنید و سپس <strong>Add to Home Screen</strong> را انتخاب کنید."
+                : "از منوی مرورگر گزینهٔ <strong>Install app</strong> یا <strong>Add to Home screen</strong> را انتخاب کنید.";
+            if (guide) guide.style.display = "flex";
+        });
+        window.addEventListener("appinstalled", () => {
+            deferredPwaInstallPrompt = null;
+            this.isStandalonePwa = true;
+            this.refreshInstallButton();
+        });
+        this.refreshInstallButton();
+    }
+
+    refreshInstallButton() {
+        const button = document.getElementById("btn-install-pwa");
+        if (!button) return;
+        button.style.display = this.isMobileWeb && !this.isStandalonePwa ? "inline-flex" : "none";
     }
 
     rememberMedia(media) {
@@ -146,6 +213,7 @@ class BisnorApp {
         } else {
             document.body.className = theme === "light" ? "theme-light" : "theme-dark";
         }
+        if (!this.isNativeDesktop) document.body.classList.add("web-client");
         localStorage.setItem("bisnor_theme", theme);
         this.settings.theme = theme;
 

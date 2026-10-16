@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-title" content="بیسنور">
     <title>بیسنور - سینمای بدون مرز</title>
     <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="assets/logo.png">
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="theme-dark">
@@ -19,10 +20,14 @@
                 <img src="assets/logo.png" alt="Bisnor Logo" class="brand-logo">
                 <div class="brand-text">
                     <span class="brand-title">بیسنور</span>
-                    <span class="brand-badge">نسخه ۵.۱.۳ ویندوز</span>
+                    <span id="platform-brand-badge" class="brand-badge">نسخه ۵.۱.۳ ویندوز</span>
                 </div>
             </div>
             <div class="header-actions">
+                <button id="btn-install-pwa" class="glass-install-btn" type="button" style="display:none" title="نصب بیسنور">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+                    <span>نصب اپ</span>
+                </button>
                 <button id="btn-header-search" class="glass-icon-btn" title="جستجو">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                 </button>
@@ -211,7 +216,7 @@
                             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
                         </div>
                         <div class="setting-text">
-                            <span class="setting-name">مدیریت دانلودها و پوشه ویندوز</span>
+                            <span id="downloads-setting-title" class="setting-name">مدیریت دانلودها و پوشه ویندوز</span>
                             <span class="setting-desc">مشاهده فایل‌های ذخیره شده و دانلود آفلاین در Downloads</span>
                         </div>
                         <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
@@ -303,7 +308,7 @@
                     <div class="setting-item about-row">
                         <img src="assets/logo.png" alt="Bisnor Logo" class="about-app-logo">
                         <div class="setting-text">
-                            <span class="setting-name">بیسنور دسکتاپ (Bisnor Desktop)</span>
+                            <span id="platform-about-title" class="setting-name">بیسنور دسکتاپ (Bisnor Desktop)</span>
                             <span id="tv-app-version-about" class="setting-desc">نسخه v5.1.3 (آزمایشی) • مجهز به .NET 10 و WebView2</span>
                         </div>
                         <button id="btn-check-update" class="btn-tonal-sm">بررسی به‌روزرسانی 🔄</button>
@@ -404,7 +409,7 @@
                                     <span>تماشای آنلاین</span>
                                 </button>
                                 <button id="btn-detail-external-player" class="btn-external-player">
-                                    <span>پخش در پلیر ویندوز 🚀</span>
+                                    <span id="detail-external-player-label">پخش در پلیر ویندوز 🚀</span>
                                 </button>
                                 <button id="btn-detail-favorite" class="glass-icon-btn" title="افزودن به واچ‌لیست">
                                     <svg id="svg-fav-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/></svg>
@@ -665,6 +670,16 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="pwa-install-guide" class="install-guide-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="pwa-install-title">
+        <div class="install-guide-card glass-panel">
+            <button id="btn-close-install-guide" class="modal-close-btn" type="button" aria-label="بستن">✕</button>
+            <img src="assets/logo.png" alt="بیسنور" class="install-guide-logo">
+            <h2 id="pwa-install-title">نصب بیسنور روی آیفون</h2>
+            <p id="pwa-install-description">در Safari روی دکمهٔ <strong>Share</strong> بزنید و سپس <strong>Add to Home Screen</strong> را انتخاب کنید.</p>
+            <button id="btn-install-guide-done" class="primary-action-btn" type="button">متوجه شدم</button>
         </div>
     </div>
 

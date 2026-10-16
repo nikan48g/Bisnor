@@ -42,11 +42,9 @@ Bisnor یک **client / frontend مستقل** است. یعنی خودش فیلم 
 | ------ | ----- |
 | ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) | Stable / Primary |
 | ![Windows](https://img.shields.io/badge/Windows_Desktop-0078D4?style=for-the-badge&logo=windows&logoColor=white) | Experimental |
-| ![Samsung Tizen TV](https://img.shields.io/badge/Samsung_Tizen_TV-1428A0?style=for-the-badge&logo=tizen&logoColor=white) | توسعه فعلاً متوقف شده است |
 
 - **Android** پلتفرم اصلی پروژه است و بیشترین توجه و به‌روزرسانی‌ها به آن می‌رسد.
 - **Windows Desktop** نسخه دسکتاپ بیسنور است. کار می‌کند، اما هنوز آزمایشی است و ممکن است به مشکل بربخورید.
-- **Samsung Tizen TV** پیش‌تر در حد یک نسخه آزمایشی وجود داشت. کدش هنوز در پوشه `tizen-tv` هست، اما فعلاً روی آن کار نمی‌شود، پس انتظار به‌روزرسانی از آن نداشته باشید.
 
 ---
 
@@ -95,7 +93,7 @@ winget install --id HNN.Bisnor -e
 
 برای ساخت پروژه از روی سورس یا رفع خطاهای رایج، این دو راهنما به کارتان می‌آیند:
 
-- 🛠️ [راهنمای کامل Build برای Android، Windows و Tizen](https://github.com/nikan48g/Bisnor/blob/main/docs/BUILD.md)
+- 🛠️ [راهنمای کامل Build برای Android و Windows](https://github.com/nikan48g/Bisnor/blob/main/docs/BUILD.md)
 - 🐛 [راهنمای Troubleshooting و خطاهای رایج](https://github.com/nikan48g/Bisnor/blob/main/docs/TROUBLESHOOTING.md)
 
 ---
@@ -118,7 +116,6 @@ Bisnor برای دریافت اطلاعات و دسترسی به محتوای ف
 Bisnor/
 ├─ app/                    # Android
 ├─ desktop/                # Windows Desktop
-├─ tizen-tv/               # Samsung Tizen TV (توسعه متوقف)
 ├─ packaging/              # Windows packaging / WinGet
 ├─ docs/                   # Documentation
 └─ .github/workflows/      # CI / Release workflows
@@ -139,8 +136,7 @@ Bisnor/
 | Retrofit / OkHttp        | Networking           |
 | Supabase                 | Account / sync       |
 | WPF / .NET 10 / WebView2 | Windows Desktop      |
-| HTML / CSS / JavaScript  | Desktop and Tizen UI |
-| Tizen Web API / AVPlay   | Samsung TV           |
+| HTML / CSS / JavaScript  | Windows Desktop and PWA UI |
 
 </div>
 

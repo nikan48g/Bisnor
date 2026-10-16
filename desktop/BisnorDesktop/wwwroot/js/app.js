@@ -27,9 +27,13 @@ class BisnorApp {
         this.authMode = "login";
         this.currentGenre = "all";
         this.searchQuery = "";
+        this.favoritesSearchQuery = "";
+        this.favoritesWatchFilter = "all";
         this.searchDebounceTimer = null;
         this.sortBy = "imdb";
         this.suggestedMedia = null;
+        this.activePerson = null;
+        this.taste = this.loadTaste();
 
         this.settings = {
             theme: localStorage.getItem("bisnor_theme") || "dark",
@@ -60,6 +64,34 @@ class BisnorApp {
         this.renderAvatarPickerGrid();
         this.setupNativeMessageListener();
         this.postNative("getAppInfo");
+        if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+            navigator.serviceWorker.register("sw.js").catch(() => {});
+        }
+    }
+
+    loadTaste() {
+        try {
+            const stored = JSON.parse(localStorage.getItem("bisnor_taste_v1") || "{}");
+            return { genres: stored.genres || {}, people: stored.people || {}, viewed: stored.viewed || {}, watched: stored.watched || {} };
+        } catch (_) {
+            return { genres: {}, people: {}, viewed: {}, watched: {} };
+        }
+    }
+
+    saveTaste() {
+        localStorage.setItem("bisnor_taste_v1", JSON.stringify(this.taste));
+    }
+
+    rememberMedia(media) {
+        if (!media) return;
+        (media.genres || []).forEach(genre => {
+            if (genre.title) this.taste.genres[genre.title] = (this.taste.genres[genre.title] || 0) + 1;
+        });
+        (media.people || []).forEach(person => {
+            if (person.name) this.taste.people[person.name] = (this.taste.people[person.name] || 0) + 1;
+        });
+        this.taste.viewed[String(media.id)] = Date.now();
+        this.saveTaste();
     }
 
     // --- Native Windows Interop ---
@@ -192,6 +224,26 @@ class BisnorApp {
             });
         }
 
+        const favoritesSearch = document.getElementById("input-favorites-search");
+        const clearFavoritesSearch = document.getElementById("btn-clear-favorites-search");
+        favoritesSearch?.addEventListener("input", event => {
+            this.favoritesSearchQuery = event.target.value.trim().toLocaleLowerCase();
+            if (clearFavoritesSearch) clearFavoritesSearch.style.display = this.favoritesSearchQuery ? "block" : "none";
+            this.renderFavoritesTab();
+        });
+        clearFavoritesSearch?.addEventListener("click", () => {
+            if (favoritesSearch) favoritesSearch.value = "";
+            this.favoritesSearchQuery = "";
+            clearFavoritesSearch.style.display = "none";
+            this.renderFavoritesTab();
+        });
+        document.querySelectorAll("#favorites-filter-chips .chip").forEach(chip => chip.addEventListener("click", event => {
+            const target = event.currentTarget;
+            this.favoritesWatchFilter = target.dataset.watchFilter || "all";
+            document.querySelectorAll("#favorites-filter-chips .chip").forEach(item => item.classList.toggle("active", item === target));
+            this.renderFavoritesTab();
+        }));
+
         // Genre chips
         document.querySelectorAll("#genres-filter-chips .chip").forEach(chip => {
             chip.addEventListener("click", (e) => {
@@ -208,11 +260,6 @@ class BisnorApp {
             this.renderExploreTab();
         });
 
-        // "What to watch tonight" Button
-        document.getElementById("btn-what-to-watch")?.addEventListener("click", () => {
-            this.showSmartTasteSuggestion();
-        });
-
         // Sync Favorites button
         document.getElementById("btn-sync-favorites")?.addEventListener("click", async () => {
             if (!window.supabaseAuth.isLoggedIn()) {
@@ -226,6 +273,8 @@ class BisnorApp {
 
         // Detail Modal buttons
         document.getElementById("btn-close-detail")?.addEventListener("click", () => this.closeDetailModal());
+        document.getElementById("btn-close-person")?.addEventListener("click", () => this.closePersonProfile());
+        document.getElementById("btn-person-follow")?.addEventListener("click", () => this.togglePersonPreference());
         document.getElementById("btn-detail-play-now")?.addEventListener("click", () => {
             if (this.activeMedia) this.playMedia(this.activeMedia);
         });
@@ -320,6 +369,7 @@ class BisnorApp {
             video.addEventListener("ended", () => {
                 if (playPauseBtn) playPauseBtn.textContent = "▶️";
                 this.recordWatchTime(30);
+                if (this.settings.autoNext) this.playNextWebEpisode();
             });
             video.addEventListener("error", (e) => {
                 console.warn("[Player Video Error]", video.error, e);
@@ -559,10 +609,35 @@ class BisnorApp {
                 }
             })
         ]).then(() => {
+            this.renderForYou();
             console.log("[BisnorMedia] All home sections synchronized with live Iranflix servers.");
         }).catch(err => {
             console.warn("[BisnorMedia] Live sync notice:", err);
         });
+    }
+
+    renderForYou() {
+        const section = document.getElementById("for-you-section");
+        const row = document.getElementById("row-for-you");
+        const subtitle = document.getElementById("for-you-subtitle");
+        if (!section || !row) return;
+        const items = window.mediaService.catalog || [];
+        const favoriteIds = new Set(window.supabaseAuth.getFavorites().map(item => String(item.id)));
+        const hasTaste = Object.keys(this.taste.genres).length || Object.keys(this.taste.people).length || favoriteIds.size;
+        if (!hasTaste || items.length === 0) {
+            section.style.display = "none";
+            return;
+        }
+        const scored = items.filter(item => !favoriteIds.has(String(item.id))).map(item => {
+            let score = (item.imdb || 0) * 1.25;
+            (item.genres || []).forEach(genre => score += (this.taste.genres[genre.title] || 0) * 3);
+            (item.people || []).forEach(person => score += (this.taste.people[person.name] || 0) * 5);
+            return { item, score };
+        }).sort((a, b) => b.score - a.score).slice(0, 14).map(entry => entry.item);
+        row.replaceChildren(...scored.map(item => this.createMediaCard(item)));
+        section.style.display = scored.length ? "block" : "none";
+        const favoritePerson = Object.entries(this.taste.people).sort((a, b) => b[1] - a[1])[0]?.[0];
+        if (subtitle) subtitle.textContent = favoritePerson ? `چون آثار ${favoritePerson} را دوست دارید` : "بر پایهٔ ژانرهای مورد علاقهٔ شما";
     }
 
     // --- Explore Tab with Search & Filtering ---
@@ -574,6 +649,7 @@ class BisnorApp {
 
         // Ignore a slower response for text the user has already replaced.
         if (requestedQuery !== this.searchQuery.trim()) return;
+        this.renderExplorePeople(requestedQuery, items);
 
         // 1. Filter by Genre
         if (this.currentGenre && this.currentGenre !== "all") {
@@ -612,9 +688,57 @@ class BisnorApp {
         }
     }
 
+    renderExplorePeople(query, items) {
+        const section = document.getElementById("explore-people-results");
+        const row = document.getElementById("row-explore-people");
+        if (!section || !row) return;
+        row.replaceChildren();
+        const normalized = query.trim().toLocaleLowerCase();
+        if (normalized.length < 2) {
+            section.style.display = "none";
+            return;
+        }
+        const seen = new Set();
+        const people = items.flatMap(item => item.people || []).filter(person => {
+            const key = `${person.name.toLocaleLowerCase()}|${person.role || ""}`;
+            if (!person.name.toLocaleLowerCase().includes(normalized) || seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).slice(0, 12);
+        people.forEach(person => row.appendChild(this.createPersonCard(person)));
+        section.style.display = people.length ? "block" : "none";
+    }
+
+    createPersonCard(person) {
+        const roleLabels = { actor: "بازیگر", director: "کارگردان", writer: "نویسنده" };
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "person-card";
+        const photo = document.createElement("span");
+        photo.className = "person-photo";
+        photo.textContent = person.name.slice(0, 1);
+        if (person.photo) photo.style.backgroundImage = `url("${person.photo.replace(/"/g, "%22")}")`;
+        else window.mediaService.resolvePersonPhoto(person).then(url => {
+            if (url && button.isConnected) photo.style.backgroundImage = `url("${url.replace(/"/g, "%22")}")`;
+        });
+        const role = document.createElement("span");
+        role.className = "person-role";
+        role.textContent = roleLabels[person.role] || "عامل";
+        const name = document.createElement("strong");
+        name.textContent = person.name;
+        button.append(photo, role, name);
+        button.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.openPersonProfile(person);
+        });
+        return button;
+    }
+
     // --- Detail Modal with Series Average Size Calculation ---
     openDetailModal(media) {
         this.activeMedia = media;
+        this.rememberMedia(media);
         const modal = document.getElementById("modal-detail");
         if (!modal) return;
 
@@ -650,6 +774,7 @@ class BisnorApp {
 
         const storylineEl = document.getElementById("detail-storyline");
         if (storylineEl) storylineEl.textContent = media.description || 'توضیحاتی برای این اثر ثبت نشده است.';
+        this.renderPeople(media.people || []);
 
         // Series Average Size Calculation
         const avgBox = document.getElementById("detail-series-avg-size");
@@ -661,12 +786,13 @@ class BisnorApp {
             if (seriesSection) seriesSection.style.display = "block";
 
             if (!media.seasons || media.seasons.length === 0) {
+                this.showSeriesLoadState("در حال دریافت فصل‌ها و قسمت‌ها…");
                 // Fetch real seasons from Iranflix API
                 window.mediaService.getSeriesSeasons(media.id).then(seasons => {
                     media.seasons = seasons;
                     this.renderSeriesSeasonsUI(media, avgBox);
                 }).catch(() => {
-                    this.renderSeriesSeasonsUI(media, avgBox);
+                    this.showSeriesLoadState("فصل‌ها از کاتالوگ زنده دریافت نشدند. دوباره تلاش کنید.", true);
                 });
             } else {
                 this.renderSeriesSeasonsUI(media, avgBox);
@@ -688,14 +814,96 @@ class BisnorApp {
         modal.style.display = "flex";
     }
 
+    renderPeople(people) {
+        const section = document.getElementById("detail-people-section");
+        const row = document.getElementById("detail-people-row");
+        if (!section || !row) return;
+        row.replaceChildren();
+        if (!people.length) {
+            section.style.display = "none";
+            return;
+        }
+        people.forEach(person => row.appendChild(this.createPersonCard(person)));
+        section.style.display = "block";
+    }
+
+    async openPersonProfile(person) {
+        this.activePerson = person;
+        this.taste.people[person.name] = (this.taste.people[person.name] || 0) + 1;
+        this.saveTaste();
+        const modal = document.getElementById("modal-person");
+        if (!modal) return;
+        const labels = { actor: "بازیگر", director: "کارگردان", writer: "نویسنده" };
+        document.getElementById("person-profile-name").textContent = person.name;
+        document.getElementById("person-profile-role").textContent = labels[person.role] || "عامل";
+        const photo = document.getElementById("person-profile-photo");
+        photo.textContent = person.name.slice(0, 1);
+        photo.style.backgroundImage = person.photo ? `url("${person.photo.replace(/"/g, "%22")}")` : "";
+        if (!person.photo) window.mediaService.resolvePersonPhoto(person).then(url => {
+            if (url && this.activePerson === person) photo.style.backgroundImage = `url("${url.replace(/"/g, "%22")}")`;
+        });
+        this.updatePersonFollowButton();
+        modal.style.display = "flex";
+        const credits = document.getElementById("person-profile-credits");
+        const empty = document.getElementById("person-profile-empty");
+        credits.replaceChildren();
+        empty.style.display = "none";
+        const catalog = await window.mediaService.getExploreCatalog();
+        if (this.activePerson !== person) return;
+        const personName = person.name.toLocaleLowerCase();
+        const matches = catalog.filter(item => (item.people || []).some(candidate => candidate.name.toLocaleLowerCase() === personName));
+        credits.replaceChildren(...matches.map(item => this.createMediaCard(item)));
+        empty.style.display = matches.length ? "none" : "block";
+    }
+
+    closePersonProfile() {
+        const modal = document.getElementById("modal-person");
+        if (modal) modal.style.display = "none";
+        this.activePerson = null;
+    }
+
+    togglePersonPreference() {
+        if (!this.activePerson) return;
+        const name = this.activePerson.name;
+        if (this.taste.people[name] >= 10) delete this.taste.people[name];
+        else this.taste.people[name] = 10;
+        this.saveTaste();
+        this.updatePersonFollowButton();
+        this.renderForYou();
+    }
+
+    updatePersonFollowButton() {
+        const button = document.getElementById("btn-person-follow");
+        if (!button || !this.activePerson) return;
+        const followed = (this.taste.people[this.activePerson.name] || 0) >= 10;
+        button.textContent = followed ? "♥ در سلیقهٔ من" : "♡ افزودن به سلیقهٔ من";
+        button.classList.toggle("person-following", followed);
+    }
+
     renderSeriesSeasonsUI(media, avgBox) {
-        if (!media.seasons || media.seasons.length === 0) return;
+        if (!media.seasons || media.seasons.length === 0) {
+            this.showSeriesLoadState("برای این سریال هنوز فصل یا قسمتی در کاتالوگ زنده ثبت نشده است.", true);
+            return;
+        }
         if (avgBox) {
             avgBox.style.display = "block";
             const epCount = media.seasons.reduce((count, season) => count + (season.episodes || []).length, 0);
             avgBox.textContent = `${media.seasons.length} فصل • ${epCount} قسمت در ایران‌فلیکس`;
         }
         this.renderSeasonsAndEpisodes(media.seasons);
+    }
+
+    showSeriesLoadState(message, isError = false) {
+        const tabs = document.getElementById("detail-seasons-tabs");
+        const episodes = document.getElementById("detail-episodes-list");
+        const selector = document.getElementById("detail-season-select");
+        const position = document.getElementById("detail-season-position");
+        if (tabs) tabs.replaceChildren();
+        if (selector) selector.replaceChildren();
+        if (position) position.textContent = "";
+        if (episodes) {
+            episodes.innerHTML = `<div class="episodes-load-state ${isError ? "is-error" : ""}">${isError ? "⚠️" : "◌"}<span>${message}</span></div>`;
+        }
     }
 
     closeDetailModal() {
@@ -744,6 +952,7 @@ class BisnorApp {
                 </div>
             `;
             item.querySelector(".btn-play-quality").addEventListener("click", () => {
+                this.nextEpisodeContext = null;
                 this.playStream(src.url, `${this.activeMedia.title} - ${src.quality}`);
             });
             item.querySelector(".btn-dl-quality").addEventListener("click", () => {
@@ -831,23 +1040,19 @@ class BisnorApp {
 
         episodes.forEach((ep, epIndex) => {
             const sources = ep.sources || [];
-            sources.forEach((source) => {
-                const row = document.createElement("div");
-                row.className = "episode-source-row";
-
-                const playIcon = document.createElement("span");
-                playIcon.className = "episode-play-icon";
-                playIcon.textContent = "▶";
-
-                const info = document.createElement("div");
-                info.className = "episode-source-info";
-                const title = document.createElement("strong");
-                const episodeTitle = ep.title && ep.title !== "null" ? ep.title : `قسمت ${epIndex + 1}`;
-                title.textContent = `${episodeTitle}${source.quality ? ` (${source.quality})` : ""}`;
-                const meta = document.createElement("span");
-                meta.textContent = `استریم مستقیم ایران‌فلیکس • ${(source.type || "MKV").toUpperCase()}`;
-                info.append(title, meta);
-
+            const episodeTitle = ep.title && ep.title !== "null" ? ep.title : `قسمت ${epIndex + 1}`;
+            const card = document.createElement("article");
+            card.className = "episode-card";
+            const head = document.createElement("div");
+            head.className = "episode-card-head";
+            head.innerHTML = `<span class="episode-number">${epIndex + 1}</span><div><strong>${episodeTitle}</strong><span>${sources.length ? `${sources.length} نسخهٔ قابل پخش` : "لینک پخش ثبت نشده"}</span></div>`;
+            const variants = document.createElement("div");
+            variants.className = "episode-variant-list";
+            sources.forEach(source => {
+                const variant = document.createElement("div");
+                variant.className = "episode-variant";
+                const label = document.createElement("span");
+                label.textContent = `${source.quality || "کیفیت اصلی"} • ${(source.type || "پخش").toUpperCase()}`;
                 const download = document.createElement("button");
                 download.className = "episode-download-btn";
                 download.title = "دانلود با IDM";
@@ -856,18 +1061,36 @@ class BisnorApp {
                     this.postNative("downloadWithIDM", { url: source.url });
                     this.addDownloadTask(this.activeMedia, episodeTitle);
                 });
-
                 const play = document.createElement("button");
                 play.className = "episode-play-btn";
                 play.textContent = "پخش";
-                play.addEventListener("click", () => {
-                    this.playStream(source.url, `${this.activeMedia.title} - ${episodeTitle} - ${source.quality || "کیفیت اصلی"}`);
-                });
-
-                row.append(playIcon, info, download, play);
-                epsWrap.appendChild(row);
+                play.addEventListener("click", () => this.playEpisodeSource(source, episodeTitle, episodes, epIndex));
+                variant.append(label, download, play);
+                variants.appendChild(variant);
             });
+            card.append(head, variants);
+            epsWrap.appendChild(card);
         });
+    }
+
+    playEpisodeSource(source, episodeTitle, episodes, episodeIndex) {
+        this.nextEpisodeContext = { episodes, episodeIndex, source };
+        this.playStream(source.url, `${this.activeMedia.title} - ${episodeTitle} - ${source.quality || "کیفیت اصلی"}`);
+    }
+
+    playNextWebEpisode() {
+        const context = this.nextEpisodeContext;
+        const nextEpisode = context?.episodes?.[context.episodeIndex + 1];
+        if (!nextEpisode?.sources?.length) return;
+        const currentText = `${context.source?.quality || ""} ${context.source?.type || ""}`.toLocaleLowerCase();
+        const language = value => value.includes("دوبله") ? "dub" : value.includes("زیرنویس") ? "sub" : "other";
+        const quality = value => Number((value.match(/(480|540|720|1080|2160)/) || [])[1]) || 0;
+        const matchingLanguage = nextEpisode.sources.filter(source => language(`${source.quality} ${source.type}`.toLocaleLowerCase()) === language(currentText));
+        const candidates = matchingLanguage.length ? matchingLanguage : nextEpisode.sources;
+        const wantedQuality = quality(currentText);
+        const source = candidates.slice().sort((a, b) => Math.abs(quality(`${a.quality} ${a.type}`) - wantedQuality) - Math.abs(quality(`${b.quality} ${b.type}`) - wantedQuality))[0];
+        const title = nextEpisode.title && nextEpisode.title !== "null" ? nextEpisode.title : `قسمت ${context.episodeIndex + 2}`;
+        this.playEpisodeSource(source, title, context.episodes, context.episodeIndex + 1);
     }
 
     updateDetailFavButton(isFav) {
@@ -884,6 +1107,12 @@ class BisnorApp {
 
     // --- Player Management ---
     playMedia(media) {
+        this.nextEpisodeContext = null;
+        if (media?.id) {
+            this.taste.watched = this.taste.watched || {};
+            this.taste.watched[String(media.id)] = Date.now();
+            this.saveTaste();
+        }
         let streamUrl = "";
         if (media.sources && media.sources.length > 0) {
             streamUrl = media.sources[0].url;
@@ -912,6 +1141,7 @@ class BisnorApp {
             return;
         }
         this.currentPlayingUrl = url;
+        this.currentPlayingTitle = title;
 
         // WebView2 cannot reliably decode MKV/HEVC. Route known incompatible
         // containers straight to the first installed Windows player instead of
@@ -966,8 +1196,23 @@ class BisnorApp {
         if (!grid) return;
         grid.innerHTML = "";
 
-        const favs = window.supabaseAuth.getFavorites();
-        if (favs.length === 0) {
+        const allFavorites = window.supabaseAuth.getFavorites();
+        const query = this.favoritesSearchQuery;
+        const favorites = allFavorites.filter(media => {
+            const matchesQuery = !query || [
+                media.title, media.description,
+                ...(media.genres || []).map(genre => genre.title),
+                ...(media.people || []).map(person => person.name)
+            ].join(" ").toLocaleLowerCase().includes(query);
+            const isWatched = Boolean(this.taste.watched?.[String(media.id)]);
+            const matchesWatch = this.favoritesWatchFilter === "all" ||
+                (this.favoritesWatchFilter === "watched" && isWatched) ||
+                (this.favoritesWatchFilter === "unwatched" && !isWatched);
+            return matchesQuery && matchesWatch;
+        });
+        const count = document.getElementById("favorites-count-label");
+        if (count) count.textContent = `${favorites.length} اثر${favorites.length !== allFavorites.length ? ` از ${allFavorites.length}` : ""}`;
+        if (favorites.length === 0) {
             if (empty) empty.style.display = "block";
             grid.style.display = "none";
             return;
@@ -975,7 +1220,7 @@ class BisnorApp {
 
         if (empty) empty.style.display = "none";
         grid.style.display = "grid";
-        favs.forEach(m => grid.appendChild(this.createMediaCard(m)));
+        favorites.forEach(m => grid.appendChild(this.createMediaCard(m)));
     }
 
     // --- Downloads Tab & IDM Integration ---

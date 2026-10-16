@@ -38,4 +38,6 @@ packaging/innosetup/Output/
 *.snk
 *.key
 *.log
+node_modules/
+.wrangler/
 

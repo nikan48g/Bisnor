@@ -101,6 +101,19 @@ class MediaDataService {
 
         const cleanPath = normalizedPath.replace(/\{API_KEY\}/g, this.apiKey);
 
+        // A deployed Bisnor Worker serves the PWA and exposes the allowlisted
+        // catalogue endpoints on the same origin.  Static previews simply get
+        // a 404 here and continue to the configured/direct fallback below.
+        if (window.location.protocol === "https:" && !window.chrome?.webview) {
+            try {
+                const workerResponse = await fetch(`${window.location.origin}${normalizedPath}`, {
+                    headers: { "Accept": "application/json" },
+                    signal: (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") ? AbortSignal.timeout(12000) : undefined
+                });
+                if (workerResponse.ok) return await workerResponse.json();
+            } catch (_) {}
+        }
+
         // A public CORS proxy is not a reliable production dependency.  `catalogProxyUrl`
         // can be set by the site owner to a small HTTPS proxy on the Bisnor domain.  Keep
         // the direct attempt below for providers which later enable CORS.
@@ -193,8 +206,64 @@ class MediaDataService {
             cover: cover,
             genres: genres.length > 0 ? genres : [{ id: 1, title: 'فیلم سینمایی' }],
             country: raw.country || [{ id: 1, title: 'جهانی' }],
-            sources: cleanSources
+            sources: cleanSources,
+            // The provider does not guarantee that credits exist. Preserve the
+            // structured form when it sends it, then use the same description
+            // labels Android understands as a graceful live-data fallback.
+            people: this.extractPeople(raw, desc)
         };
+    }
+
+    extractPeople(raw, description) {
+        const people = [];
+        const add = (value, role) => {
+            if (!value) return;
+            const values = Array.isArray(value) ? value : String(value).split(/[,،|]/);
+            values.forEach(entry => {
+                const item = typeof entry === "object" ? entry : { name: entry };
+                const name = String(item.name || item.title || item.full_name || "").trim();
+                if (!name || name.length > 80) return;
+                const photo = String(item.photo || item.image || item.avatar || item.profile_path || "").trim();
+                if (!people.some(person => person.role === role && person.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+                    people.push({ name, role, photo: /^https?:\/\//i.test(photo) ? photo : "" });
+                }
+            });
+        };
+        add(raw.actors || raw.cast || raw.stars, "actor");
+        add(raw.director || raw.directors, "director");
+        add(raw.writer || raw.writers || raw.screenwriter, "writer");
+
+        const labels = [
+            { role: "director", pattern: /(?:کارگردان|کارگردانی|سازنده|director)\s*[:：\-]?\s*([^\n\r]+)/i },
+            { role: "writer", pattern: /(?:نویسنده|فیلمنامه|writer)\s*[:：\-]?\s*([^\n\r]+)/i },
+            { role: "actor", pattern: /(?:بازیگران|ستارگان|با\s*حضور|هنرمندان|بازیگر|actors|cast|stars)\s*[:：\-]?\s*([^\n\r]+)/i }
+        ];
+        labels.forEach(({ role, pattern }) => add(pattern.exec(description || "")?.[1], role));
+        return people.slice(0, 12);
+    }
+
+    async resolvePersonPhoto(person) {
+        if (!person?.name || person.photo) return person?.photo || "";
+        const cacheKey = `bisnor_person_photo_${person.name.toLocaleLowerCase()}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) return cached === "none" ? "" : cached;
+        try {
+            const query = encodeURIComponent(person.name);
+            const search = await fetch(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${query}&language=fa&format=json&origin=*`);
+            const entity = (await search.json()).search?.[0]?.id;
+            if (!entity) throw new Error("person not found");
+            const entityResponse = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${entity}&props=claims&format=json&origin=*`);
+            const fileName = (await entityResponse.json()).entities?.[entity]?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
+            if (!fileName) throw new Error("portrait unavailable");
+            const image = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&iiurlwidth=240&format=json&origin=*`);
+            const pages = (await image.json()).query?.pages || {};
+            const photo = Object.values(pages)[0]?.imageinfo?.[0]?.thumburl || "";
+            localStorage.setItem(cacheKey, photo || "none");
+            return photo;
+        } catch (_) {
+            localStorage.setItem(cacheKey, "none");
+            return "";
+        }
     }
 
     async getLatestMovies(page = 0) {
@@ -273,19 +342,24 @@ class MediaDataService {
         // this endpoint, so multi-word titles such as "One Piece" otherwise return 0.
         const encoded = encodeURIComponent(query.trim());
         const raw = await this.fetchEndpoint(`/api/search/${encoded}/{API_KEY}/`);
-        if (raw && Array.isArray(raw.posters) && raw.posters.length > 0) {
-            const items = raw.posters.map(x => this.cleanMedia(x)).filter(Boolean);
-            this.mergeIntoCatalog(items);
-            return items;
-        }
-        // Local query match fallback
+        const serverItems = raw && Array.isArray(raw.posters)
+            ? raw.posters.map(x => this.cleanMedia(x)).filter(Boolean)
+            : [];
+        this.mergeIntoCatalog(serverItems);
+        await this.getExploreCatalog();
+        // Always combine the live response with the hydrated catalog. The API may
+        // return title matches but omit credits that match a partial person name.
         const q = query.trim().toLowerCase();
-        return this.catalog.filter(x => {
+        const localMatches = this.catalog.filter(x => {
             const title = (x.title || '').toLowerCase();
             const desc = (x.description || '').toLowerCase();
             const genres = (x.genres || []).map(g => g.title).join(' ').toLowerCase();
-            return title.includes(q) || desc.includes(q) || genres.includes(q);
+            const people = (x.people || []).map(person => person.name).join(' ').toLowerCase();
+            return title.includes(q) || desc.includes(q) || genres.includes(q) || people.includes(q);
         });
+        return [...serverItems, ...localMatches].filter((item, index, all) =>
+            all.findIndex(candidate => String(candidate.id) === String(item.id)) === index
+        );
     }
 
     async getSeriesSeasons(seriesId) {

@@ -5,15 +5,11 @@ const vm = require("node:vm");
 
 const repositoryRoot = path.resolve(__dirname, "..", "..");
 const catalogClient = fs.readFileSync(
-    path.join(repositoryRoot, "tizen-tv", "js", "data.js"),
+    path.join(repositoryRoot, "desktop", "BisnorDesktop", "wwwroot", "js", "data.js"),
     "utf8"
 );
 const desktopController = fs.readFileSync(
     path.join(repositoryRoot, "desktop", "BisnorDesktop", "wwwroot", "js", "app.js"),
-    "utf8"
-);
-const tizenPlayer = fs.readFileSync(
-    path.join(repositoryRoot, "tizen-tv", "js", "tizen-avplay.js"),
     "utf8"
 );
 
@@ -73,13 +69,29 @@ service.getPopularSeries = stub("series");
     const searchResults = await service.search("one piece");
     assert.equal(searchPath, "/api/search/one%20piece/{API_KEY}/");
     assert.equal(searchResults[0].title, "One Piece");
-    assert.match(desktopController, /episode-source-row/);
+    const credited = service.cleanMedia({
+        id: 1000,
+        title: "Credit test",
+        description: "کارگردان: کریستوفر نولان\nبازیگران: کیلین مورفی، امیلی بلانت",
+        genres: [],
+        sources: []
+    });
+    assert.equal(
+        JSON.stringify(credited.people.map(person => [person.name, person.role])),
+        JSON.stringify([["کریستوفر نولان", "director"], ["کیلین مورفی", "actor"], ["امیلی بلانت", "actor"]])
+    );
+    assert.match(desktopController, /episode-card/);
+    assert.match(desktopController, /playNextWebEpisode/);
     assert.doesNotMatch(desktopController, /class="episode-cover"/);
     assert.match(desktopController, /player: "auto"/);
-    assert.match(tizenPlayer, /setDisplayRect\(0, 220, 1920, 640\)/);
-    assert.match(tizenPlayer, /setSelectTrack\('TEXT'/);
+    assert.match(desktopController, /openPersonProfile/);
+    assert.match(desktopController, /renderExplorePeople/);
+    assert.match(desktopController, /createPersonCard/);
+    assert.match(desktopController, /explore-people-results/);
+    assert.match(desktopController, /event\.stopPropagation\(\)/);
+    assert.match(desktopController, /renderForYou/);
 
-    console.log("Catalog, episode UI, player routing and Tizen fullscreen tests passed.");
+    console.log("Catalog, people profiles, For You, episode UI and player routing tests passed.");
 })().catch((error) => {
     console.error(error);
     process.exitCode = 1;

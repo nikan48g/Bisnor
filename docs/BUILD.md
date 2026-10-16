@@ -1,6 +1,6 @@
 # 🛠️ راهنمای Build بیسنور
 
-این سند مراحل Build و آماده‌سازی نسخه‌های Android، Windows Desktop و Samsung Tizen TV را توضیح می‌دهد.
+این سند مراحل Build و آماده‌سازی نسخه‌های Android و Windows Desktop را توضیح می‌دهد.
 
 ## 🤖 Android
 
@@ -51,7 +51,7 @@ dotnet restore
 dotnet run
 ```
 
-پیش از Build، کلاینت کاتالوگ زنده را از منبع مشترک تایزن همگام کنید. این اسکریپت
+پیش از Build، کلاینت API-only مشترک Windows و PWA را بررسی کنید. این اسکریپت
 هر snapshot آفلاین قدیمی را نیز حذف می‌کند:
 
 ```powershell
@@ -98,31 +98,6 @@ winget validate --manifest packaging/winget/manifests/h/HNN/Bisnor/5.1.1
 ```powershell
 winget settings --enable LocalManifestFiles
 winget install --manifest packaging/winget/manifests/h/HNN/Bisnor/5.1.1
-```
-
-## 📺 Samsung Tizen TV — Experimental
-
-نیازمندی‌ها: Tizen Studio، TV Extension، Certificate Profile معتبر و Developer Mode.
-
-Build:
-
-```bash
-cd tizen-tv
-tizen build-web -- .
-```
-
-Package:
-
-```bash
-tizen package -t wgt -s YOUR_SIGNING_PROFILE -- .buildResult
-```
-
-اتصال و نصب:
-
-```bash
-sdb connect TV_IP:26101
-sdb devices
-tizen install -n BisnorCinema.wgt -t YOUR_TV_TARGET
 ```
 
 ## 🧪 تست

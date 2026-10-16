@@ -43,17 +43,6 @@ winget hash Bisnor-5.1.1-win-x64.exe
 
 هش باید با `InstallerSha256` همان نسخه برابر باشد.
 
-## 📺 Samsung Tizen TV
-
-اگر TV در `sdb devices` دیده نمی‌شود، Developer Mode، IP سیستم توسعه، شبکه و Certificate Profile را بررسی کنید.
-
-```bash
-sdb connect TV_IP:26101
-sdb devices
-```
-
-اگر WGT نصب نمی‌شود، Certificate Profile، target و Developer Mode را دوباره بررسی کنید.
-
 ## 🔎 گزارش Bug
 
 نسخه Bisnor، پلتفرم، سیستم‌عامل، مراحل بازتولید، نتیجه مورد انتظار، نتیجه واقعی و Log مرتبط را اضافه کنید.

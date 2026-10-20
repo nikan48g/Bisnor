@@ -5,6 +5,7 @@
 
 ### تماشا بدون مرز 💎
 یک کلاینت متن‌باز برای مرور، جستجو و پخش فیلم و سریال، با تمرکز روی تجربه فارسی، رابط سبک و پخش سریع و انعطاف‌پذیر.
+
 [![GitHub stars](https://img.shields.io/github/stars/nikan48g/Bisnor?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/nikan48g/Bisnor?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/forks)
 [![GitHub issues](https://img.shields.io/github/issues/nikan48g/Bisnor?style=for-the-badge&logo=github)](https://github.com/nikan48g/Bisnor/issues)

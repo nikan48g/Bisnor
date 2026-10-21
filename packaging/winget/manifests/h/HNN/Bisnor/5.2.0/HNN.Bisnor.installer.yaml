@@ -21,6 +21,6 @@ ReleaseDate: 2026-10-21
 Installers:
 - Architecture: x64
   InstallerUrl: https://github.com/nikan48g/Bisnor/releases/download/v5.2.0/Bisnor-5.2.0-win-x64.exe
-  InstallerSha256: 0019DFC4B32D63C1392AA264AED2253C1E0C2FB09216F8E2CC269BBFB8BB49B5
+  InstallerSha256: 6D9B0DB02E0D64F11AC3FA4C06A3D5189DC66F5E3455BCCDC5D7D8035AFEB80A
 ManifestType: installer
 ManifestVersion: 1.9.0

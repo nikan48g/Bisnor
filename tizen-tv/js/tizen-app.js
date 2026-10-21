@@ -22,6 +22,8 @@
     function card(media) {
         var el = document.createElement('div');
         el.className = 'media-card';
+        // A <div> is not focusable by default; without this the D-pad can never land on a card.
+        el.tabIndex = 0;
         el.setAttribute('role', 'button');
         el.setAttribute('aria-label', media.title || 'اثر');
         var genre = media.genres && media.genres[0] ? media.genres[0].title : 'فیلم';

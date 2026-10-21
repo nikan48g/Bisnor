@@ -30,6 +30,8 @@ class BisnorApp {
         this.isNativeDesktop = Boolean(window.chrome?.webview);
         this.isStandalonePwa = window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
         this.isMobileWeb = !this.isNativeDesktop && (navigator.userAgentData?.mobile ?? /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent));
+        // iPadOS reports itself as MacIntel, so touch points are required to catch it.
+        this.isIOS = !this.isNativeDesktop && (/iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
         this.tasteStorageKey = this.isNativeDesktop ? "bisnor_taste_v1" : "bisnor_pwa_taste_v1";
         this.currentTab = "home";
         this.activeMedia = null;
@@ -182,7 +184,7 @@ class BisnorApp {
         text("platform-brand-badge", "نسخه وب • PWA برای iOS");
         text("downloads-setting-title", "مدیریت دانلودهای مرورگر");
         text("about-platform-title", "نسخه وب (Bisnor PWA)");
-        text("about-version", "نسخه ۵.۲.۰-beta.4 • نصب‌پذیر روی iOS، اندروید و ویندوز");
+        text("about-version", "نسخه ۵.۲.۰ • نصب‌پذیر روی iOS، اندروید و ویندوز");
         text("detail-external-player-label", "پخش در مرورگر");
         text("player-error-desc", "این فرمت در مرورگر فعلی قابل کدگشایی نیست. می‌توانید فایل را دانلود کنید یا کیفیت دیگری را انتخاب کنید.");
     }
@@ -571,7 +573,7 @@ class BisnorApp {
                 video.addEventListener("error", () => {
                     if (this.hlsInstance) return;
                     const error = video.error;
-                    this.showPlayerCodecError(error ? `codec ${error.code}` : "unknown");
+                    this.tryNextStream(error ? `codec ${error.code}` : "unknown");
                 });
             }
             let lastTick = 0;
@@ -615,14 +617,6 @@ class BisnorApp {
                 }
                 this.renderContinueWatching();
                 if (this.settings.autoNext) this.playNextWebEpisode();
-            });
-            video.addEventListener("error", (e) => {
-                console.warn("[Player Video Error]", video.error, e);
-                // HTML5 video could not decode this container or codec (e.g. MKV/HEVC)
-                const errOverlay = document.getElementById("player-error-overlay");
-                if (errOverlay) {
-                    errOverlay.style.display = "flex";
-                }
             });
         }
 
@@ -1258,7 +1252,7 @@ class BisnorApp {
             `;
             item.querySelector(".btn-play-quality").addEventListener("click", () => {
                 this.nextEpisodeContext = null;
-                this.playStream(src.url, `${this.activeMedia.title} - ${src.quality}`);
+                this.playStream(src.url, `${this.activeMedia.title} - ${src.quality}`, this.alternativeUrls(sources, src.url));
             });
             item.querySelector(".btn-dl-quality").addEventListener("click", () => {
                 this.postNative("downloadWithIDM", { url: src.url });
@@ -1380,7 +1374,12 @@ class BisnorApp {
 
     playEpisodeSource(source, episodeTitle, episodes, episodeIndex) {
         this.nextEpisodeContext = { episodes, episodeIndex, source };
-        this.playStream(source.url, `${this.activeMedia.title} - ${episodeTitle} - ${source.quality || "کیفیت اصلی"}`);
+        const episodeSources = episodes?.[episodeIndex]?.sources || [source];
+        this.playStream(
+            source.url,
+            `${this.activeMedia.title} - ${episodeTitle} - ${source.quality || "کیفیت اصلی"}`,
+            this.alternativeUrls(episodeSources, source.url)
+        );
     }
 
     playNextWebEpisode() {
@@ -1417,6 +1416,9 @@ class BisnorApp {
         let score = 10;
         if (/\.m3u8$/.test(url)) score += 100;
         else if (/\.mp4$/.test(url)) score += 80;
+        // WebView2 hands MKV to the internal Media Foundation player, but browsers
+        // and iOS cannot demux these containers at all, so prefer real alternatives.
+        if (!this.isNativeDesktop && /\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(url)) score -= 500;
         if (/1080/.test(quality)) score += 30;
         else if (/720/.test(quality)) score += 20;
         else if (/480/.test(quality)) score += 5;
@@ -1426,22 +1428,34 @@ class BisnorApp {
     }
 
     pickBestSource(sources) {
-        const list = (sources || []).filter(source => source && source.url);
-        if (list.length === 0) return null;
-        return list.slice().sort((a, b) => this.scoreSource(b) - this.scoreSource(a))[0];
+        return this.sortedSources(sources)[0] || null;
+    }
+
+    sortedSources(sources) {
+        return (sources || [])
+            .filter(source => source && source.url)
+            .slice()
+            .sort((a, b) => this.scoreSource(b) - this.scoreSource(a));
+    }
+
+    alternativeUrls(sources, currentUrl) {
+        return this.sortedSources(sources)
+            .map(source => source.url)
+            .filter(url => url && url !== currentUrl)
+            .filter((url, index, list) => list.indexOf(url) === index);
     }
 
     playMedia(media) {
         this.nextEpisodeContext = null;
-        let source = this.pickBestSource(media.sources);
-        if (!source && media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
-            source = this.pickBestSource(media.seasons[0].episodes[0].sources);
+        let candidates = this.sortedSources(media.sources);
+        if (!candidates.length && media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
+            candidates = this.sortedSources(media.seasons[0].episodes[0].sources);
         }
-        if (!source) {
+        if (!candidates.length) {
             alert("لینکی برای پخش این محتوا موجود نیست.");
             return;
         }
-        this.playStream(source.url, media.title);
+        this.playStream(candidates[0].url, media.title, candidates.slice(1).map(source => source.url));
     }
 
     getStreamUrl(media) {
@@ -1455,13 +1469,14 @@ class BisnorApp {
         return "";
     }
 
-    playStream(url, title) {
+    playStream(url, title, alternatives) {
         if (!url) {
             alert("لینکی برای پخش این محتوا موجود نیست.");
             return;
         }
         this.currentPlayingUrl = url;
         this.currentPlayingTitle = title;
+        this.streamQueue = (alternatives || []).filter(candidate => candidate && candidate !== url);
         if (this.activeMedia && this.activeMedia.id) {
             this.currentEpisodeLabel = "";
         }
@@ -1494,6 +1509,9 @@ class BisnorApp {
         this.openOverlay("modal-player");
         if (modal.requestFullscreen) {
             modal.requestFullscreen().catch(() => {});
+        } else if (this.isIOS && video.webkitEnterFullscreen) {
+            // iPhone Safari has no Fullscreen API on elements; use the native video one.
+            try { video.webkitEnterFullscreen(); } catch (_) {}
         }
         video.play().catch(e => console.log("Auto-play blocked", e));
     }
@@ -1506,6 +1524,8 @@ class BisnorApp {
         }
         video.removeAttribute("src");
         video.load();
+        this.streamNetworkRetries = 0;
+        this.streamMediaRecovered = false;
 
         const isHls = /\.m3u8(?:$|[?#])/i.test(url);
         const nativeHls = video.canPlayType("application/vnd.apple.mpegurl");
@@ -1520,13 +1540,17 @@ class BisnorApp {
             this.hlsInstance = hls;
             hls.on(window.Hls.Events.ERROR, (_, data) => {
                 if (!data || !data.fatal) return;
-                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
+                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR && this.streamNetworkRetries < 2) {
+                    this.streamNetworkRetries += 1;
                     hls.startLoad();
-                } else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
-                    hls.recoverMediaError();
-                } else {
-                    this.showPlayerCodecError(data.details || "hls-error");
+                    return;
                 }
+                if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR && !this.streamMediaRecovered) {
+                    this.streamMediaRecovered = true;
+                    hls.recoverMediaError();
+                    return;
+                }
+                this.tryNextStream(data.details || "hls-error");
             });
             hls.loadSource(url);
             hls.attachMedia(video);
@@ -1534,12 +1558,28 @@ class BisnorApp {
         }
 
         if (isHls && !nativeHls) {
-            this.showPlayerCodecError("hls-unsupported");
+            this.tryNextStream("hls-unsupported");
             return;
         }
 
         video.src = url;
         video.load();
+    }
+
+    /** Moves to the next source candidate when a container or codec cannot play. */
+    tryNextStream(detail) {
+        const queue = this.streamQueue || [];
+        const next = queue.shift();
+        if (!next) {
+            this.showPlayerCodecError(detail || "codec");
+            return;
+        }
+        const video = document.getElementById("html-video-player");
+        if (!video) return;
+        console.warn("[Player] trying next source after:", detail, next);
+        this.currentPlayingUrl = next;
+        this.attachStreamSource(video, next);
+        video.play().catch(() => {});
     }
 
     showPlayerCodecError(detail) {
@@ -1556,6 +1596,7 @@ class BisnorApp {
     closePlayerModal() {
         this.renderHeatmap();
         this.renderContinueWatching();
+        this.streamQueue = [];
         const modal = document.getElementById("modal-player");
         const video = document.getElementById("html-video-player");
         const errOverlay = document.getElementById("player-error-overlay");
@@ -1783,7 +1824,7 @@ class BisnorApp {
         if (profileLogoutDivider) profileLogoutDivider.style.display = isLoggedIn ? "block" : "none";
 
         const version = document.getElementById("profile-version");
-        if (version) version.textContent = "v5.2.0-beta.3";
+        if (version) version.textContent = "v5.2.0";
 
         this.renderAnalytics();
         this.renderHeatmap();

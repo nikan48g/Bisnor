@@ -17,7 +17,7 @@ class SupabaseAuthService {
     usernameToEmail(username) { return `bisnor.${username.trim().toLowerCase()}@lerio.ir`; }
     getToken() { return localStorage.getItem(this.tokenKey) || ""; }
     getUserId() { return localStorage.getItem(this.userIdKey) || ""; }
-    getUsername() { return localStorage.getItem(this.usernameKey) || "کاربر میهمان"; }
+    getUsername() { return localStorage.getItem(this.usernameKey) || "Ú©Ø§Ø±Ø¨Ø± Ù…ÛŒÙ‡Ù…Ø§Ù†"; }
     getAvatarId() { return localStorage.getItem(this.avatarKey) || "avatar_breakingbad"; }
     isLoggedIn() { return Boolean(this.getToken() && this.getUserId()); }
 
@@ -39,33 +39,33 @@ class SupabaseAuthService {
 
     async signup(username, password, avatarId = "avatar_breakingbad") {
         const cleanUser = (username || "").trim().toLowerCase();
-        if (!/^[a-z0-9_.-]{3,32}$/.test(cleanUser)) return { success: false, message: "نام کاربری باید بین ۳ تا ۳۲ حرف انگلیسی، عدد یا خط‌تیره باشد." };
-        if ((password || "").trim().length < 6) return { success: false, message: "رمز عبور باید حداقل ۶ کاراکتر باشد." };
+        if (!/^[a-z0-9_.-]{3,32}$/.test(cleanUser)) return { success: false, message: "Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ Ø¨Ø§ÛŒØ¯ Ø¨ÛŒÙ† Û³ ØªØ§ Û³Û² Ø­Ø±Ù Ø§Ù†Ú¯Ù„ÛŒØ³ÛŒØŒ Ø¹Ø¯Ø¯ ÛŒØ§ Ø®Ø·â€ŒØªÛŒØ±Ù‡ Ø¨Ø§Ø´Ø¯." };
+        if ((password || "").trim().length < 6) return { success: false, message: "Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ø¨Ø§ÛŒØ¯ Ø­Ø¯Ø§Ù‚Ù„ Û¶ Ú©Ø§Ø±Ø§Ú©ØªØ± Ø¨Ø§Ø´Ø¯." };
         try {
             const response = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/signup`, {
                 method: "POST", headers: this.headers(false, { "Content-Type": "application/json" }),
                 body: JSON.stringify({ email: this.usernameToEmail(cleanUser), password, data: { username: cleanUser, avatar_id: avatarId } })
             });
             const payload = await response.json().catch(() => ({}));
-            if (!response.ok || !this.saveSession(payload, cleanUser, avatarId)) return { success: false, message: "ثبت‌نام انجام شد اما Session فعال نشد. تأیید ایمیل باید برای حساب‌های بیسنور غیرفعال باشد." };
+            if (!response.ok || !this.saveSession(payload, cleanUser, avatarId)) return { success: false, message: "Ø«Ø¨Øªâ€ŒÙ†Ø§Ù… Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯ Ø§Ù…Ø§ Session ÙØ¹Ø§Ù„ Ù†Ø´Ø¯. ØªØ£ÛŒÛŒØ¯ Ø§ÛŒÙ…ÛŒÙ„ Ø¨Ø§ÛŒØ¯ Ø¨Ø±Ø§ÛŒ Ø­Ø³Ø§Ø¨â€ŒÙ‡Ø§ÛŒ Ø¨ÛŒØ³Ù†ÙˆØ± ØºÛŒØ±ÙØ¹Ø§Ù„ Ø¨Ø§Ø´Ø¯." };
             await this.ensureProfile(cleanUser, avatarId);
-            return { success: true, message: "ثبت‌نام با موفقیت انجام شد." };
-        } catch (_) { return { success: false, message: "خطا در ارتباط با سرور بیسنور." }; }
+            return { success: true, message: "Ø«Ø¨Øªâ€ŒÙ†Ø§Ù… Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯." };
+        } catch (_) { return { success: false, message: "Ø®Ø·Ø§ Ø¯Ø± Ø§Ø±ØªØ¨Ø§Ø· Ø¨Ø§ Ø³Ø±ÙˆØ± Ø¨ÛŒØ³Ù†ÙˆØ±." }; }
     }
 
     async login(username, password) {
         const cleanUser = (username || "").trim().toLowerCase();
-        if (!cleanUser || !(password || "").trim()) return { success: false, message: "نام کاربری و رمز عبور را وارد کنید." };
+        if (!cleanUser || !(password || "").trim()) return { success: false, message: "Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ Ùˆ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù†ÛŒØ¯." };
         try {
             const response = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/token?grant_type=password`, {
                 method: "POST", headers: this.headers(false, { "Content-Type": "application/json" }),
                 body: JSON.stringify({ email: this.usernameToEmail(cleanUser), password })
             });
             const payload = await response.json().catch(() => ({}));
-            if (!response.ok || !this.saveSession(payload, cleanUser)) return { success: false, message: "نام کاربری یا رمز عبور نادرست است." };
+            if (!response.ok || !this.saveSession(payload, cleanUser)) return { success: false, message: "Ù†Ø§Ù… Ú©Ø§Ø±Ø¨Ø±ÛŒ ÛŒØ§ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ù†Ø§Ø¯Ø±Ø³Øª Ø§Ø³Øª." };
             await this.syncDown();
-            return { success: true, message: "ورود با موفقیت انجام شد!" };
-        } catch (_) { return { success: false, message: "خطا در اتصال به اینترنت یا سرور ابری." }; }
+            return { success: true, message: "ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯!" };
+        } catch (_) { return { success: false, message: "Ø®Ø·Ø§ Ø¯Ø± Ø§ØªØµØ§Ù„ Ø¨Ù‡ Ø§ÛŒÙ†ØªØ±Ù†Øª ÛŒØ§ Ø³Ø±ÙˆØ± Ø§Ø¨Ø±ÛŒ." }; }
     }
 
     async ensureProfile(username, avatarId) {

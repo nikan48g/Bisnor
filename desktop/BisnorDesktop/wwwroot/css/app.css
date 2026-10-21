@@ -786,6 +786,31 @@ body {
     margin-bottom: 12px;
 }
 
+.detail-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.detail-badges-row:empty { display: none; }
+
+.detail-meta-badge {
+    padding: 4px 11px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-secondary, #c9c9d1);
+}
+
+.detail-meta-badge:first-child {
+    background: rgba(255, 107, 107, 0.16);
+    border-color: rgba(255, 107, 107, 0.42);
+    color: #ffd7d7;
+}
+
 .badge-tag, .badge-type, .badge-imdb {
     padding: 3px 10px;
     border-radius: 8px;

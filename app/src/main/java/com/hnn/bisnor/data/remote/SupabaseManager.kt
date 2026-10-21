@@ -91,10 +91,9 @@ class AuthManager(private val context: Context) {
         if (ok) {
             currentUsername = cleanUser
             if (SupabaseManager.claimLegacyAccount(context, cleanUser, cleanPass)) {
-                SupabaseManager.fetchProfile(context)?.let { syncDown(context, it) }
-            } else {
-                syncUp(context)
+                SupabaseManager.fetchProfile(context)?.let { mergeCloudIntoLocal(context, it) }
             }
+            syncUp(context)
             Pair(true, "ثبت‌نام با موفقیت انجام شد! حساب شما فعال گردید.")
         } else {
             Pair(false, message)
@@ -121,10 +120,52 @@ class AuthManager(private val context: Context) {
             if (avatar.isNotEmpty()) {
                 userAvatarId = avatar
             }
-            syncDown(context, profile)
+            // Union instead of replace: watchlists saved offline (or on another
+            // device) must never be wiped by a partly-populated cloud row.
+            mergeCloudIntoLocal(context, profile)
         }
+        // Push the union right away so the cloud copy self-heals when the old
+        // client never managed to upload its favorites.
+        syncUp(context)
 
         Pair(true, "ورود با موفقیت انجام شد! حساب شما همگام‌سازی گردید.")
+    }
+
+    private fun mergeCloudIntoLocal(c: Context, record: JSONObject) {
+        val favManager = FavoritesManager(c)
+        decompress(record.optString("favorites_data", ""))?.let { remote ->
+            favManager.setFavoritesFromRawJson(mergeById(remote, favManager.getFavoritesRawJson()))
+        }
+        val playlistsManager = PlaylistsManager(c)
+        decompress(record.optString("playlists_data", ""))?.let { remote ->
+            playlistsManager.setPlaylistsFromRawJson(mergeById(remote, playlistsManager.getPlaylistsRawJson()))
+        }
+    }
+
+    private fun decompress(value: String): String? {
+        if (value.isBlank()) return null
+        return runCatching { SupabaseManager.decompressString(value) }
+            .getOrNull()?.takeIf { it.isNotBlank() && it != "[]" }
+    }
+
+    private fun mergeById(remoteJson: String, localJson: String): String {
+        val merged = LinkedHashMap<String, JSONObject>()
+        fun absorb(raw: String) {
+            if (raw.isBlank()) return
+            runCatching {
+                val array = JSONArray(raw)
+                for (i in 0 until array.length()) {
+                    val obj = array.optJSONObject(i) ?: continue
+                    val key = obj.optString("id").ifBlank { "index_$i" }
+                    merged[key] = obj
+                }
+            }
+        }
+        absorb(remoteJson)
+        // Local entries overwrite remote ones for the same id: the device copy
+        // is the most recent edit when the same item exists on both sides.
+        absorb(localJson)
+        return JSONArray(merged.values.toList()).toString()
     }
 
     suspend fun updateAvatar(newAvatarId: String): Boolean = withContext(Dispatchers.IO) {

@@ -3,651 +3,318 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="100dp">
+        android:paddingHorizontal="18dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="110dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/vazirmatn_bold"
-            android:text="@string/settings_title"
+            android:text="تنظیمات"
             android:textColor="@color/on_surface"
-            android:textSize="22sp" />
+            android:textSize="24sp" />
 
-        <!-- Category 1: User Account -->
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:fontFamily="@font/vazirmatn_regular"
+            android:text="پخش، ظاهر و دانلودها"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="12.5sp" />
+
+        <!-- Downloads -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="حساب کاربری"
-            android:textColor="@color/primary"
-            android:textSize="13.5sp" />
+            android:text="دانلودها و ذخیره‌سازی"
+            android:textColor="@color/primary" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_user_profile"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/surface_container"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/outline_variant">
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/btn_setting_downloads"
+                style="@style/Widget.Bisnor.SettingRow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="14dp">
+                android:layout_height="wrap_content">
 
                 <ImageView
-                    android:id="@+id/img_profile_avatar"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
-                    android:background="@drawable/badge_background"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_account_circle" />
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_download"
+                    app:tint="@color/primary" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:text="مدیریت دانلودها"
+                        android:textColor="@color/on_surface"
+                        android:textSize="13.5sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:text="فایل‌های ذخیره‌شده و تماشای آفلاین"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_left"
+                    app:tint="@color/on_surface_variant" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Appearance -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="8dp"
+            android:text="ظاهر برنامه"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="پوسته برنامه"
+                android:textColor="@color/on_surface"
+                android:textSize="13.5sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_themes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_theme_system"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="سیستم" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_theme_dark"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="تاریک" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_theme_light"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="روشن" />
+            </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+
+        <!-- Playback -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="8dp"
+            android:text="پخش و ویدیو"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical">
+
+            <LinearLayout
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:text="پخش خودکار قسمت بعدی"
+                        android:textColor="@color/on_surface"
+                        android:textSize="13.5sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:text="نمایش تایمر و پخش خودکار قسمت بعد"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_auto_next"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true" />
+            </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
+                android:id="@+id/btn_setting_auto_next_time"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="زمان نمایش قسمت بعدی"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tv_auto_next_minutes_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/vazirmatn_bold"
+                    android:text="۲ دقیقه مانده به پایان"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
+                android:id="@+id/btn_setting_player_choice"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/tv_profile_username"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:maxLines="1"
-                        android:text="ورود به حساب کاربری"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:text="پخش‌کننده پیش‌فرض"
                         android:textColor="@color/on_surface"
-                        android:textSize="15sp" />
+                        android:textSize="13.5sp" />
 
                     <TextView
-                        android:id="@+id/tv_profile_sync_status"
+                        android:id="@+id/tv_current_player_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:ellipsize="end"
                         android:fontFamily="@font/vazirmatn_regular"
-                        android:maxLines="1"
-                        android:text="جهت مدیریت پروفایل و ذخیره علایق وارد شوید"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="11.5sp" />
+                        android:text="پلیر داخلی بیسنور"
+                        android:textColor="@color/primary"
+                        android:textSize="11sp" />
                 </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_profile_action"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="38dp"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingHorizontal="14dp"
-                    android:text="ورود"
-                    android:textSize="12sp"
-                    app:cornerRadius="10dp" />
 
                 <ImageView
-                    android:id="@+id/img_profile_chevron"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:src="@drawable/ic_chevron_left"
-                    android:visibility="gone"
                     app:tint="@color/on_surface_variant" />
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
-        <!-- Category 2: Downloads & Storage -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="دانلودها و ذخیره‌سازی"
-            android:textColor="@color/primary"
-            android:textSize="13.5sp" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/surface_container"
-            app:cardCornerRadius="16dp"
-            app:strokeWidth="0dp">
+            <View style="@style/Widget.Bisnor.Divider" />
 
             <LinearLayout
+                style="@style/Widget.Bisnor.SettingRow"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
                 <LinearLayout
-                    android:id="@+id/btn_setting_downloads"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:minHeight="58dp"
-                    android:paddingVertical="10dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_download"
-                        app:tint="@color/primary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="مدیریت دانلودها"
-                            android:textColor="@color/on_surface"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="مشاهده فایل‌های ذخیره شده و دانلود آفلاین"
-                            android:textColor="@color/on_surface_variant"
-                            android:textSize="11.5sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_left"
-                        app:tint="@color/on_surface_variant" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="56dp"
-                    android:background="@color/surface_container_highest" />
-
-                <!-- Segmented Download Toggle -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="58dp"
-                    android:paddingVertical="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_star"
-                        app:tint="@color/secondary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="موتور دانلود چندتکه‌ای (۸ پارت IDM)"
-                            android:textColor="@color/on_surface"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="دانلود پرسرعت موازی فایل‌ها مانند IDM"
-                            android:textColor="@color/on_surface_variant"
-                            android:textSize="11.5sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_segmented_download"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true" />
-                </LinearLayout>
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Category 3: App & Player Settings -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="تنظیمات پخش و برنامه"
-            android:textColor="@color/primary"
-            android:textSize="13.5sp" />
-
-        <!-- Theme Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/surface_container"
-            app:cardCornerRadius="16dp"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="حالت پوسته (تم)"
-                    android:textColor="@color/on_surface"
-                    android:textSize="14sp" />
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chip_group_themes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_theme_system"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="📱 پیش‌فرض سیستم"
-                        android:textColor="@color/on_surface" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_theme_dark"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="🌙 حالت تاریک (Dark)"
-                        android:textColor="@color/on_surface" />
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_theme_light"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="☀️ حالت روشن (Light)"
-                        android:textColor="@color/on_surface" />
-                </com.google.android.material.chip.ChipGroup>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Player Preferences Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@color/surface_container"
-            app:cardCornerRadius="16dp"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- Auto Next Switch -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="رفتن خودکار به قسمت بعدی"
-                            android:textColor="@color/on_surface"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="نمایش تایمر و شروع خودکار قسمت بعد سریال"
-                            android:textColor="@color/on_surface_variant"
-                            android:textSize="11.5sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_auto_next"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/surface_container_highest" />
-
-                <!-- Trigger Time Selector -->
-                <LinearLayout
-                    android:id="@+id/btn_setting_auto_next_time"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="54dp"
-                    android:paddingVertical="10dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:fontFamily="@font/vazirmatn_medium"
-                        android:text="زمان شروع پیشنهاد قسمت بعدی"
+                        android:text="هشدار رده سنی"
                         android:textColor="@color/on_surface"
-                        android:textSize="13sp" />
+                        android:textSize="13.5sp" />
 
                     <TextView
-                        android:id="@+id/tv_auto_next_minutes_label"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:text="۲ دقیقه مانده به پایان"
-                        android:textColor="@color/primary"
-                        android:textSize="13sp" />
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:text="نمایش هشدار برای عناوین +۱۶ و +۱۸"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="11sp" />
                 </LinearLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/surface_container_highest" />
-
-                <!-- External Player Selector -->
-                <LinearLayout
-                    android:id="@+id/btn_setting_player_choice"
-                    android:layout_width="match_parent"
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switch_content_warning"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="58dp"
-                    android:paddingVertical="10dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="0dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="پخش‌کننده پیش‌فرض ویدیو"
-                            android:textColor="@color/on_surface"
-                            android:textSize="13.5sp" />
-
-                        <TextView
-                            android:id="@+id/tv_current_player_label"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_medium"
-                            android:text="پلیر داخلی بیسنور (پیش‌فرض)"
-                            android:textColor="@color/primary"
-                            android:textSize="11.5sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_left"
-                        app:tint="@color/on_surface_variant" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/surface_container_highest" />
-
-                <!-- Content Warning Switch -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="هشدار رده سنی (+۱۶ و +۱۸)"
-                            android:textColor="@color/on_surface"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="نمایش هشدار قبل از ورود به عناوین رده سنی بالا"
-                            android:textColor="@color/on_surface_variant"
-                            android:textSize="11.5sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/switch_content_warning"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true" />
-                </LinearLayout>
-
+                    android:checked="true" />
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
-        <!-- Category 4: About & Update & GitHub -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="درباره برنامه و به‌روزرسانی"
-            android:textColor="@color/primary"
-            android:textSize="13.5sp" />
-
-        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/surface_container"
-            app:cardCornerRadius="16dp"
-            app:strokeWidth="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- Version & Check Update -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/logo" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="بیسنور (Bisnor)"
-                            android:textColor="@color/on_surface"
-                            android:textSize="15sp" />
-
-                        <TextView
-                            android:id="@+id/tv_app_version_about"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_medium"
-                            android:text="نسخه v5.0.0"
-                            android:textColor="@color/secondary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btn_check_update"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:text="بررسی به‌روزرسانی 🔄"
-                        android:textSize="11sp"
-                        app:backgroundTint="@color/surface_container_high"
-                        app:cornerRadius="10dp" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/surface_container_highest" />
-
-                <!-- GitHub Button -->
-                <LinearLayout
-                    android:id="@+id/btn_open_github"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="58dp"
-                    android:paddingVertical="10dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="16dp">
-
-                    <ImageView
-                        android:layout_width="26dp"
-                        android:layout_height="26dp"
-                        android:src="@drawable/ic_github"
-                        app:tint="@color/on_surface" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="مخزن رسمی گیت‌هاب"
-                            android:textColor="@color/on_surface"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="مشاهده سورس‌کد و مشارکت در گیت‌هاب"
-                            android:textColor="@color/on_surface_variant"
-                            android:textSize="11.5sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_left"
-                        app:tint="@color/on_surface_variant" />
-                </LinearLayout>
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/vazirmatn_regular"
+            android:gravity="center"
+            android:text="بیسنور • تماشا بدون مرز"
+            android:textColor="@color/outline"
+            android:textSize="10.5sp" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

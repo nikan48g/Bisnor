@@ -77,36 +77,64 @@
                 app:cornerRadius="12dp" />
         </LinearLayout>
 
-        <!-- 3. Multiple Genres Selector with Checkboxes Modal -->
-        <LinearLayout
+        <!-- 3. Search scope: all / actors / directors -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="محدوده جستجو:"
+            android:textColor="@color/on_surface"
+            android:textSize="14sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_dialog_scope"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_dialog_scope_all"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="همه" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_dialog_scope_actor"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="بازیگران" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_dialog_scope_director"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="کارگردان" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- 4. Genres from the live catalogue (multi-select) -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="ژانرها:"
+            android:textColor="@color/on_surface"
+            android:textSize="14sp" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="ژانرها:"
-                android:textColor="@color/on_surface"
-                android:textSize="14sp" />
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_dialog_genres"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            app:singleSelection="false" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_filter_genres"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="مهم نیست"
-                android:textSize="12sp"
-                app:backgroundTint="@color/surface_container_high"
-                app:cornerRadius="12dp" />
-        </LinearLayout>
-
-        <!-- 4. Country Selector -->
+        <!-- 5. Country Selector -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

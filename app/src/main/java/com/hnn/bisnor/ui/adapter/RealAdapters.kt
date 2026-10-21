@@ -5,56 +5,71 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.hnn.bisnor.R
 import com.hnn.bisnor.data.model.RealMedia
+import com.hnn.bisnor.data.model.RealSource
 import com.hnn.bisnor.databinding.ItemHeroBannerBinding
 import com.hnn.bisnor.databinding.ItemMediaCardBinding
 import com.hnn.bisnor.databinding.ItemStreamLinkBinding
-import com.hnn.bisnor.data.model.RealSource
+import com.hnn.bisnor.util.ImageUrlHelper
+import java.util.Locale
 
+/** Hero carousel card. Artwork, copy and metadata are bound from the live catalogue only. */
 class RealHeroBannerAdapter(
     private val items: List<RealMedia>,
-    private val onItemClick: (RealMedia) -> Unit
+    private val onDetailsClick: (RealMedia) -> Unit,
+    private val onPlayClick: (RealMedia) -> Unit,
+    private val onSaveClick: (RealMedia) -> Unit
 ) : RecyclerView.Adapter<RealHeroBannerAdapter.HeroViewHolder>() {
 
     inner class HeroViewHolder(val binding: ItemHeroBannerBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
             val rawBanner = if (item.cover.isNotEmpty()) item.cover else item.image
-            val bannerUrl = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawBanner)
-            binding.imgBackdrop.load(bannerUrl) {
+            binding.imgBackdrop.load(ImageUrlHelper.getOptimizedImageUrl(rawBanner)) {
                 crossfade(true)
             }
-            binding.tvBadgeRating.text = String.format("%.1f", item.imdb)
-            binding.tvHeroTitle.text = item.title
-            val genreNames = item.genres.take(2).joinToString("، ") { it.title }
-            val subtitle = "${if (item.year > 0) item.year else ""}  •  $genreNames"
-            binding.tvHeroGenreYear.text = subtitle
 
-            binding.root.setOnClickListener { onItemClick(item) }
+            binding.tvBadgeRating.text = String.format(Locale.US, "%.1f", item.imdb)
+            binding.tvBadgeRating.visibility = if (item.imdb > 0.0) View.VISIBLE else View.GONE
+
+            binding.tvHeroTitle.text = item.title
+            binding.tvHeroType.text = if (item.isSeries) "سریال" else "فیلم"
+
+            val genreNames = item.genres.take(3).joinToString("، ") { it.title }
+            val parts = mutableListOf<String>()
+            if (item.year > 0) parts.add(item.year.toString())
+            if (genreNames.isNotEmpty()) parts.add(genreNames)
+            binding.tvHeroGenreYear.text = parts.joinToString("  •  ")
+
+            val desc = com.hnn.bisnor.util.MediaMetadataHelper
+                .parse(item.description, item.imdb, isSeries = item.isSeries).cleanStoryline
+            binding.tvHeroDesc.text = desc
+            binding.tvHeroDesc.visibility = if (desc.isNotBlank()) View.VISIBLE else View.GONE
+
+            binding.btnHeroPlay.setOnClickListener { onPlayClick(item) }
+            binding.btnHeroDetails.setOnClickListener { onDetailsClick(item) }
+            binding.btnHeroSave.setOnClickListener { onSaveClick(item) }
+            binding.root.setOnClickListener { onDetailsClick(item) }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeroViewHolder {
-        val binding = ItemHeroBannerBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemHeroBannerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return HeroViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: HeroViewHolder, position: Int) {
-        holder.bind(items[position])
-    }
+    override fun onBindViewHolder(holder: HeroViewHolder, position: Int) = holder.bind(items[position])
 
     override fun getItemCount(): Int = items.size
 }
 
+/** Poster card used in horizontal rails and the search grid. */
 class RealMediaAdapter(
     private var items: List<RealMedia>,
     private val onItemClick: (RealMedia) -> Unit,
     private val isGrid: Boolean = false
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    constructor(items: List<RealMedia>, onItemClick: (RealMedia) -> Unit) : this(items, onItemClick, false)
 
     fun updateData(newItems: List<RealMedia>) {
         items = newItems
@@ -64,41 +79,16 @@ class RealMediaAdapter(
     inner class MediaViewHolder(val binding: ItemMediaCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
-            val rawImg = if (item.image.isNotEmpty()) item.image else item.cover
-            val imgUrl = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawImg)
-            binding.imgPoster.load(imgUrl) {
-                crossfade(true)
-                placeholder(com.hnn.bisnor.R.drawable.badge_background)
-                error(com.hnn.bisnor.R.drawable.badge_background)
-            }
-            binding.tvRating.text = String.format("%.1f", item.imdb)
+            bindArtwork(binding.imgPoster, item)
+            binding.tvRating.text = String.format(Locale.US, "%.1f", item.imdb)
+            binding.tvRating.visibility = if (item.imdb > 0.0) View.VISIBLE else View.GONE
             binding.tvTitle.text = item.title
             val genre = item.genres.firstOrNull()?.title ?: ""
-            binding.tvGenreYear.text = "${if (item.year > 0) item.year else ""} • $genre"
-
-            // Smart Badge: Dubbed, 1080p, Series, Subtitle
-            val titleLower = item.title.lowercase()
-            val descLower = item.description.lowercase()
-            val hasDubbed = titleLower.contains("دوبله") || descLower.contains("دوبله")
-            val hasSub = titleLower.contains("زیرنویس") || descLower.contains("زیرنویس")
-
-            binding.tvBadgeDubbed.visibility = View.VISIBLE
-            when {
-                hasDubbed -> {
-                    binding.tvBadgeDubbed.text = "دوبله فارسی"
-                    binding.tvBadgeDubbed.setBackgroundResource(com.hnn.bisnor.R.drawable.badge_background)
-                }
-                item.type == "serie" -> {
-                    binding.tvBadgeDubbed.text = "سریال"
-                }
-                hasSub -> {
-                    binding.tvBadgeDubbed.text = "زیرنویس"
-                }
-                else -> {
-                    binding.tvBadgeDubbed.text = "1080p"
-                }
-            }
-
+            binding.tvGenreYear.text = listOfNotNull(
+                item.year.takeIf { it > 0 }?.toString(),
+                genre.takeIf { it.isNotBlank() }
+            ).joinToString(" • ")
+            bindBadge(binding.tvBadgeDubbed, item)
             binding.root.setOnClickListener { onItemClick(item) }
         }
     }
@@ -106,41 +96,46 @@ class RealMediaAdapter(
     inner class GridMediaViewHolder(val binding: com.hnn.bisnor.databinding.ItemMediaCardGridBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: RealMedia) {
-            val rawImg = if (item.image.isNotEmpty()) item.image else item.cover
-            val imgUrl = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawImg)
-            binding.imgPoster.load(imgUrl) {
-                crossfade(true)
-                placeholder(com.hnn.bisnor.R.drawable.badge_background)
-                error(com.hnn.bisnor.R.drawable.badge_background)
-            }
-            binding.tvRating.text = String.format("%.1f", item.imdb)
+            bindArtwork(binding.imgPoster, item)
+            binding.tvRating.text = String.format(Locale.US, "%.1f", item.imdb)
+            binding.tvRating.visibility = if (item.imdb > 0.0) View.VISIBLE else View.GONE
             binding.tvTitle.text = item.title
             val genre = item.genres.firstOrNull()?.title ?: ""
-            binding.tvGenreYear.text = "${if (item.year > 0) item.year else ""} • $genre"
-
-            val titleLower = item.title.lowercase()
-            val descLower = item.description.lowercase()
-            val hasDubbed = titleLower.contains("دوبله") || descLower.contains("دوبله")
-            val hasSub = titleLower.contains("زیرنویس") || descLower.contains("زیرنویس")
-
-            binding.tvBadgeDubbed.visibility = View.VISIBLE
-            when {
-                hasDubbed -> {
-                    binding.tvBadgeDubbed.text = "دوبله"
-                    binding.tvBadgeDubbed.setBackgroundResource(com.hnn.bisnor.R.drawable.badge_background)
-                }
-                item.type == "serie" -> {
-                    binding.tvBadgeDubbed.text = "سریال"
-                }
-                hasSub -> {
-                    binding.tvBadgeDubbed.text = "زیرنویس"
-                }
-                else -> {
-                    binding.tvBadgeDubbed.text = "1080p"
-                }
-            }
-
+            binding.tvGenreYear.text = listOfNotNull(
+                item.year.takeIf { it > 0 }?.toString(),
+                genre.takeIf { it.isNotBlank() }
+            ).joinToString(" • ")
+            bindBadge(binding.tvBadgeDubbed, item)
             binding.root.setOnClickListener { onItemClick(item) }
+        }
+    }
+
+    private fun bindArtwork(view: android.widget.ImageView, item: RealMedia) {
+        val rawImg = if (item.image.isNotEmpty()) item.image else item.cover
+        view.load(ImageUrlHelper.getOptimizedImageUrl(rawImg)) {
+            crossfade(true)
+            placeholder(R.drawable.bg_skeleton)
+            error(R.drawable.ic_movie_placeholder)
+        }
+    }
+
+    /** Only claims a badge the metadata actually supports. */
+    private fun bindBadge(view: android.widget.TextView, item: RealMedia) {
+        val haystack = (item.title + " " + item.description).lowercase()
+        when {
+            haystack.contains("دوبله") -> {
+                view.text = "دوبله"
+                view.visibility = View.VISIBLE
+            }
+            item.isSeries -> {
+                view.text = "سریال"
+                view.visibility = View.VISIBLE
+            }
+            haystack.contains("زیرنویس") -> {
+                view.text = "زیرنویس"
+                view.visibility = View.VISIBLE
+            }
+            else -> view.visibility = View.GONE
         }
     }
 
@@ -160,10 +155,9 @@ class RealMediaAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = items[position]
-        if (holder is GridMediaViewHolder) {
-            holder.bind(item)
-        } else if (holder is MediaViewHolder) {
-            holder.bind(item)
+        when (holder) {
+            is GridMediaViewHolder -> holder.bind(item)
+            is MediaViewHolder -> holder.bind(item)
         }
     }
 
@@ -184,12 +178,12 @@ class RealHomeSectionAdapter(
         RecyclerView.ViewHolder(binding.root) {
         fun bind(section: RealHomeSection) {
             binding.tvSectionTitle.text = section.title
-            val mediaAdapter = RealMediaAdapter(section.items, onItemClick)
             binding.recyclerHorizontal.apply {
                 layoutManager = androidx.recyclerview.widget.LinearLayoutManager(
                     context, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false
                 )
-                adapter = mediaAdapter
+                adapter = RealMediaAdapter(section.items, onItemClick)
+                itemAnimator = null
             }
         }
     }
@@ -201,9 +195,7 @@ class RealHomeSectionAdapter(
         return SectionViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: SectionViewHolder, position: Int) {
-        holder.bind(sections[position])
-    }
+    override fun onBindViewHolder(holder: SectionViewHolder, position: Int) = holder.bind(sections[position])
 
     override fun getItemCount(): Int = sections.size
 }
@@ -217,22 +209,22 @@ class RealSourceAdapter(
         RecyclerView.ViewHolder(binding.root) {
         fun bind(source: RealSource) {
             binding.tvLinkQuality.text = source.quality
-            binding.tvLinkInfo.text = "فرمت: ${source.type.uppercase()}"
+            binding.tvLinkInfo.text = when {
+                source.type.isNotBlank() && source.type != "null" -> "فرمت ${source.type.uppercase()}"
+                else -> ""
+            }
+            binding.btnLinkDownload.visibility = View.GONE
             binding.btnLinkPlay.setOnClickListener { onPlayClick(source) }
             binding.root.setOnClickListener { onPlayClick(source) }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SourceViewHolder {
-        val binding = ItemStreamLinkBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val binding = ItemStreamLinkBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return SourceViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: SourceViewHolder, position: Int) {
-        holder.bind(sources[position])
-    }
+    override fun onBindViewHolder(holder: SourceViewHolder, position: Int) = holder.bind(sources[position])
 
     override fun getItemCount(): Int = sources.size
 }

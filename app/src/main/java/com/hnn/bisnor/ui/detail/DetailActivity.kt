@@ -2,11 +2,16 @@ package com.hnn.bisnor.ui.detail
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,7 +19,9 @@ import coil.load
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.hnn.bisnor.R
+import com.hnn.bisnor.data.model.RealEpisode
 import com.hnn.bisnor.data.model.RealMedia
+import com.hnn.bisnor.data.model.RealPerson
 import com.hnn.bisnor.data.model.RealSeason
 import com.hnn.bisnor.data.model.RealSource
 import com.hnn.bisnor.data.repository.FavoritesManager
@@ -26,11 +33,21 @@ import com.hnn.bisnor.databinding.ActivityDetailBinding
 import com.hnn.bisnor.databinding.ItemDetailFooterBinding
 import com.hnn.bisnor.databinding.ItemDetailHeaderBinding
 import com.hnn.bisnor.databinding.ItemStreamLinkBinding
+import com.hnn.bisnor.ui.adapter.PersonRowAdapter
 import com.hnn.bisnor.ui.adapter.RealMediaAdapter
+import com.hnn.bisnor.ui.person.PersonActivity
 import com.hnn.bisnor.util.DownloadHelper
+import com.hnn.bisnor.util.ImageUrlHelper
+import com.hnn.bisnor.util.MediaMetadataHelper
+import com.hnn.bisnor.util.ParsedMediaInfo
+import com.hnn.bisnor.util.PersonPhotoResolver
 import com.hnn.bisnor.util.PlayerLauncherHelper
 import com.hnn.bisnor.util.ThemeHelper
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class DetailActivity : AppCompatActivity() {
 
@@ -38,14 +55,29 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var favoritesManager: FavoritesManager
     private lateinit var playlistsManager: PlaylistsManager
     private lateinit var historyManager: PlaybackHistoryManager
+
     private var mediaItem: RealMedia? = null
-    private val sourcesList = mutableListOf<RealSource>()
+    private val rows = mutableListOf<DetailRow>()
     private val allSeasons = mutableListOf<RealSeason>()
     private var selectedSeasonIndex = 0
     private val similarList = mutableListOf<RealMedia>()
     private var trailerUrl: String? = null
-    private lateinit var detailAdapter: DetailRecyclerAdapter
-    private var sectionTitle = "کیفیت‌های پخش و تماشا"
+    private var people: List<RealPerson> = emptyList()
+    private var peopleAdapter: PersonRowAdapter? = null
+    private var sectionTitle = "کیفیت‌های پخش"
+    private lateinit var adapter: DetailRecyclerAdapter
+    private var synopsisExpanded = false
+
+    data class DetailRow(
+        val source: RealSource,
+        val title: String,
+        val subtitle: String,
+        val thumbnail: String?,
+        val progress: PlaybackProgress?,
+        val episodeIndex: Int
+    ) {
+        val isWatched: Boolean get() = progress?.isFinished == true
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.applyTheme(this)
@@ -64,12 +96,15 @@ class DetailActivity : AppCompatActivity() {
         }
 
         binding.toolbarDetail.setNavigationOnClickListener { finish() }
-        binding.toolbarDetail.title = mediaItem!!.title
+        // The immersive header carries the title; the toolbar stays a clean back affordance.
 
-        detailAdapter = DetailRecyclerAdapter()
+        people = buildPeople(mediaItem!!)
+        resolvePeoplePhotos()
+
+        adapter = DetailRecyclerAdapter()
         binding.recyclerDetailContent.apply {
             layoutManager = LinearLayoutManager(this@DetailActivity)
-            adapter = detailAdapter
+            adapter = this@DetailActivity.adapter
             setHasFixedSize(true)
             setItemViewCacheSize(20)
         }
@@ -78,37 +113,31 @@ class DetailActivity : AppCompatActivity() {
         loadData()
     }
 
+    // ---------------------------------------------------------------- warning & data
+
     private fun checkContentWarning(item: RealMedia) {
         if (!historyManager.isContentWarningEnabled || isFinishing || isDestroyed) return
+        val isAnim = item.genres.any {
+            it.title.contains("انیمیشن") || it.title.contains("کارتون") || it.title.contains("انیمه")
+        } || item.title.contains("انیمه") || item.title.contains("انیمیشن")
+        val meta = MediaMetadataHelper.parse(item.description, item.imdb, isAnim)
+        if (!meta.isAdultOr18) return
 
-        val isAnim = item.genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("کارتون") || g.title.contains("انیمه") } ||
-                item.title.contains("انیمه") || item.title.contains("انیمیشن")
-        val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb, isAnim)
-        if (meta.isAdultOr18) {
-            try {
-                MaterialAlertDialogBuilder(this)
-                    .setTitle("⚠️ هشدار رده‌بندی سنی")
-                    .setMessage("این اثر ممکن است شامل صحنه‌ها یا موضوعات مناسب افراد بالای ۱۸ سال باشد.\nآیا مایل به ادامه هستید؟")
-                    .setPositiveButton("ادامه و تماشا") { dialog, _ -> dialog.dismiss() }
-                    .setNegativeButton("بازگشت") { _, _ -> finish() }
-                    .setCancelable(false)
-                    .show()
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        detailAdapter.notifyDataSetChanged()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("هشدار رده سنی")
+            .setMessage("این اثر ممکن است برای افراد زیر ۱۸ سال مناسب نباشد. ادامه می‌دهید؟")
+            .setPositiveButton("ادامه") { dialog, _ -> dialog.dismiss() }
+            .setNegativeButton("بازگشت") { _, _ -> finish() }
+            .setCancelable(false)
+            .show()
     }
 
     private fun loadData() {
         val item = mediaItem ?: return
 
-        val trailerSource = item.sources.find { it.quality.contains("تیزر") || it.quality.contains("Trailer", ignoreCase = true) || it.url.contains("tizer") }
-        trailerUrl = trailerSource?.url
+        trailerUrl = item.sources.firstOrNull {
+            it.quality.contains("تیزر") || it.quality.contains("Trailer", true) || it.url.contains("tizer")
+        }?.url
 
         lifecycleScope.launch {
             try {
@@ -117,288 +146,372 @@ class DetailActivity : AppCompatActivity() {
                     val results = RealMediaRepository.search(genre)
                     similarList.clear()
                     similarList.addAll(results.filter { it.id != item.id }.take(10))
-                    if (!isFinishing && !isDestroyed) {
-                        detailAdapter.notifyDataSetChanged()
-                    }
+                    if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
                 }
-            } catch (e: Exception) {
-                // Ignore
+            } catch (_: Exception) {
+                // similar row is optional
             }
         }
 
-        if (item.type == "serie") {
-            sectionTitle = "در حال دریافت فصل‌ها و قسمت‌ها..."
-            detailAdapter.notifyItemChanged(0)
-
+        if (item.isSeries) {
+            sectionTitle = "در حال دریافت قسمت‌ها..."
+            adapter.notifyItemChanged(0)
             lifecycleScope.launch {
-                try {
-                    val seasons = RealMediaRepository.getSeriesSeasons(item.id)
-                    allSeasons.clear()
-                    allSeasons.addAll(seasons)
-                    selectedSeasonIndex = 0
-                    updateSeasonEpisodes()
-                } catch (e: Exception) {
-                    sectionTitle = "خطا در بارگذاری قسمت‌ها"
-                    if (!isFinishing && !isDestroyed) {
-                        detailAdapter.notifyDataSetChanged()
-                    }
+                val seasons = try {
+                    RealMediaRepository.getSeriesSeasons(item.id)
+                } catch (_: Exception) {
+                    emptyList()
                 }
+                allSeasons.clear()
+                allSeasons.addAll(seasons)
+                selectedSeasonIndex = 0
+                updateSeasonEpisodes()
             }
         } else {
-            sourcesList.clear()
-            for (src in item.sources) {
-                if (src.quality.contains("تیزر") || src.url.contains("tizer")) continue
-                val q = if (src.quality.isNotEmpty() && src.quality != "null") src.quality else "کیفیت اصلی"
-                sourcesList.add(src.copy(quality = q))
-            }
-            detailAdapter.notifyDataSetChanged()
+            buildMovieRows(item)
         }
+    }
+
+    private fun buildMovieRows(item: RealMedia) {
+        rows.clear()
+        item.sources.forEach { src ->
+            if (src.quality.contains("تیزر") || src.url.contains("tizer")) return@forEach
+            val quality = src.quality.ifBlank { "کیفیت اصلی" }
+            val progress = historyManager.getProgressByUrl(src.url)
+            rows.add(
+                DetailRow(
+                    source = src,
+                    title = quality,
+                    subtitle = buildString {
+                        if (src.type.isNotBlank() && src.type != "null") append("فرمت ${src.type.uppercase()}")
+                        if (progress != null && progress.positionMs > 1000) {
+                            if (isNotEmpty()) append(" • ")
+                            append("دیده‌شده تا ${formatMinutes(progress.positionMs)}")
+                        }
+                    },
+                    thumbnail = null,
+                    progress = progress,
+                    episodeIndex = 0
+                )
+            )
+        }
+        sectionTitle = if (rows.isEmpty()) "لینک پخشی برای این اثر موجود نیست" else "کیفیت‌های پخش"
+        if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
     }
 
     private fun updateSeasonEpisodes() {
-        sourcesList.clear()
+        rows.clear()
         if (allSeasons.isNotEmpty()) {
             val season = allSeasons.getOrNull(selectedSeasonIndex) ?: allSeasons.first()
             sectionTitle = "قسمت‌های ${season.title}"
-            for ((epIdx, ep) in season.episodes.withIndex()) {
-                val epTitle = if (ep.title.isNotEmpty() && ep.title != "null") ep.title else "قسمت ${epIdx + 1}"
-                for (src in ep.sources) {
-                    val qualityText = if (src.quality.isNotEmpty() && src.quality != "null") " (${src.quality})" else ""
-                    val displayTitle = "$epTitle$qualityText"
-                    // id contains episode id to accurately match next episode in player
-                    sourcesList.add(src.copy(id = ep.id, quality = displayTitle))
-                }
+            season.episodes.forEachIndexed { index, episode ->
+                val source = episode.sources.firstOrNull() ?: return@forEachIndexed
+                val progress = historyManager.getProgressByUrl(source.url)
+                rows.add(
+                    DetailRow(
+                        source = source,
+                        title = episode.title.ifBlank { "قسمت ${index + 1}" },
+                        subtitle = buildString {
+                            append("قسمت ${index + 1}")
+                            if (!episode.duration.isNullOrBlank()) append(" • ${episode.duration}")
+                            if (source.quality.isNotBlank()) append(" • ${source.quality}")
+                        },
+                        thumbnail = episode.image.takeIf { it.isNotBlank() },
+                        progress = progress,
+                        episodeIndex = index
+                    )
+                )
             }
         } else {
-            sectionTitle = "قسمتی برای این سریال یافت نشد."
+            sectionTitle = "قسمتی برای این سریال یافت نشد"
         }
-        if (!isFinishing && !isDestroyed) {
-            detailAdapter.notifyDataSetChanged()
-        }
+        if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
     }
 
-    private fun playStream(title: String, source: RealSource, resumePosition: Long = 0L, epIndex: Int = 0) {
-        if (source.url.isEmpty()) {
-            Toast.makeText(this, "آدرس ویدیو نامعتبر است", Toast.LENGTH_SHORT).show()
+    // ---------------------------------------------------------------- playback
+
+    private fun play(row: DetailRow, resumePosition: Long = 0L) {
+        val item = mediaItem ?: return
+        if (row.source.url.isBlank()) {
+            Toast.makeText(this, "آدرس ویدیو معتبر نیست", Toast.LENGTH_SHORT).show()
             return
         }
-        val item = mediaItem ?: return
-        val banner = if (item.cover.isNotEmpty()) item.cover else item.image
-
-        // Learn user taste dynamically
+        val banner = item.cover.ifEmpty { item.image }
         val genreList = item.genres.map { it.title }
-        val mType = if (item.isSeries) "series" else "movie"
+        val type = if (item.isSeries) "series" else "movie"
+
         try {
             com.hnn.bisnor.data.database.SmartTasteDatabase(this).recordWatchEvent(
                 mediaId = item.id,
                 title = item.title,
-                mediaType = mType,
+                mediaType = type,
                 genres = genreList
             )
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+            // analytics is best-effort
+        }
 
         PlayerLauncherHelper.launchPlayer(
             activity = this,
             playerChoice = historyManager.preferredPlayer,
-            title = "$title - ${source.quality}",
-            url = source.url,
+            title = "${item.title} • ${row.title}",
+            url = row.source.url,
             mediaId = item.id,
             mediaCover = banner,
-            episodeTitle = source.quality,
-            episodeIndex = epIndex,
-            startPositionMs = resumePosition,
-            mediaType = mType,
+            episodeTitle = row.title,
+            episodeIndex = row.episodeIndex,
+            startPositionMs = maxOf(resumePosition, row.progress?.positionMs ?: 0L),
+            mediaType = type,
             genres = ArrayList(genreList)
         )
     }
 
+    private fun playPrimary() {
+        val item = mediaItem ?: return
+        if (rows.isEmpty()) {
+            Toast.makeText(this, "هنوز لینک پخشی بارگذاری نشده است", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val resumeRow = rows.firstOrNull { it.progress != null && !it.progress.isFinished }
+        val target = resumeRow ?: rows.firstOrNull { !it.isWatched } ?: rows.first()
+        play(target)
+    }
+
+    private fun formatMinutes(ms: Long): String {
+        val totalSeconds = ms / 1000
+        val h = totalSeconds / 3600
+        val m = (totalSeconds % 3600) / 60
+        val s = totalSeconds % 60
+        return if (h > 0) String.format(Locale.US, "%d:%02d:%02d", h, m, s)
+        else String.format(Locale.US, "%02d:%02d", m, s)
+    }
+
+    // ---------------------------------------------------------------- watchlist & share
+
     private fun showAddToPlaylistDialog(media: RealMedia) {
         val playlists = playlistsManager.playlistsFlow.value
-        val items = arrayOf("❤️ نشان‌شده‌ها (اصلی)") + playlists.map { "📁 ${it.name}" }
+        val items = arrayOf("نشان‌شده‌ها (واچ‌لیست اصلی)") + playlists.map { it.name }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("افزودن «${media.title}» به لیست:")
+            .setTitle("افزودن «${media.title}» به:")
             .setItems(items) { _, which ->
                 if (which == 0) {
                     val added = favoritesManager.toggleFavorite(media)
-                    detailAdapter.notifyItemChanged(0)
-                    Toast.makeText(this, if (added) "به نشان‌شده‌ها اضافه شد" else "از نشان‌شده‌ها حذف شد", Toast.LENGTH_SHORT).show()
+                    adapter.notifyItemChanged(0)
+                    Toast.makeText(
+                        this,
+                        if (added) "به واچ‌لیست اضافه شد" else "از واچ‌لیست حذف شد",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
-                    val targetPl = playlists[which - 1]
-                    val added = playlistsManager.addToPlaylist(targetPl.id, media)
-                    val msg = if (added) "به لیست «${targetPl.name}» افزوده شد" else "قبلاً در این لیست وجود دارد"
-                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+                    val target = playlists[which - 1]
+                    val added = playlistsManager.addToPlaylist(target.id, media)
+                    Toast.makeText(
+                        this,
+                        if (added) "به «${target.name}» اضافه شد" else "قبلاً در این لیست بود",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             .show()
     }
 
-    private fun showShareMovieDialog(media: RealMedia) {
-        val shareText = "🎬 فیلم «${media.title}»\n⭐ نمره IMDb: ${media.imdb}\nدر اپلیکیشن بیسنور سینما"
+    private fun shareMedia(media: RealMedia) {
+        val text = "«${media.title}» را در بیسنور ببینید.\nhttps://bisnor.app"
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, media.title)
-            putExtra(Intent.EXTRA_TEXT, shareText)
+            putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, "اشتراک‌گذاری «${media.title}»"))
+        startActivity(Intent.createChooser(intent, "اشتراک‌گذاری"))
     }
 
+    // ---------------------------------------------------------------- adapter
+
     inner class DetailRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        private val typeHeader = 0
+        private val typeItem = 1
+        private val typeFooter = 2
 
-        private val TYPE_HEADER = 0
-        private val TYPE_ITEM = 1
-        private val TYPE_FOOTER = 2
-
-        override fun getItemViewType(position: Int): Int {
-            return when (position) {
-                0 -> TYPE_HEADER
-                sourcesList.size + 1 -> TYPE_FOOTER
-                else -> TYPE_ITEM
-            }
+        override fun getItemViewType(position: Int): Int = when (position) {
+            0 -> typeHeader
+            rows.size + 1 -> typeFooter
+            else -> typeItem
         }
 
-        override fun getItemCount(): Int = sourcesList.size + 2
+        override fun getItemCount(): Int = rows.size + 2
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            val inflater = LayoutInflater.from(parent.context)
             return when (viewType) {
-                TYPE_HEADER -> {
-                    val b = ItemDetailHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                    HeaderViewHolder(b)
-                }
-                TYPE_FOOTER -> {
-                    val b = ItemDetailFooterBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                    FooterViewHolder(b)
-                }
-                else -> {
-                    val b = ItemStreamLinkBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                    ItemViewHolder(b)
-                }
+                typeHeader -> HeaderHolder(ItemDetailHeaderBinding.inflate(inflater, parent, false))
+                typeFooter -> FooterHolder(ItemDetailFooterBinding.inflate(inflater, parent, false))
+                else -> RowHolder(ItemStreamLinkBinding.inflate(inflater, parent, false))
             }
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             when (holder) {
-                is HeaderViewHolder -> holder.bind()
-                is FooterViewHolder -> holder.bind()
-                is ItemViewHolder -> holder.bind(sourcesList[position - 1], position - 1)
+                is HeaderHolder -> holder.bind()
+                is FooterHolder -> holder.bind()
+                is RowHolder -> holder.bind(rows[position - 1], position - 1)
             }
         }
 
-        inner class HeaderViewHolder(val b: ItemDetailHeaderBinding) : RecyclerView.ViewHolder(b.root) {
+        inner class HeaderHolder(val b: ItemDetailHeaderBinding) : RecyclerView.ViewHolder(b.root) {
             fun bind() {
                 val item = mediaItem ?: return
-                val rawBanner = if (item.cover.isNotEmpty()) item.cover else item.image
-                val banner = com.hnn.bisnor.util.ImageUrlHelper.getOptimizedImageUrl(rawBanner)
-                b.imgHeaderBackdrop.load(banner) { crossfade(true) }
-
-                val isAnim = item.genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("کارتون") || g.title.contains("انیمه") } ||
-                        item.title.contains("انیمه") || item.title.contains("انیمیشن")
-                val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb, isAnim, item.isSeries)
-                val displayImdb = meta.extractedImdb ?: item.imdb
-
-                b.tvHeaderTitle.text = item.title
-                b.tvHeaderGenres.text = item.genres.joinToString("، ") { it.title }
-                b.tvHeaderRating.text = if (displayImdb > 0.0) String.format("%.1f", displayImdb) else "—"
-                b.tvHeaderYear.text = if (item.year > 0) item.year.toString() else "نامشخص"
-                b.tvHeaderType.text = if (item.isSeries) {
-                    if (meta.averageEpisodeSize != null) "سریال • ${meta.averageEpisodeSize}" else "سریال"
-                } else {
-                    item.duration ?: "سینمایی"
+                val backdrop = item.cover.ifEmpty { item.image }
+                b.imgHeaderBackdrop.load(ImageUrlHelper.getOptimizedImageUrl(backdrop)) { crossfade(true) }
+                b.imgHeaderPoster.load(ImageUrlHelper.getOptimizedImageUrl(item.image)) {
+                    crossfade(true)
+                    placeholder(R.drawable.bg_skeleton)
+                    error(R.drawable.ic_movie_placeholder)
                 }
 
-                // Age rating badge
-                if (!meta.ageRating.isNullOrEmpty()) {
+                val isAnim = item.genres.any {
+                    it.title.contains("انیمیشن") || it.title.contains("کارتون") || it.title.contains("انیمه")
+                }
+                val meta = MediaMetadataHelper.parse(item.description, item.imdb, isAnim, item.isSeries)
+                val rating = meta.extractedImdb ?: item.imdb
+
+                b.tvHeaderTitle.text = item.title
+
+                val originalTitle = extractOriginalTitle(item.description)
+                if (!originalTitle.isNullOrBlank() && !originalTitle.equals(item.title, true)) {
+                    b.tvHeaderOriginalTitle.text = originalTitle
+                    b.tvHeaderOriginalTitle.visibility = View.VISIBLE
+                } else {
+                    b.tvHeaderOriginalTitle.visibility = View.GONE
+                }
+
+                b.tvHeaderRating.text = if (rating > 0.0) {
+                    String.format(Locale.US, "%.1f IMDb", rating)
+                } else {
+                    "بدون امتیاز"
+                }
+                b.tvHeaderRating.visibility = if (rating > 0.0) View.VISIBLE else View.GONE
+                b.tvHeaderYear.text = if (item.year > 0) item.year.toString() else "نامشخص"
+                b.tvHeaderType.text = when {
+                    item.isSeries -> "سریال"
+                    !item.duration.isNullOrBlank() -> item.duration
+                    else -> "فیلم"
+                }
+                b.tvHeaderGenres.text = item.genres.joinToString("، ") { it.title }
+
+                if (!meta.ageRating.isNullOrBlank()) {
                     b.tvHeaderAgeRating.text = meta.ageRating
                     b.tvHeaderAgeRating.visibility = View.VISIBLE
                 } else {
                     b.tvHeaderAgeRating.visibility = View.GONE
                 }
 
-                // Storyline & Cast/Crew
-                b.tvHeaderStoryline.text = if (meta.cleanStoryline.isNotEmpty()) meta.cleanStoryline else "توضیحاتی موجود نیست."
-
-                if (!meta.director.isNullOrEmpty() || !meta.actors.isNullOrEmpty()) {
-                    b.layoutHeaderCastCrew.visibility = View.VISIBLE
-                    if (!meta.director.isNullOrEmpty()) {
-                        b.tvHeaderDirector.text = "🎬 کارگردان: ${meta.director} (مشاهده آثار ↗)"
-                        b.tvHeaderDirector.visibility = View.VISIBLE
-                        b.tvHeaderDirector.setOnClickListener {
-                            val intent = Intent(this@DetailActivity, com.hnn.bisnor.MainActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                                putExtra("search_query", meta.director.trim())
-                                putExtra("search_scope", "director")
-                            }
-                            startActivity(intent)
-                            finish()
-                        }
-                    } else {
-                        b.tvHeaderDirector.visibility = View.GONE
-                    }
-                    if (!meta.actors.isNullOrEmpty()) {
-                        b.tvHeaderActors.text = "🎭 بازیگران: ${meta.actors} (جستجو ↗)"
-                        b.tvHeaderActors.visibility = View.VISIBLE
-                        b.tvHeaderActors.setOnClickListener {
-                            // If multiple actors, let user pick one or search the whole cast string
-                            val rawActors = meta.actors.split(Regex("[,،|]")).map { it.trim() }.filter { it.isNotEmpty() }
-                            if (rawActors.size > 1) {
-                                val choices = rawActors.toTypedArray()
-                                com.google.android.material.dialog.MaterialAlertDialogBuilder(this@DetailActivity)
-                                    .setTitle("انتخاب بازیگر برای مشاهده آثار:")
-                                    .setItems(choices) { _, which ->
-                                        val chosen = choices[which]
-                                        val intent = Intent(this@DetailActivity, com.hnn.bisnor.MainActivity::class.java).apply {
-                                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                                            putExtra("search_query", chosen)
-                                            putExtra("search_scope", "actor")
-                                        }
-                                        startActivity(intent)
-                                        finish()
-                                    }
-                                    .show()
-                            } else {
-                                val singleActor = rawActors.firstOrNull() ?: meta.actors
-                                val intent = Intent(this@DetailActivity, com.hnn.bisnor.MainActivity::class.java).apply {
-                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                                    putExtra("search_query", singleActor.trim())
-                                    putExtra("search_scope", "actor")
-                                }
-                                startActivity(intent)
-                                finish()
-                            }
-                        }
-                    } else {
-                        b.tvHeaderActors.visibility = View.GONE
-                    }
-                } else {
-                    b.layoutHeaderCastCrew.visibility = View.GONE
+                val synopsis = meta.cleanStoryline.ifBlank { "توضیحاتی ثبت نشده است." }
+                b.tvHeaderStoryline.text = synopsis
+                b.btnExpandStory.visibility = if (synopsis.length > 150) View.VISIBLE else View.GONE
+                b.btnExpandStory.text = if (synopsisExpanded) "کمتر" else "بیشتر"
+                b.tvHeaderStoryline.maxLines = if (synopsisExpanded) Int.MAX_VALUE else 4
+                b.btnExpandStory.setOnClickListener {
+                    synopsisExpanded = !synopsisExpanded
+                    notifyItemChanged(0)
                 }
+
+                bindBadges(meta, item)
+                bindPeople()
 
                 b.tvHeaderSectionTitle.text = sectionTitle
 
-                val isFav = favoritesManager.isFavorite(item.id)
-                b.btnHeaderAddPlaylist.setIconResource(R.drawable.ic_bookmark)
-                b.btnHeaderAddPlaylist.setIconTintResource(if (isFav) R.color.primary else R.color.outline)
+                val isFavorite = favoritesManager.isFavorite(item.id)
+                b.btnHeaderAddPlaylist.setIconResource(
+                    if (isFavorite) R.drawable.ic_bookmark else R.drawable.ic_bookmark
+                )
+                b.btnHeaderAddPlaylist.setIconTintResource(
+                    if (isFavorite) R.color.primary else R.color.on_surface
+                )
+                b.btnHeaderAddPlaylist.setOnClickListener { showAddToPlaylistDialog(item) }
+                b.btnHeaderShareChat.setOnClickListener { shareMedia(item) }
 
-                b.btnHeaderAddPlaylist.setOnClickListener {
-                    showAddToPlaylistDialog(item)
+                if (!trailerUrl.isNullOrBlank()) {
+                    b.btnHeaderTrailer.visibility = View.VISIBLE
+                    b.btnHeaderTrailer.setOnClickListener {
+                        play(DetailRow(RealSource(quality = "تیزر", url = trailerUrl!!), "تیزر", "", null, null, 0))
+                    }
+                } else {
+                    b.btnHeaderTrailer.visibility = View.GONE
                 }
 
-                b.btnHeaderShareChat.setOnClickListener {
-                    showShareMovieDialog(item)
+                b.btnHeaderPlay.text = if (rows.any { it.progress != null && !it.progress.isFinished }) {
+                    "ادامه تماشا"
+                } else {
+                    getString(R.string.btn_watch_now)
+                }
+                b.btnHeaderPlay.setOnClickListener { playPrimary() }
+
+                bindSeasons()
+            }
+
+            private fun bindBadges(meta: ParsedMediaInfo, item: RealMedia) {
+                val badges = buildBadges(meta, item)
+                b.linearHeaderBadges.removeAllViews()
+                if (badges.isEmpty()) {
+                    b.scrollHeaderBadges.visibility = View.GONE
+                    return
                 }
 
-                // Season Selector Tabs
+                badges.forEachIndexed { index, badge ->
+                    val text = TextView(this@DetailActivity).apply {
+                        this.text = badge
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+                        typeface = ResourcesCompat.getFont(this@DetailActivity, R.font.vazirmatn_medium)
+                        setTextColor(
+                            ContextCompat.getColor(
+                                this@DetailActivity,
+                                if (index == 0) R.color.primary else R.color.on_surface_variant
+                            )
+                        )
+                        setBackgroundResource(R.drawable.bg_soft_pill)
+                        val padH = dp(11)
+                        val padV = dp(5)
+                        setPadding(padH, padV, padH, padV)
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply { marginEnd = dp(6) }
+                    }
+                    b.linearHeaderBadges.addView(text)
+                }
+                b.scrollHeaderBadges.visibility = View.VISIBLE
+            }
+
+            private fun bindPeople() {
+                if (people.isEmpty()) {
+                    b.layoutHeaderPeople.visibility = View.GONE
+                    return
+                }
+                b.layoutHeaderPeople.visibility = View.VISIBLE
+                val rowAdapter = peopleAdapter ?: PersonRowAdapter(people) { person ->
+                    openPerson(person)
+                }.also {
+                    peopleAdapter = it
+                    b.recyclerHeaderPeople.layoutManager = LinearLayoutManager(
+                        this@DetailActivity, RecyclerView.HORIZONTAL, false
+                    )
+                    b.recyclerHeaderPeople.adapter = it
+                }
+                rowAdapter.updateData(people)
+            }
+
+            private fun bindSeasons() {
                 if (allSeasons.size > 1) {
                     b.scrollSeasons.visibility = View.VISIBLE
                     b.chipGroupSeasons.removeAllViews()
-                    for (i in allSeasons.indices) {
-                        val season = allSeasons[i]
+                    allSeasons.forEachIndexed { index, season ->
                         val chip = Chip(this@DetailActivity).apply {
                             text = season.title
                             isCheckable = true
-                            isChecked = selectedSeasonIndex == i
+                            isChecked = selectedSeasonIndex == index
                             setOnClickListener {
-                                selectedSeasonIndex = i
+                                selectedSeasonIndex = index
                                 updateSeasonEpisodes()
                             }
                         }
@@ -407,107 +520,186 @@ class DetailActivity : AppCompatActivity() {
                 } else {
                     b.scrollSeasons.visibility = View.GONE
                 }
-
-                // Trailer Button
-                if (!trailerUrl.isNullOrEmpty()) {
-                    b.btnHeaderTrailer.visibility = View.VISIBLE
-                    b.btnHeaderTrailer.setOnClickListener {
-                        val tSource = RealSource(quality = "تیزر رسمی", url = trailerUrl!!)
-                        playStream(item.title, tSource)
-                    }
-                } else {
-                    b.btnHeaderTrailer.visibility = View.GONE
-                }
-
-                // Continue Watching check
-                val lastWatched = historyManager.getLastWatchedEpisode(item.id)
-                if (lastWatched != null && !lastWatched.isFinished) {
-                    val mins = (lastWatched.positionMs / 1000) / 60
-                    val secs = (lastWatched.positionMs / 1000) % 60
-                    val epLabel = if (lastWatched.episodeTitle.isNotEmpty()) lastWatched.episodeTitle else "قسمت دیده شده"
-                    b.btnHeaderPlay.text = "ادامه: $epLabel (${String.format("%02d:%02d", mins, secs)})"
-
-                    b.btnHeaderPlay.setOnClickListener {
-                        val matchedIndex = sourcesList.indexOfFirst { it.url == lastWatched.url }
-                        val matchedSource = if (matchedIndex >= 0) sourcesList[matchedIndex] else null
-                        val epIdx = if (matchedIndex >= 0) matchedIndex else lastWatched.episodeIndex
-                        if (matchedSource != null) {
-                            playStream(item.title, matchedSource, lastWatched.positionMs, epIdx)
-                        } else {
-                            val dummySource = RealSource(quality = lastWatched.episodeTitle, url = lastWatched.url)
-                            playStream(item.title, dummySource, lastWatched.positionMs, epIdx)
-                        }
-                    }
-                } else {
-                    b.btnHeaderPlay.text = getString(R.string.btn_watch_now)
-                    b.btnHeaderPlay.setOnClickListener {
-                        val mainMovieSource = sourcesList.find { !it.quality.contains("تیزر") && !it.url.contains("tizer") } ?: sourcesList.firstOrNull()
-                        val epIdx = if (mainMovieSource != null) sourcesList.indexOf(mainMovieSource) else 0
-                        mainMovieSource?.let { playStream(item.title, it, 0L, epIdx) }
-                            ?: Toast.makeText(this@DetailActivity, "در حال بارگذاری یا لینکی موجود نیست", Toast.LENGTH_SHORT).show()
-                    }
-                }
             }
         }
 
-        inner class ItemViewHolder(val b: ItemStreamLinkBinding) : RecyclerView.ViewHolder(b.root) {
-            fun bind(src: RealSource, index: Int) {
-                b.tvLinkQuality.text = src.quality
-                val fmt = if (src.type.isNotEmpty() && src.type != "null") src.type.uppercase() else "MKV"
-                b.tvLinkInfo.text = "کیفیت استریم و پخش روان • $fmt"
+        inner class RowHolder(val b: ItemStreamLinkBinding) : RecyclerView.ViewHolder(b.root) {
+            fun bind(row: DetailRow, index: Int) {
+                b.tvLinkQuality.text = row.title
+                b.tvLinkInfo.text = row.subtitle
 
-                val progress = historyManager.getProgressByUrl(src.url)
+                if (!row.thumbnail.isNullOrBlank()) {
+                    b.cardLinkThumb.visibility = View.VISIBLE
+                    b.imgLinkThumb.load(ImageUrlHelper.getOptimizedImageUrl(row.thumbnail)) {
+                        crossfade(true)
+                        placeholder(R.drawable.bg_skeleton)
+                        error(R.drawable.ic_movie_placeholder)
+                    }
+                } else {
+                    b.cardLinkThumb.visibility = View.GONE
+                }
+
+                val progress = row.progress
                 if (progress != null && progress.positionMs > 1000) {
-                    val mins = (progress.positionMs / 1000) / 60
-                    val secs = (progress.positionMs / 1000) % 60
-                    val totalMins = (progress.durationMs / 1000) / 60
-                    b.tvLinkResumeBadge.visibility = View.VISIBLE
                     if (progress.isFinished) {
-                        b.tvLinkResumeBadge.text = "✓ دیده شده"
-                        b.tvLinkResumeBadge.setTextColor(getColor(R.color.outline))
+                        b.tvLinkResumeBadge.visibility = View.VISIBLE
+                        b.tvLinkResumeBadge.text = "تماشا شده"
+                        b.tvLinkResumeBadge.setTextColor(getColor(R.color.bisnor_success))
+                        b.imgLinkWatched.visibility = View.VISIBLE
+                        b.progressLink.visibility = View.GONE
                     } else {
-                        b.tvLinkResumeBadge.text = "دیده شده تا ${String.format("%02d:%02d", mins, secs)} از $totalMins دقیقه (${progress.progressPercent}%)"
-                        b.tvLinkResumeBadge.setTextColor(getColor(R.color.secondary))
+                        b.tvLinkResumeBadge.visibility = View.VISIBLE
+                        b.tvLinkResumeBadge.text =
+                            "ادامه از ${formatMinutes(progress.positionMs)} • ${progress.progressPercent}%"
+                        b.tvLinkResumeBadge.setTextColor(getColor(R.color.primary))
+                        b.imgLinkWatched.visibility = View.GONE
+                        b.progressLink.visibility = View.VISIBLE
+                        b.progressLink.progress = progress.progressPercent
                     }
                 } else {
                     b.tvLinkResumeBadge.visibility = View.GONE
+                    b.imgLinkWatched.visibility = View.GONE
+                    b.progressLink.visibility = View.GONE
                 }
 
-                b.btnLinkPlay.setOnClickListener {
-                    playStream(mediaItem?.title ?: "", src, progress?.positionMs ?: 0L, index)
-                }
-                b.root.setOnClickListener {
-                    playStream(mediaItem?.title ?: "", src, progress?.positionMs ?: 0L, index)
-                }
-
+                b.btnLinkPlay.setOnClickListener { play(row) }
+                b.root.setOnClickListener { play(row) }
                 b.btnLinkDownload.setOnClickListener {
-                    val itemTitle = mediaItem?.title ?: "Bisnor_Media"
-                    val downloadTitle = "$itemTitle - ${src.quality}"
-                    DownloadHelper.downloadVideo(this@DetailActivity, downloadTitle, src.url)
+                    val title = "${mediaItem?.title ?: "Bisnor"} - ${row.title}"
+                    DownloadHelper.downloadVideo(this@DetailActivity, title, row.source.url)
                 }
             }
         }
 
-        inner class FooterViewHolder(val b: ItemDetailFooterBinding) : RecyclerView.ViewHolder(b.root) {
+        inner class FooterHolder(val b: ItemDetailFooterBinding) : RecyclerView.ViewHolder(b.root) {
             fun bind() {
-                if (similarList.isNotEmpty()) {
-                    b.root.visibility = View.VISIBLE
-                    val simAdapter = RealMediaAdapter(similarList) { simItem ->
-                        val intent = Intent(this@DetailActivity, DetailActivity::class.java).apply {
-                            putExtra("real_media", simItem)
-                        }
-                        startActivity(intent)
-                    }
-                    b.recyclerSimilarMoviesFooter.adapter = simAdapter
-                } else {
+                if (similarList.isEmpty()) {
                     b.root.visibility = View.GONE
+                    return
                 }
+                b.root.visibility = View.VISIBLE
+                b.recyclerSimilarMoviesFooter.adapter = RealMediaAdapter(
+                    similarList,
+                    onItemClick = { similar ->
+                        startActivity(
+                            Intent(this@DetailActivity, DetailActivity::class.java).apply {
+                                putExtra("real_media", similar)
+                            }
+                        )
+                    }
+                )
             }
         }
+    }
+
+
+    // ---------------------------------------------------------------- people & badges
+
+    private fun buildPeople(item: RealMedia): List<RealPerson> {
+        if (item.people.isNotEmpty()) return item.people
+        val isAnim = item.genres.any {
+            it.title.contains("انیمیشن") || it.title.contains("کارتون") || it.title.contains("انیمه")
+        } || item.title.contains("انیمه") || item.title.contains("انیمیشن")
+        val meta = MediaMetadataHelper.parse(item.description, item.imdb, isAnim, item.isSeries)
+        val result = mutableListOf<RealPerson>()
+
+        meta.director?.trim()?.takeIf { it.isNotBlank() }?.let {
+            result.add(RealPerson(name = it.take(80), role = "director"))
+        }
+        meta.actors?.split(Regex("[,،|]"))
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() && it.length <= 80 }
+            ?.forEach { result.add(RealPerson(name = it, role = "actor")) }
+
+        Regex("""(?i)(?:نویسنده|فیلمنامه|writer)\s*[:：\-]?\s*([^\n\r]+)""")
+            .find(item.description)?.groupValues?.getOrNull(1)
+            ?.split(Regex("[,،|]"))
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() && it.length <= 80 }
+            ?.forEach { result.add(RealPerson(name = it, role = "writer")) }
+
+        return result
+            .distinctBy { "${it.role}:${it.name.lowercase()}" }
+            .take(12)
+    }
+
+    private fun resolvePeoplePhotos() {
+        if (people.isEmpty()) return
+        lifecycleScope.launch {
+            val updated = coroutineScope {
+                people.map { person ->
+                    async {
+                        if (person.photo.isNotBlank()) person
+                        else person.copy(photo = PersonPhotoResolver.resolve(person.name))
+                    }
+                }.awaitAll()
+            }
+            if (isFinishing || isDestroyed) return@launch
+            if (updated != people) {
+                people = updated
+                adapter.notifyItemChanged(0)
+            }
+        }
+    }
+
+    private fun openPerson(person: RealPerson) {
+        startActivity(
+            Intent(this, PersonActivity::class.java).apply {
+                putExtra("person_name", person.name)
+                putExtra("person_role", person.role)
+                putExtra("person_photo", person.photo)
+            }
+        )
+    }
+
+    private fun buildBadges(meta: ParsedMediaInfo, item: RealMedia): List<String> {
+        val badges = mutableListOf<String>()
+
+        val age = meta.ageRating
+            ?: item.classification?.trim()?.takeIf { it.isNotBlank() && !it.equals("N/A", true) }
+        if (!age.isNullOrBlank()) badges.add("رده سنی $age")
+
+        meta.language?.takeIf { it.isNotBlank() }?.let { badges.add(it) }
+
+        if (meta.hasPersianSubtitle && badges.none { it.contains("زیرنویس") }) {
+            badges.add("زیرنویس فارسی")
+        }
+
+        val country = meta.country ?: item.country.firstOrNull()?.title
+        if (!country.isNullOrBlank() && !country.equals("جهانی", true)) {
+            badges.add(country.trim().take(24))
+        }
+
+        meta.quality?.takeIf { it.isNotBlank() }?.let { raw ->
+            val resolutions = Regex("""\d{3,4}""").findAll(raw).map { it.value }.distinct().toList()
+            if (resolutions.isNotEmpty()) {
+                badges.add("کیفیت " + resolutions.joinToString(" / ") { "${it}p" })
+            } else {
+                badges.add("کیفیت ${raw.take(20)}")
+            }
+        }
+
+        meta.format?.takeIf { it.isNotBlank() }?.let { badges.add("فرمت ${it.uppercase()}") }
+        meta.declaredSize?.takeIf { it.isNotBlank() }?.let { badges.add("حجم ${it.take(36)}") }
+
+        return badges.distinct().take(7)
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    private fun extractOriginalTitle(description: String): String? {
+        val regex = Regex("""(?i)(?:نام اصلی|original title|original name)\s*[:：]\s*([^\n\r]+)""")
+        return regex.find(description)?.groupValues?.getOrNull(1)?.trim()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::adapter.isInitialized) adapter.notifyDataSetChanged()
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
-        com.hnn.bisnor.util.ThemeHelper.applyTheme(this)
+        ThemeHelper.applyTheme(this)
     }
 }
+

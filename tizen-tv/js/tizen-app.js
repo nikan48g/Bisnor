@@ -70,7 +70,7 @@
         if (backdrop) backdrop.src = poster;
         if (detailPoster) detailPoster.src = poster;
         var play = byId('btn-detail-play-now');
-        if (play) play.onclick = function () { playSource(firstSource(media), media.title); };
+        if (play) play.onclick = function () { playSource(sourceList(media), media.title); };
         renderSimilar(media);
         if (media.type === 'serie') loadSeasons(media);
         else renderMovieSources(media);
@@ -78,27 +78,70 @@
     }
 
     function firstSource(media) {
-        var sources = media && media.sources ? media.sources : [];
-        // AVPlay supports many formats, but a directly playable MP4/HLS source
-        // is safer than an MKV when the API offers both.
-        for (var i = 0; i < sources.length; i += 1) {
-            if (sources[i] && sources[i].url && !/تیزر|trailer/i.test(String(sources[i].quality || '')) && /\.(mp4|m3u8)(?:$|[?#])/i.test(sources[i].url)) return sources[i];
-        }
-        for (var j = 0; j < sources.length; j += 1) {
-            if (sources[j] && sources[j].url && !/تیزر|trailer/i.test(String(sources[j].quality || ''))) return sources[j];
-        }
-        return sources.length ? sources[0] : null;
+        return sourceList(media)[0];
     }
+
+    function sourceScore(source) {
+        var url = String((source && source.url) || '').split('?')[0].toLowerCase();
+        var quality = String((source && source.quality) || '');
+        var score = 10;
+        // Samsung AVPlay decodes HLS in hardware most reliably; MP4 is the next
+        // safest container. MKV can stutter when it carries DTS/HEVC variants.
+        if (/\.m3u8$/.test(url)) score += 100;
+        else if (/\.mp4$/.test(url)) score += 80;
+        if (/1080/.test(quality)) score += 30;
+        else if (/720/.test(quality)) score += 20;
+        else if (/480/.test(quality)) score += 5;
+        // 4K sources exceed what most Tizen 5 panels decode smoothly.
+        if (/2160|4k/i.test(quality)) score -= 10;
+        if (/تیزر|trailer/i.test(quality)) score -= 1000;
+        return score;
+    }
+
+    function sourceList(media) {
+        var sources = media && media.sources ? media.sources.slice() : [];
+        if (!sources.length && activeMedia && activeMedia.sources) sources = activeMedia.sources.slice();
+        sources = sources.filter(function (source) {
+            return source && source.url && !/تیزر|trailer/i.test(String(source.quality || ''));
+        });
+        sources.sort(function (a, b) { return sourceScore(b) - sourceScore(a); });
+        return sources;
+    }
+
+    var playQueue = [];
+    var activePlayTitle = '';
+    var htmlFallbackSource = null;
+
     function playSource(source, title) {
-        if (!source || !source.url) return alert('لینک پخش برای این مورد موجود نیست.');
+        if (!source) return alert('لینک پخش برای این مورد موجود نیست.');
+        var list = Object.prototype.toString.call(source) === '[object Array]' ? source.slice() : [source];
+        list = list.filter(function (item) { return item && item.url; });
+        if (!list.length) return alert('لینک پخش برای این مورد موجود نیست.');
+        list.sort(function (a, b) { return sourceScore(b) - sourceScore(a); });
+
         var modal = byId('modal-player');
         closeDetail();
         text(byId('player-media-title'), title);
         playerPosition = 0;
         show(modal, 'block');
+        htmlFallbackSource = list[0];
+        playQueue = list;
+        activePlayTitle = title;
+        tryNextSource();
+    }
+
+    function tryNextSource() {
+        var source = playQueue.shift();
+        if (!source) {
+            playWithHtml5(htmlFallbackSource, activePlayTitle || '');
+            return;
+        }
         document.body.classList.add('avplay-active');
+        show(byId('player-error-overlay'), 'none');
+        text(byId('player-loading-spinner'), 'در حال آماده‌سازی پخش…');
+
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.isTizen()) {
-            window.TizenAVPlayEngine.play(source.url, title, function (position, duration) {
+            window.TizenAVPlayEngine.play(source.url, activePlayTitle, function (position, duration) {
                 playerPosition = position || 0;
                 var seek = byId('player-seekbar');
                 if (seek && duration) seek.value = Math.min(100, (playerPosition / duration) * 100);
@@ -106,17 +149,46 @@
                 if (label) label.textContent = formatTime(playerPosition) + ' / ' + formatTime(duration || 0);
                 rememberContinue(playerPosition, duration || 0);
             }, function () { closePlayer(); }, function (error) {
-                document.body.classList.remove('avplay-active');
-                show(byId('player-error-overlay'), 'flex');
-                text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
-                text(byId('player-error-desc'), 'پخش‌کنندهٔ تلویزیون خطا داد: ' + String(error || 'نامشخص'));
+                // AVPlay rejected this container/codec. Try the next real source
+                // before surfacing an error to the viewer.
+                if (playQueue.length > 0) {
+                    tryNextSource();
+                    return;
+                }
+                playWithHtml5(htmlFallbackSource, activePlayTitle || '');
             });
-        } else { var video = byId('html-video-player'); if (video) { video.src = source.url; video.play(); } }
+        } else {
+            playWithHtml5(source, activePlayTitle || '');
+        }
+    }
+
+    function playWithHtml5(source, title) {
+        if (!source || !source.url) {
+            document.body.classList.remove('avplay-active');
+            show(byId('player-error-overlay'), 'flex');
+            text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
+            text(byId('player-error-desc'), 'لینک پخش قابل استفاده‌ای برای این اثر پیدا نشد.');
+            return;
+        }
+        if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.stop) window.TizenAVPlayEngine.stop();
+        document.body.classList.remove('avplay-active');
+        var video = byId('html-video-player');
+        if (!video) return;
+        show(byId('player-error-overlay'), 'none');
+        video.src = source.url;
+        video.load();
+        video.play().catch(function () {
+            show(byId('player-error-overlay'), 'flex');
+            text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
+            text(byId('player-error-desc'), 'کدک این نسخه توسط تلویزیون پشتیبانی نمی‌شود. نسخه دیگری از فایل را امتحان کنید.');
+        });
     }
     function closePlayer() {
+        playQueue = [];
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.stop) window.TizenAVPlayEngine.stop();
         var video = byId('html-video-player'); if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
         show(byId('modal-player'), 'none');
+        show(byId('player-error-overlay'), 'none');
         document.body.classList.remove('avplay-active');
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
     }

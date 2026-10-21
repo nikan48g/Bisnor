@@ -12,7 +12,11 @@ class MediaDataService {
         this.exploreLoaded = false;
         this.exploreLoadPromise = null;
         this.pendingRequests = new Map();
+        this.endpointCache = new Map();
+        this.inFlightRequests = new Map();
+        this.seasonsCache = new Map();
         this.initBridgeListener();
+        this.loadCatalogCache();
         this.servers = [
             "https://server-hi-speed-iran.info",
             "https://hostinnegar.com",
@@ -63,7 +67,39 @@ class MediaDataService {
         }
     }
 
+    loadCatalogCache() {
+        try {
+            const stored = JSON.parse(localStorage.getItem("bisnor_catalog_cache_v1") || "null");
+            if (!stored || !Array.isArray(stored.items)) return;
+            if (Date.now() - Number(stored.at || 0) > 24 * 60 * 60 * 1000) return;
+            this.catalog = stored.items;
+        } catch (_) {}
+    }
+
+    saveCatalogCache() {
+        try {
+            if (!this.catalog.length) return;
+            const payload = JSON.stringify({ at: Date.now(), items: this.catalog });
+            if (payload.length > 2_500_000) return;
+            localStorage.setItem("bisnor_catalog_cache_v1", payload);
+        } catch (_) {}
+    }
+
     async fetchEndpoint(path) {
+        const key = path.replace(/\{API_KEY\}/g, this.apiKey);
+        const cached = this.endpointCache.get(key);
+        if (cached && Date.now() - cached.at < 5 * 60 * 1000) return cached.data;
+        if (this.inFlightRequests.has(key)) return this.inFlightRequests.get(key);
+
+        const task = this.fetchEndpointNetwork(path).then(data => {
+            if (data) this.endpointCache.set(key, { at: Date.now(), data });
+            return data;
+        }).finally(() => this.inFlightRequests.delete(key));
+        this.inFlightRequests.set(key, task);
+        return task;
+    }
+
+    async fetchEndpointNetwork(path) {
         // Ensure trailing slash
         const normalizedPath = path.endsWith("/") ? path : path + "/";
         const requestId = "req_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7);
@@ -165,7 +201,7 @@ class MediaDataService {
             const m = desc.match(/(?:IMDb|امتیاز|نمره)\s*[:：\-]?\s*([0-9](?:\.[0-9])?)/i);
             if (m) score = parseFloat(m[1]);
         }
-        if (isNaN(score) || score <= 0) score = 7.5;
+        if (isNaN(score) || score <= 0) score = 0;
 
         // Parse clean storyline from description
         let storyline = desc;
@@ -183,9 +219,9 @@ class MediaDataService {
             if (this.adKeywords.some(kw => q.includes(kw))) return false;
             return true;
         }).map(s => ({
-            id: s.id || Math.random(),
-            quality: (s.quality || '1080p').replace(/زیرنویس/g, 'فارسی').trim(),
-            type: s.type || 'mkv',
+            id: s.id || 0,
+            quality: (s.quality || '').replace(/زیرنویس/g, 'فارسی').trim(),
+            type: s.type || '',
             url: s.url
         }));
 
@@ -198,9 +234,9 @@ class MediaDataService {
             type: raw.type === "serie" ? "serie" : "movie",
             title: title,
             description: storyline || desc || 'توضیحاتی برای این اثر ثبت نشده است.',
-            year: raw.year || 2024,
+            year: raw.year || 0,
             imdb: Number(score.toFixed ? score.toFixed(1) : score),
-            rating: raw.rating || 5,
+            rating: raw.rating || 0,
             duration: raw.duration || (raw.type === 'serie' ? 'سریال چند قسمتی' : '120 دقیقه'),
             image: img,
             cover: cover,
@@ -328,6 +364,7 @@ class MediaDataService {
 
         this.exploreLoadPromise = Promise.allSettled(requests).then(() => {
             this.exploreLoaded = true;
+            this.saveCatalogCache();
             return this.catalog;
         }).finally(() => {
             this.exploreLoadPromise = null;
@@ -363,6 +400,9 @@ class MediaDataService {
     }
 
     async getSeriesSeasons(seriesId) {
+        const cacheKey = String(seriesId);
+        const cached = this.seasonsCache.get(cacheKey);
+        if (cached && Date.now() - cached.at < 10 * 60 * 1000) return cached.data;
         const raw = await this.fetchEndpoint(`/api/season/by/serie/${seriesId}/{API_KEY}/`);
         if (Array.isArray(raw)) {
             const seasons = [];
@@ -381,9 +421,9 @@ class MediaDataService {
                         if (u.endsWith(".apk") || u.includes("telegram") || u.includes("t.me")) return false;
                         return true;
                     }).map(src => ({
-                        id: src.id || Math.random(),
-                        quality: (src.quality || '720p / 1080p').replace(/زیرنویس/g, 'فارسی').trim(),
-                        type: src.type || 'mkv',
+                        id: src.id || 0,
+                        quality: (src.quality || '').replace(/زیرنویس/g, 'فارسی').trim(),
+                        type: src.type || '',
                         url: src.url
                     }));
 
@@ -401,6 +441,7 @@ class MediaDataService {
                     seasons.push({ id: s.id, title, episodes });
                 }
             });
+            this.seasonsCache.set(cacheKey, { at: Date.now(), data: seasons });
             return seasons;
         }
         return [];

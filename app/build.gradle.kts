@@ -23,8 +23,8 @@ android {
         applicationId = "com.hnn.bisnor"
         minSdk = 24
         targetSdk = 35
-        versionCode = 32
-        versionName = "5.1.5"
+        versionCode = 37
+        versionName = "5.2.0-beta.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -57,6 +57,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Keep debug builds on the same signing key as release so they can be
+            // installed over an existing build instead of failing with
+            // "App not installed".
+            if (hasKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")

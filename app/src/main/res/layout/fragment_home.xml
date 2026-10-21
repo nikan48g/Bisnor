@@ -9,107 +9,333 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:overScrollMode="never">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="96dp">
+            android:paddingBottom="112dp">
 
-            <!-- Top Header Bar -->
+            <!-- ================= Header ================= -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="12dp">
+                android:paddingHorizontal="18dp"
+                android:paddingTop="14dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_home_greeting"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/vazirmatn_bold"
+                        android:maxLines="1"
+                        android:text="سلام"
+                        android:textColor="@color/on_surface"
+                        android:textSize="21sp" />
+
+                    <TextView
+                        android:id="@+id/tv_home_greeting_sub"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:text="امشب چه چیزی ببینیم؟"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12.5sp" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/btn_home_search"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/bg_icon_chip"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="جستجو">
+
+                    <ImageView
+                        android:layout_width="21dp"
+                        android:layout_height="21dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_search"
+                        app:tint="@color/on_surface" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/btn_home_avatar"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:background="@drawable/bg_avatar_ring"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="پروفایل">
+
+                    <TextView
+                        android:id="@+id/tv_home_avatar_initial"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:fontFamily="@font/vazirmatn_bold"
+                        android:gravity="center"
+                        android:textColor="@color/primary"
+                        android:textSize="17sp"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/img_home_avatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="3dp"
+                        android:background="@drawable/bg_skeleton"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_account_circle" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <!-- ================= Search entry ================= -->
+            <LinearLayout
+                android:id="@+id/card_home_search"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="18dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_search_pill"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:layout_width="19dp"
+                    android:layout_height="19dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/on_surface_variant" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="@string/app_name"
-                    android:textColor="@color/primary"
-                    android:textSize="24sp" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btn_quick_search"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardBackgroundColor="@color/nav_bar_translucent"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/outline_variant"
-                    app:strokeWidth="1dp">
-
-                    <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_search"
-                        app:tint="@color/on_surface" />
-                </com.google.android.material.card.MaterialCardView>
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:text="جستجوی فیلم، سریال یا بازیگر..."
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- Hero Banner Slider -->
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/view_pager_hero"
-                android:layout_width="match_parent"
-                android:layout_height="240dp"
-                android:clipChildren="false"
-                android:clipToPadding="false"
-                android:paddingHorizontal="16dp" />
-
-            <!-- Continue Watching Section (Netflix-style) -->
-            <LinearLayout
-                android:id="@+id/layout_continue_watching"
+            <!-- ================= Loading skeleton ================= -->
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/skeleton_home"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="18dp">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="400dp"
+                        android:background="@drawable/bg_skeleton" />
+
+                    <View
+                        android:layout_width="150dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="24dp"
+                        android:background="@drawable/bg_skeleton" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:layout_width="132dp"
+                            android:layout_height="196dp"
+                            android:background="@drawable/bg_skeleton" />
+
+                        <View
+                            android:layout_width="132dp"
+                            android:layout_height="196dp"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/bg_skeleton" />
+
+                        <View
+                            android:layout_width="132dp"
+                            android:layout_height="196dp"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/bg_skeleton" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <!-- ================= Content ================= -->
+            <LinearLayout
+                android:id="@+id/home_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="16dp"
-                    android:layout_marginBottom="12dp"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="@string/section_continue_watching"
-                    android:textColor="@color/secondary"
-                    android:textSize="17sp" />
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/view_pager_hero"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/hero_banner_height"
+                    android:layout_marginTop="18dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:paddingHorizontal="18dp" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recycler_continue_watching"
+                <LinearLayout
+                    android:id="@+id/layout_hero_indicator"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:orientation="horizontal" />
+
+                <!-- Continue watching -->
+                <LinearLayout
+                    android:id="@+id/layout_continue_watching"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="12dp"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="18dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/vazirmatn_bold"
+                            android:text="در حال تماشا"
+                            android:textColor="@color/on_surface"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/btn_continue_all"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="@font/vazirmatn_medium"
+                            android:padding="6dp"
+                            android:text="کتابخانه"
+                            android:textColor="@color/primary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler_continue_watching"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:clipToPadding="false"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp"
+                        android:paddingBottom="4dp"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                </LinearLayout>
+
+                <!-- Content rows -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_sections"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:nestedScrollingEnabled="false" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:gravity="center"
+                    android:text="بیسنور • تماشا بدون مرز"
+                    android:textColor="@color/outline"
+                    android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- Sections Container for Horizontal Lists -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_sections"
+            <!-- ================= Empty / error state ================= -->
+            <LinearLayout
+                android:id="@+id/layout_home_error"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:nestedScrollingEnabled="false" />
+                android:layout_marginTop="40dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingHorizontal="32dp"
+                android:visibility="gone">
 
-            <!-- Loading Progress -->
+                <ImageView
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:alpha="0.6"
+                    android:src="@drawable/ic_movie_placeholder"
+                    app:tint="@color/outline" />
+
+                <TextView
+                    android:id="@+id/tv_home_error_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:fontFamily="@font/vazirmatn_bold"
+                    android:gravity="center"
+                    android:text="ارتباط با سرور برقرار نشد"
+                    android:textColor="@color/on_surface"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tv_home_error_desc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:gravity="center"
+                    android:lineSpacingExtra="3dp"
+                    android:text="اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="12.5sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_home_retry"
+                    style="@style/Widget.Bisnor.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="18dp"
+                    android:text="تلاش دوباره" />
+            </LinearLayout>
+
             <ProgressBar
                 android:id="@+id/progress_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="20dp"
                 android:indeterminateTint="@color/primary"
                 android:visibility="gone" />
 

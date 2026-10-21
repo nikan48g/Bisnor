@@ -7,7 +7,13 @@ data class ParsedMediaInfo(
     val isAdultOr18: Boolean = false,
     val director: String? = null,
     val actors: String? = null,
-    val averageEpisodeSize: String? = null
+    val averageEpisodeSize: String? = null,
+    val language: String? = null,
+    val country: String? = null,
+    val quality: String? = null,
+    val format: String? = null,
+    val declaredSize: String? = null,
+    val hasPersianSubtitle: Boolean = false
 )
 
 object MediaMetadataHelper {
@@ -18,6 +24,11 @@ object MediaMetadataHelper {
     private val DIRECTOR_REGEX = Regex("""(?i)(?:کارگردان|کارگردانی|سازنده|director)\s*[:：\-]?\s*([^\n\r]+)""")
     private val ACTORS_REGEX = Regex("""(?i)(?:بازیگران|ستارگان|با\s*حضور|هنرمندان|بازیگر|actors|cast|stars)\s*[:：\-]?\s*([^\n\r]+)""")
     private val SIZE_REGEX = Regex("""(?i)(?:حجم(?:\s*کل|\s*تقریبی|\s*فایل|\s*هر\s*قسمت|\s*قسمت‌ها)?)\s*[:：\-]?\s*([0-9\.]+|[۰-۹\.]+)\s*(گیگابایت|مگابایت|GB|MB|گیگ|مگ)""")
+    private val SIZE_LINE_REGEX = Regex("""(?i)(?:حجم(?:\s*کل|\s*تقریبی|\s*فایل|\s*هر\s*قسمت|\s*قسمت‌ها)?)\s*[:：\-]?\s*([^\n\r]+)""")
+    private val LANGUAGE_REGEX = Regex("""(?i)(?:زبان|language)\s*[:：\-]?\s*([^\n\r]+)""")
+    private val COUNTRY_REGEX = Regex("""(?i)(?:محصول\s*کشور|کشور|country)\s*[:：\-]?\s*([^\n\r]+)""")
+    private val QUALITY_REGEX = Regex("""(?i)(?:کیفیت|quality)\s*[:：\-]?\s*([^\n\r]+)""")
+    private val FORMAT_REGEX = Regex("""(?i)(?:فرمت|format)\s*[:：\-]?\s*([^\n\r]+)""")
 
     fun parse(
         rawDescription: String,
@@ -62,6 +73,13 @@ object MediaMetadataHelper {
             actors = actorsMatch.groupValues[1].trim().take(120)
         }
 
+        val language = cleanValue(LANGUAGE_REGEX.find(rawDescription)?.groupValues?.getOrNull(1))
+        val country = cleanValue(COUNTRY_REGEX.find(rawDescription)?.groupValues?.getOrNull(1))
+        val quality = cleanValue(QUALITY_REGEX.find(rawDescription)?.groupValues?.getOrNull(1))
+        val format = cleanValue(FORMAT_REGEX.find(rawDescription)?.groupValues?.getOrNull(1))
+        val declaredSize = cleanValue(SIZE_LINE_REGEX.find(rawDescription)?.groupValues?.getOrNull(1))
+        val hasSubtitle = rawDescription.contains("زیرنویس")
+
         val ageMatch = AGE_REGEX.find(rawDescription)
         if (ageMatch != null) {
             val matchedVal = ageMatch.groupValues[1].trim()
@@ -85,7 +103,8 @@ object MediaMetadataHelper {
             }
         }
 
-        var detectedAverageSize: String? = if (isSeries) "میانگین هر قسمت: ~۳۵۰ تا ۵۰۰ مگابایت" else null
+        // Only report sizes the source description actually declares; never estimate per-episode size.
+        var detectedAverageSize: String? = null
 
         val sizeMatch = SIZE_REGEX.find(rawDescription)
         if (sizeMatch != null) {
@@ -97,27 +116,11 @@ object MediaMetadataHelper {
             val unit = sizeMatch.groupValues[2].lowercase()
             val num = rawNumStr.toDoubleOrNull() ?: 0.0
 
-            if (isSeries) {
-                if (unit.contains("گیگ") || unit.contains("gb")) {
-                    detectedAverageSize = if (num >= 20.0) {
-                        "میانگین هر قسمت: ~۴۵۰ تا ۵۵۰ مگابایت"
-                    } else if (num >= 8.0) {
-                        "میانگین هر قسمت: ~۳۵۰ تا ۴۵۰ مگابایت"
-                    } else {
-                        "میانگین هر قسمت: ~۲۵۰ تا ۳۵۰ مگابایت"
-                    }
-                } else {
-                    if (num in 150.0..1200.0) {
-                        detectedAverageSize = "میانگین هر قسمت: ~${num.toInt()} مگابایت"
-                    } else if (num > 1200.0) {
-                        detectedAverageSize = "میانگین هر قسمت: ~۴۵۰ مگابایت"
-                    }
-                }
-            } else {
+            if (!isSeries) {
                 detectedAverageSize = if (unit.contains("گیگ") || unit.contains("gb")) {
-                    "حجم تقریبی: ~$num گیگابایت"
+                    "حجم اعلام‌شده: $num گیگابایت"
                 } else {
-                    "حجم تقریبی: ~${num.toInt()} مگابایت"
+                    "حجم اعلام‌شده: ${num.toInt()} مگابایت"
                 }
             }
         }
@@ -131,8 +134,21 @@ object MediaMetadataHelper {
             isAdultOr18 = isAdult,
             director = director,
             actors = actors,
-            averageEpisodeSize = detectedAverageSize
+            averageEpisodeSize = detectedAverageSize,
+            language = language,
+            country = country,
+            quality = quality,
+            format = format,
+            declaredSize = declaredSize,
+            hasPersianSubtitle = hasSubtitle
         )
+    }
+
+    private fun cleanValue(raw: String?): String? {
+        val value = raw?.trim()?.trim('،', ',', '.', ' ', '|')
+        if (value.isNullOrBlank()) return null
+        if (value.equals("null", true) || value.equals("n/a", true) || value == "نامشخص") return null
+        return value.take(48)
     }
 
     private fun formatAgeRating(raw: String): String {
@@ -157,6 +173,8 @@ object MediaMetadataHelper {
             Regex("""(?i)(?:کارگردان|کارگردانی|سازنده)\s*[:：\-]?\s*[^\n\r]+"""),
             Regex("""(?i)(?:بازیگران|ستارگان|با\s*حضور)\s*[:：\-]?\s*[^\n\r]+"""),
             Regex("""(?i)(?:کیفیت|فرمت|مدت\s*زمان|محصول|زبان|کشور|ژانر|نویسنده|تهیه‌کننده|شبکه)\s*[:：\-]?\s*[^\n\r]+"""),
+            Regex("""(?i)(?:نام\s*اصلی|نام\s*فیلم|عنوان\s*فارسی|original\s*title|original\s*name)\s*[:：\-]?\s*[^\n\r]+"""),
+            Regex("""(?i)(?:سال\s*انتشار|سال\s*ساخت|release\s*year|year)\s*[:：\-]?\s*[^\n\r]+"""),
             Regex("""(?i)(?:حجم(?:\s*کل|\s*تقریبی|\s*فایل|\s*هر\s*قسمت|\s*قسمت‌ها)?)\s*[:：\-]?\s*[^\n\r]+"""),
             Regex("""(?i)(?:جوایز|رتبه|افتخارات)\s*[:：\-]?\s*[^\n\r]+""")
         )
@@ -178,6 +196,10 @@ object MediaMetadataHelper {
             
             // Remove leading bullets or dashes
             l = l.replace(Regex("""^[\-–—•*|]+\s*"""), "").trim()
+
+            // Standalone technical lines are rendered as badges, not as storyline.
+            if (Regex("""^(?:زیرنویس|دوبله)[^\n]{0,60}$""").containsMatchIn(l)) continue
+            if (Regex("""^(?:کیفیت|فرمت|حجم|زبان|رده\s*سنی|سال\s*انتشار)\b[^\n]{0,60}$""").containsMatchIn(l)) continue
 
             if (l.isNotEmpty() && l != ":" && l != "-" && l.length > 2) {
                 filteredLines.add(l)

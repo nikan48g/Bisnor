@@ -19,7 +19,7 @@
         app:show_timeout="4000"
         app:use_controller="true" />
 
-    <!-- Center Indicator Overlay for Brightness / Volume / Seek / Resize / Lock -->
+    <!-- Center gesture indicator -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_gesture_indicator"
         android:layout_width="wrap_content"
@@ -32,7 +32,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:strokeWidth="0dp">
+        app:strokeColor="@color/outline_variant"
+        app:strokeWidth="1dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -61,7 +62,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Floating Screen Lock Unlock Button (Shown when screen is locked) -->
+    <!-- Unlock chip while touch-locked -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_unlock_screen"
         android:layout_width="wrap_content"
@@ -70,7 +71,7 @@
         android:layout_marginTop="20dp"
         android:visibility="gone"
         app:cardBackgroundColor="@color/nav_bar_translucent"
-        app:cardCornerRadius="12dp"
+        app:cardCornerRadius="14dp"
         app:cardElevation="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -82,8 +83,8 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="5dp">
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="16dp"
@@ -94,21 +95,21 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="7dp"
                 android:fontFamily="@font/vazirmatn_medium"
-                android:text="قفل (لمس برای باز کردن)"
-                android:textColor="@color/white"
-                android:textSize="11sp" />
+                android:text="قفل صفحه"
+                android:textColor="@color/on_surface"
+                android:textSize="11.5sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Next Episode Countdown Card Overlay (Bottom End) -->
+    <!-- Next episode countdown -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_next_episode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="90dp"
+        android:layout_marginBottom="96dp"
         android:visibility="gone"
         app:cardBackgroundColor="@color/surface_container_high"
         app:cardCornerRadius="18dp"
@@ -137,7 +138,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/vazirmatn_bold"
                     android:text="قسمت بعدی"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_surface"
                     android:textSize="14sp" />
 
                 <TextView
@@ -146,24 +147,20 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:fontFamily="@font/vazirmatn_regular"
-                    android:text="پخش خودکار تا ۱۰ ثانیه..."
-                    android:textColor="@color/secondary"
+                    android:textColor="@color/primary"
                     android:textSize="12sp" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_play_next_now"
-                style="@style/Widget.Material3.Button"
+                style="@style/Widget.Bisnor.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_marginStart="16dp"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:minHeight="40dp"
                 android:text="پخش سریع"
                 android:textSize="12sp"
-                app:backgroundTint="@color/primary"
-                app:cornerRadius="10dp"
-                app:icon="@drawable/ic_play"
-                app:iconTint="@color/on_primary" />
+                app:icon="@drawable/ic_play" />
 
             <ImageView
                 android:id="@+id/btn_close_next_card"
@@ -172,14 +169,15 @@
                 android:layout_marginStart="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
+                android:contentDescription="بستن"
                 android:focusable="true"
-                android:padding="6dp"
+                android:padding="7dp"
                 android:src="@drawable/ic_refresh"
                 app:tint="@color/on_surface_variant" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Top Controls Overlay -->
+    <!-- Top bar -->
     <LinearLayout
         android:id="@+id/top_player_bar"
         android:layout_width="0dp"
@@ -187,19 +185,21 @@
         android:background="@drawable/scrim_top_gradient"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/btn_player_back"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
+            android:contentDescription="بازگشت"
             android:focusable="true"
-            android:padding="6dp"
+            android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
             app:tint="@color/white" />
 
@@ -207,74 +207,33 @@
             android:id="@+id/tv_player_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
+            android:layout_marginHorizontal="10dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:fontFamily="@font/vazirmatn_bold"
             android:maxLines="1"
             android:textColor="@color/white"
-            android:textSize="15sp" />
+            android:textSize="14.5sp" />
 
-        <!-- Screen Lock Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_lock_screen"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:contentDescription="قفل لمس"
             app:icon="@drawable/ic_lock"
             app:iconTint="@color/white" />
 
-        <!-- Aspect Ratio Button -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_aspect_ratio"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginStart="6dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="Fit"
-            android:textSize="11sp"
-            app:backgroundTint="@color/surface_container_high"
-            app:cornerRadius="10dp" />
-
-        <!-- Playback Speed Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_speed"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginStart="6dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="1.0x"
-            android:textSize="11sp"
-            app:backgroundTint="@color/surface_container_high"
-            app:cornerRadius="10dp" />
-
-        <!-- Track Selection (Audio / Subtitles) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_tracks"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginStart="6dp"
-            android:fontFamily="@font/vazirmatn_medium"
-            android:text="صوت/زیرنویس"
-            android:textSize="11sp"
-            app:backgroundTint="@color/surface_container_high"
-            app:cornerRadius="10dp" />
-
-        <!-- External Player Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_external_player"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginStart="6dp"
-            android:fontFamily="@font/vazirmatn_medium"
-            android:text="پلیر خارجی"
-            android:textSize="11sp"
-            app:backgroundTint="@color/surface_container_high"
-            app:cornerRadius="10dp" />
+            android:id="@+id/btn_player_settings"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="#33FFFFFF"
+            android:contentDescription="تنظیمات پخش"
+            app:cornerRadius="14dp"
+            app:icon="@drawable/ic_settings"
+            app:iconTint="@color/white" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

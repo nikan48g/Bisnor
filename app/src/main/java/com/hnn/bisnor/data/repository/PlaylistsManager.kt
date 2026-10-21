@@ -25,6 +25,7 @@ data class CustomPlaylist(
 )
 
 class PlaylistsManager(context: Context) {
+    private val appContext = context.applicationContext
     private val prefs: SharedPreferences =
         context.getSharedPreferences("bisnor_custom_playlists_v2", Context.MODE_PRIVATE)
     private val gson = Gson()
@@ -42,10 +43,11 @@ class PlaylistsManager(context: Context) {
         }
     }
 
-    private fun save(list: List<CustomPlaylist>) {
+    private fun save(list: List<CustomPlaylist>, sync: Boolean = true) {
         val json = gson.toJson(list)
         prefs.edit().putString("playlists_json", json).apply()
         _playlistsFlow.value = list
+        if (sync) CloudSync.request(appContext)
     }
 
     fun getPlaylistsRawJson(): String {
@@ -56,7 +58,7 @@ class PlaylistsManager(context: Context) {
         try {
             val type = object : TypeToken<List<CustomPlaylist>>() {}.type
             val list: List<CustomPlaylist> = gson.fromJson(rawJson, type) ?: emptyList()
-            save(list)
+            save(list, sync = false)
         } catch (e: Exception) {
             // Ignore parse error
         }

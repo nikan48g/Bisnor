@@ -18,6 +18,14 @@ data class MonthlyStats(
     val totalDataUsageBytes: Long
 )
 
+data class ProfileStats(
+    val moviesWatched: Int,
+    val seriesWatched: Int,
+    val episodesCompleted: Int,
+    val totalWatchTimeMs: Long,
+    val activeDays: Int
+)
+
 data class TasteRule(
     val id: Long,
     val ruleType: String, // EXCLUDE_GENRE, MIN_RATING, MIN_YEAR
@@ -281,6 +289,92 @@ class SmartTasteDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_
     fun resetLearnedTaste() {
         val db = writableDatabase
         db.delete(TABLE_WATCH_EVENTS, null, null)
+    }
+
+    // --- Profile analytics (derived from real watch events only) ---
+
+    fun getProfileStats(): ProfileStats {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_WATCH_EVENTS,
+            arrayOf("media_id", "media_type", "duration_ms", "is_completed", "watched_at"),
+            null, null, null, null, null
+        )
+        val movieIds = mutableSetOf<Int>()
+        val seriesIds = mutableSetOf<Int>()
+        var episodesCompleted = 0
+        var totalMs = 0L
+        val activeEpochDays = mutableSetOf<Long>()
+
+        cursor.use {
+            val idCol = it.getColumnIndex("media_id")
+            val typeCol = it.getColumnIndex("media_type")
+            val durCol = it.getColumnIndex("duration_ms")
+            val compCol = it.getColumnIndex("is_completed")
+            val timeCol = it.getColumnIndex("watched_at")
+
+            while (it.moveToNext()) {
+                val id = if (idCol != -1) it.getInt(idCol) else 0
+                val type = if (typeCol != -1) it.getString(typeCol) ?: "movie" else "movie"
+                val duration = if (durCol != -1) it.getLong(durCol) else 0L
+                val completed = if (compCol != -1) it.getInt(compCol) == 1 else false
+                val watchedAt = if (timeCol != -1) it.getLong(timeCol) else 0L
+
+                totalMs += duration
+                if (watchedAt > 0) activeEpochDays.add(localEpochDay(watchedAt))
+                if (type == "series") {
+                    if (id != 0) seriesIds.add(id)
+                    if (completed) episodesCompleted++
+                } else if (completed && id != 0) {
+                    movieIds.add(id)
+                }
+            }
+        }
+
+        return ProfileStats(
+            moviesWatched = movieIds.size,
+            seriesWatched = seriesIds.size,
+            episodesCompleted = episodesCompleted,
+            totalWatchTimeMs = totalMs,
+            activeDays = activeEpochDays.size
+        )
+    }
+
+    /** Local-timezone day index. Uses Calendar for minSdk 24 compatibility. */
+    private fun localEpochDay(millis: Long): Long {
+        val cal = java.util.Calendar.getInstance()
+        cal.timeInMillis = millis
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        cal.set(java.util.Calendar.MINUTE, 0)
+        cal.set(java.util.Calendar.SECOND, 0)
+        cal.set(java.util.Calendar.MILLISECOND, 0)
+        return cal.timeInMillis / 86_400_000L
+    }
+
+    /** Epoch-day (local timezone) -> watched milliseconds, for the activity heatmap. */
+    fun getDailyWatchActivity(days: Int): Map<Long, Long> {
+        val db = readableDatabase
+        val since = System.currentTimeMillis() - days.toLong() * 24L * 60 * 60 * 1000
+        val result = mutableMapOf<Long, Long>()
+        val cursor = db.query(
+            TABLE_WATCH_EVENTS,
+            arrayOf("duration_ms", "watched_at"),
+            "watched_at >= ?",
+            arrayOf(since.toString()),
+            null, null, null
+        )
+        cursor.use {
+            val durCol = it.getColumnIndex("duration_ms")
+            val timeCol = it.getColumnIndex("watched_at")
+            while (it.moveToNext()) {
+                val duration = if (durCol != -1) it.getLong(durCol) else 0L
+                val watchedAt = if (timeCol != -1) it.getLong(timeCol) else 0L
+                if (watchedAt <= 0) continue
+                val day = localEpochDay(watchedAt)
+                result[day] = (result[day] ?: 0L) + duration
+            }
+        }
+        return result
     }
 
     // --- User Explicit Favorite Genres ---

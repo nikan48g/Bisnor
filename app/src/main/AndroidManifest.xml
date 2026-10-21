@@ -60,6 +60,12 @@
             android:theme="@style/Theme.Bisnor" />
 
         <activity
+            android:name=".ui.person.PersonActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
+            android:exported="false"
+            android:theme="@style/Theme.Bisnor" />
+
+        <activity
             android:name=".ui.downloads.DownloadsActivity"
             android:exported="false"
             android:theme="@style/Theme.Bisnor" />
@@ -72,6 +78,11 @@
 
         <activity
             android:name=".ui.profile.AccountProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Bisnor" />
+
+        <activity
+            android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.Bisnor" />
 

@@ -1,5 +1,5 @@
 {
-  "name": "Bisnor",
+  "name": "Bisnor — تماشا بدون مرز",
   "short_name": "بیسنور",
   "id": "/",
   "lang": "fa",
@@ -7,8 +7,8 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#10131f",
-  "theme_color": "#10131f",
+  "background_color": "#100E0C",
+  "theme_color": "#100E0C",
   "icons": [
     { "src": "assets/logo.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
   ]

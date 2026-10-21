@@ -5,9 +5,10 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <!-- ================= Immersive artwork ================= -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="240dp">
+        android:layout_height="430dp">
 
         <ImageView
             android:id="@+id/img_header_backdrop"
@@ -18,224 +19,325 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/scrim_bottom_gradient" />
+            android:background="@drawable/bg_detail_header_gradient" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            android:background="@drawable/scrim_top_gradient" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:gravity="bottom"
+            android:orientation="horizontal"
+            android:paddingHorizontal="18dp"
+            android:paddingBottom="18dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="112dp"
+                android:layout_height="160dp"
+                app:cardBackgroundColor="@color/surface_container"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:strokeColor="#33FFFFFF"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/img_header_poster"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tv_header_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/vazirmatn_bold"
+                    android:maxLines="3"
+                    android:shadowColor="#99000000"
+                    android:shadowDx="0"
+                    android:shadowDy="2"
+                    android:shadowRadius="8"
+                    android:textColor="@color/white"
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/tv_header_original_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:maxLines="1"
+                    android:textColor="#CCF8F5F1"
+                    android:textSize="11.5sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_header_rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_soft_pill"
+                        android:drawableStart="@drawable/ic_star"
+                        android:drawablePadding="4dp"
+                        android:drawableTint="@color/rating_gold"
+                        android:fontFamily="@font/vazirmatn_bold"
+                        android:textColor="@color/white"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tv_header_year"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_soft_pill"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:textColor="@color/white"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tv_header_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="@drawable/bg_soft_pill"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:textColor="@color/white"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_header_age_rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/badge_background"
+                        android:fontFamily="@font/vazirmatn_bold"
+                        android:textColor="@color/tertiary"
+                        android:textSize="10.5sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tv_header_genres"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:maxLines="1"
+                        android:textColor="#CCF8F5F1"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
     </FrameLayout>
 
+    <!-- ================= Primary actions ================= -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_header_play"
+            style="@style/Widget.Bisnor.Button"
+            android:layout_width="0dp"
+            android:layout_height="54dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/btn_watch_now"
+            app:icon="@drawable/ic_play" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_header_add_playlist"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginStart="9dp"
+            android:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="18dp"
+            app:icon="@drawable/ic_bookmark"
+            app:iconTint="@color/on_surface"
+            app:strokeColor="@color/outline_variant"
+            app:strokeWidth="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_header_share_chat"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginStart="9dp"
+            android:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="18dp"
+            app:icon="@drawable/ic_share"
+            app:iconTint="@color/on_surface"
+            app:strokeColor="@color/outline_variant"
+            app:strokeWidth="1dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_header_trailer"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginStart="9dp"
+            android:backgroundTint="@color/surface_container_high"
+            android:visibility="gone"
+            app:cornerRadius="18dp"
+            app:icon="@drawable/ic_videoplayer"
+            app:iconTint="@color/on_surface"
+            app:strokeColor="@color/outline_variant"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+
+    <!-- ================= API metadata badges ================= -->
+    <HorizontalScrollView
+        android:id="@+id/scroll_header_badges"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="18dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/linear_header_badges"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- ================= Synopsis ================= -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_card_surface"
         android:orientation="vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingTop="8dp">
-
-        <TextView
-            android:id="@+id/tv_header_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:textColor="@color/on_surface"
-            android:textSize="22sp" />
-
-        <TextView
-            android:id="@+id/tv_header_genres"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:fontFamily="@font/vazirmatn_regular"
-            android:textColor="@color/on_surface_variant"
-            android:textSize="13sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_header_rating"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/badge_background"
-                android:drawableStart="@drawable/ic_star"
-                android:drawablePadding="4dp"
-                android:drawableTint="@color/rating_gold"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:textColor="@color/on_surface"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tv_header_year"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/badge_background"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:textColor="@color/on_surface"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tv_header_type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/badge_background"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:textColor="@color/secondary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tv_header_age_rating"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/badge_background"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:textColor="@color/tertiary"
-                android:textSize="12sp"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_header_play"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="@string/btn_watch_now"
-                android:textSize="14sp"
-                app:backgroundTint="@color/primary"
-                app:cornerRadius="14dp"
-                app:icon="@drawable/ic_play"
-                app:iconTint="@color/on_primary" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_header_trailer"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:layout_marginStart="8dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="تیزر"
-                android:textSize="12sp"
-                app:backgroundTint="@color/surface_container_high"
-                app:cornerRadius="14dp"
-                app:icon="@drawable/ic_play"
-                app:iconTint="@color/primary" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_header_add_playlist"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="8dp"
-                app:backgroundTint="@color/surface_container_high"
-                app:cornerRadius="14dp"
-                app:icon="@drawable/ic_bookmark"
-                app:iconTint="@color/white" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_header_share_chat"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="8dp"
-                app:backgroundTint="@color/surface_container_high"
-                app:cornerRadius="14dp"
-                app:icon="@drawable/ic_share"
-                app:iconTint="@color/primary" />
-        </LinearLayout>
+        android:padding="16dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:fontFamily="@font/vazirmatn_bold"
             android:text="@string/label_storyline"
             android:textColor="@color/on_surface"
-            android:textSize="15sp" />
+            android:textSize="13.5sp" />
 
         <TextView
             android:id="@+id/tv_header_storyline"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
             android:fontFamily="@font/vazirmatn_regular"
-            android:lineSpacingExtra="3dp"
+            android:lineSpacingExtra="4dp"
+            android:maxLines="4"
             android:textColor="@color/on_surface_variant"
-            android:textSize="13sp" />
-
-        <LinearLayout
-            android:id="@+id/layout_header_cast_crew"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/badge_background"
-            android:orientation="vertical"
-            android:padding="8dp"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/tv_header_director"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:padding="6dp"
-                android:textColor="@color/on_surface"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/tv_header_actors"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:fontFamily="@font/vazirmatn_regular"
-                android:padding="6dp"
-                android:textColor="@color/on_surface_variant"
-                android:textSize="12sp"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <!-- Season Selector Tabs for Series -->
-        <HorizontalScrollView
-            android:id="@+id/scroll_seasons"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:scrollbars="none"
-            android:visibility="gone">
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chip_group_seasons"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleSelection="true" />
-        </HorizontalScrollView>
+            android:textSize="12.5sp" />
 
         <TextView
-            android:id="@+id/tv_header_section_title"
+            android:id="@+id/btn_expand_story"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="4dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="@string/label_select_quality"
-            android:textColor="@color/on_surface"
-            android:textSize="16sp" />
+            android:layout_marginTop="6dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:paddingVertical="4dp"
+            android:text="بیشتر"
+            android:textColor="@color/primary"
+            android:textSize="11.5sp"
+            android:visibility="gone" />
 
     </LinearLayout>
+
+    <!-- ================= Cast & crew ================= -->
+    <LinearLayout
+        android:id="@+id/layout_header_people"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="18dp"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="بازیگران و عوامل"
+            android:textColor="@color/on_surface"
+            android:textSize="15.5sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_header_people"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:clipToPadding="false"
+            android:paddingHorizontal="14dp"
+            android:scrollbars="none" />
+    </LinearLayout>
+
+    <!-- ================= Seasons & episodes ================= -->
+    <TextView
+        android:id="@+id/tv_header_section_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="22dp"
+        android:fontFamily="@font/vazirmatn_bold"
+        android:text="@string/label_select_quality"
+        android:textColor="@color/on_surface"
+        android:textSize="15.5sp" />
+
+    <HorizontalScrollView
+        android:id="@+id/scroll_seasons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="18dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_seasons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true" />
+    </HorizontalScrollView>
 </LinearLayout>

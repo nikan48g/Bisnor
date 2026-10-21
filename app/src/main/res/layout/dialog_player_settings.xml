@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="28dp">
+
+        <View
+            android:layout_width="38dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_soft_pill" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="تنظیمات پخش"
+            android:textColor="@color/on_surface"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_sheet_stream_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:fontFamily="@font/vazirmatn_regular"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="11.5sp" />
+
+        <!-- Subtitles -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="زیرنویس"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/btn_sheet_subtitles"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="انتخاب زیرنویس"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tv_sheet_subtitle_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:text="خاموش"
+                    android:textColor="@color/primary"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
+                android:id="@+id/btn_sheet_subtitle_off"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="خاموش کردن زیرنویس"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Audio -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="زبان و ترک صوتی"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/btn_sheet_audio"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="انتخاب ترک صوتی"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tv_sheet_audio_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:textColor="@color/primary"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Speed -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="سرعت پخش"
+            android:textColor="@color/primary" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_speed_075"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.75×" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_speed_1"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="1×" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_speed_125"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1.25×" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_speed_15"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1.5×" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_speed_2"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2×" />
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- Other -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="سایر تنظیمات"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/btn_sheet_aspect"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="نسبت تصویر"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tv_sheet_aspect_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:text="Fit"
+                    android:textColor="@color/primary"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
+                android:id="@+id/btn_sheet_lock"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="قفل لمس صفحه"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
+                android:id="@+id/btn_sheet_external"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="پخش با پلیر خارجی"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_share"
+                    app:tint="@color/on_surface_variant" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

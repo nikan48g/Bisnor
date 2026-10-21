@@ -1,4 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Dark theme = the primary Bisnor experience. Fully re-declared so the
+         night qualifier replaces the light style without losing attributes. -->
     <style name="Theme.Bisnor" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
@@ -21,53 +24,40 @@
         <item name="colorOnSurface">@color/on_surface</item>
         <item name="colorSurfaceVariant">@color/surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/surface_container_low</item>
         <item name="colorSurfaceContainer">@color/surface_container</item>
         <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
         <item name="colorSurfaceContainerHighest">@color/surface_container_highest</item>
         <item name="colorOutline">@color/outline</item>
         <item name="colorOutlineVariant">@color/outline_variant</item>
 
-        <item name="android:statusBarColor">@color/background</item>
-        <item name="android:navigationBarColor">@color/surface_container</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/background</item>
 
         <item name="fontFamily">@font/vazirmatn</item>
         <item name="android:fontFamily">@font/vazirmatn</item>
         <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Bisnor.Headline</item>
         <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Bisnor.Headline</item>
-        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Bisnor.Headline</item>
-        <item name="textAppearanceTitleLarge">@style/TextAppearance.Bisnor.Title</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Bisnor.SectionTitle</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Bisnor.TitleLarge</item>
         <item name="textAppearanceTitleMedium">@style/TextAppearance.Bisnor.Title</item>
-        <item name="textAppearanceTitleSmall">@style/TextAppearance.Bisnor.Title</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Bisnor.Label</item>
         <item name="textAppearanceBodyLarge">@style/TextAppearance.Bisnor.Body</item>
         <item name="textAppearanceBodyMedium">@style/TextAppearance.Bisnor.Body</item>
-        <item name="textAppearanceBodySmall">@style/TextAppearance.Bisnor.Body</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Bisnor.Caption</item>
         <item name="textAppearanceLabelLarge">@style/TextAppearance.Bisnor.Label</item>
         <item name="textAppearanceLabelMedium">@style/TextAppearance.Bisnor.Label</item>
-        <item name="textAppearanceLabelSmall">@style/TextAppearance.Bisnor.Label</item>
-    </style>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Bisnor.Caption</item>
 
-    <style name="TextAppearance.Bisnor.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:textSize">12sp</item>
-        <item name="android:textColor">#FFFFFFFF</item>
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.Bisnor.Small</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.Bisnor.Medium</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.Bisnor.Large</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Bisnor.BottomSheet</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Bisnor.Dialog</item>
     </style>
-
-    <style name="TextAppearance.Bisnor.BottomNav.Inactive" parent="TextAppearance.Material3.LabelSmall">
-        <item name="fontFamily">@font/vazirmatn_medium</item>
-        <item name="android:fontFamily">@font/vazirmatn_medium</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textColor">#A6FFFFFF</item>
-    </style>
-
-    <style name="Widget.Bisnor.BottomNav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/transparent</item>
-        <item name="android:width">0dp</item>
-        <item name="android:height">0dp</item>
-    </style>
-
-    <style name="Theme.Bisnor.Light" parent="Theme.Bisnor" />
 
     <style name="Theme.Bisnor.Player" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:windowFullscreen">true</item>
@@ -75,5 +65,7 @@
         <item name="android:navigationBarColor">@color/black</item>
         <item name="fontFamily">@font/vazirmatn</item>
         <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Bisnor.Dialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Bisnor.BottomSheet</item>
     </style>
 </resources>

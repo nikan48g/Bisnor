@@ -15,7 +15,9 @@ data class RealMedia(
     val cover: String = "",
     val genres: List<RealGenre> = emptyList(),
     val sources: List<RealSource> = emptyList(),
-    val country: List<RealCountry> = emptyList()
+    val country: List<RealCountry> = emptyList(),
+    val classification: String? = null,
+    val people: List<RealPerson> = emptyList()
 ) : Serializable {
     val isSeries: Boolean
         get() = type.startsWith("seri", ignoreCase = true)
@@ -43,6 +45,13 @@ data class RealSeason(
     val id: Int = 0,
     val title: String = "",
     val episodes: List<RealEpisode> = emptyList()
+) : Serializable
+
+/** A real credit parsed from the provider payload or its description block. */
+data class RealPerson(
+    val name: String = "",
+    val role: String = "actor", // actor | director | writer
+    val photo: String = ""
 ) : Serializable
 
 data class RealEpisode(

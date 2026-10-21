@@ -26,6 +26,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
@@ -33,11 +35,16 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.DefaultTimeBar
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.hnn.bisnor.R
 import com.hnn.bisnor.data.model.RealSource
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.data.repository.RealMediaRepository
 import com.hnn.bisnor.databinding.ActivityPlayerBinding
+import com.hnn.bisnor.databinding.DialogPlayerSettingsBinding
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -60,6 +67,9 @@ class PlayerActivity : AppCompatActivity() {
     private var mediaGenres: ArrayList<String> = arrayListOf()
     private var lastRecordedPosMs: Long = 0L
     private var currentSpeedIndex = 1 // 1.0x
+    private var selectedTextLabel: String = "خاموش"
+    private var selectedAudioLabel: String = ""
+    private var textDisabled: Boolean = true
     private val speeds = listOf(0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
     private val speedLabels = listOf("0.75x", "1.0x", "1.25x", "1.5x", "2.0x")
 
@@ -157,52 +167,10 @@ class PlayerActivity : AppCompatActivity() {
             }
         })
 
-        // Aspect Ratio
-        binding.btnAspectRatio.setOnClickListener {
-            currentAspectIndex = (currentAspectIndex + 1) % aspectModes.size
-            binding.playerView.resizeMode = aspectModes[currentAspectIndex]
-            val lbl = when (currentAspectIndex) {
-                1 -> "Zoom"
-                2 -> "Stretch"
-                else -> "Fit"
-            }
-            binding.btnAspectRatio.text = lbl
-            showIndicator("📐 نسبت تصویر", aspectLabels[currentAspectIndex])
-        }
-
-        // Lock Screen
-        binding.btnLockScreen.setOnClickListener {
-            isScreenLocked = true
-            binding.playerView.useController = false
-            binding.topPlayerBar.visibility = View.GONE
-            binding.cardUnlockScreen.visibility = View.VISIBLE
-            showIndicator("🔒 قفل لمس صفحه", "برای باز کردن، دکمه بالا را لمس کنید")
-        }
-
-        binding.cardUnlockScreen.setOnClickListener {
-            isScreenLocked = false
-            binding.playerView.useController = true
-            binding.cardUnlockScreen.visibility = View.GONE
-            binding.topPlayerBar.visibility = View.VISIBLE
-            showIndicator("🔓 قفل صفحه باز شد", "")
-            handler.postDelayed(hideControlsRunnable, 4000)
-        }
-
-        binding.btnSpeed.setOnClickListener {
-            currentSpeedIndex = (currentSpeedIndex + 1) % speeds.size
-            val spd = speeds[currentSpeedIndex]
-            exoPlayer?.setPlaybackSpeed(spd)
-            binding.btnSpeed.text = speedLabels[currentSpeedIndex]
-            showIndicator("⚡ سرعت پخش", speedLabels[currentSpeedIndex])
-        }
-
-        binding.btnTracks.setOnClickListener {
-            showTrackSelectionDialog()
-        }
-
-        binding.btnExternalPlayer.setOnClickListener {
-            openWithExternalPlayer()
-        }
+        // Unified playback settings (subtitles, audio, speed, aspect, external player)
+        binding.btnLockScreen.setOnClickListener { lockScreen() }
+        binding.cardUnlockScreen.setOnClickListener { unlockScreen() }
+        binding.btnPlayerSettings.setOnClickListener { showPlaybackSettings() }
 
         binding.btnPlayNextNow.setOnClickListener {
             nextEpisodeManager.playNextNow()
@@ -246,6 +214,7 @@ class PlayerActivity : AppCompatActivity() {
         )
         nextEpisodeManager.preload()
 
+        styleSeekBar()
         initializePlayer(videoUrl)
     }
 
@@ -339,6 +308,224 @@ class PlayerActivity : AppCompatActivity() {
                 }
             }
             .show()
+    }
+    // ---------------- Unified playback settings (presentation only) ----------------
+
+    private fun styleSeekBar() {
+        binding.playerView.post {
+            val timeBar = binding.playerView.findViewById<DefaultTimeBar>(androidx.media3.ui.R.id.exo_progress) ?: return@post
+            // Media3 exposes colour and key-step setters publicly; thickness is increased
+            // visually without replacing the controller or touching seeking logic.
+            timeBar.setPlayedColor(getColor(R.color.primary))
+            timeBar.setScrubberColor(getColor(R.color.primary))
+            timeBar.setBufferedColor(getColor(R.color.on_surface_variant))
+            timeBar.setUnplayedColor(getColor(R.color.surface_container_highest))
+            timeBar.setKeyTimeIncrement(5000L)
+            timeBar.scaleY = 1.45f
+            timeBar.scaleX = 1.02f
+        }
+    }
+
+    private fun showPlaybackSettings() {
+        val sheet = BottomSheetDialog(this)
+        val sheetBinding = DialogPlayerSettingsBinding.inflate(layoutInflater)
+        sheet.setContentView(sheetBinding.root)
+        sheet.behavior.apply {
+            skipCollapsed = true
+            isFitToContents = true
+            state = BottomSheetBehavior.STATE_EXPANDED
+        }
+
+        sheetBinding.tvSheetStreamState.text = buildString {
+            append(mediaTitle)
+            if (episodeTitle.isNotBlank()) append(" • ").append(episodeTitle)
+        }
+        sheetBinding.tvSheetSubtitleValue.text = selectedTextLabel
+        sheetBinding.tvSheetAspectValue.text = aspectLabels[currentAspectIndex]
+        sheetBinding.tvSheetAudioValue.text =
+            selectedAudioLabel.ifBlank { describeDefaultAudio() }
+
+        val speedChipId = when (currentSpeedIndex) {
+            0 -> R.id.chip_speed_075
+            2 -> R.id.chip_speed_125
+            3 -> R.id.chip_speed_15
+            4 -> R.id.chip_speed_2
+            else -> R.id.chip_speed_1
+        }
+        sheetBinding.chipGroupSpeed.check(speedChipId)
+        sheetBinding.chipGroupSpeed.setOnCheckedStateChangeListener { _, checkedIds ->
+            currentSpeedIndex = when (checkedIds.firstOrNull()) {
+                R.id.chip_speed_075 -> 0
+                R.id.chip_speed_125 -> 2
+                R.id.chip_speed_15 -> 3
+                R.id.chip_speed_2 -> 4
+                else -> 1
+            }
+            val speed = speeds[currentSpeedIndex]
+            exoPlayer?.setPlaybackSpeed(speed)
+            showIndicator("سرعت پخش", speedLabels[currentSpeedIndex])
+        }
+
+        sheetBinding.btnSheetSubtitles.setOnClickListener {
+            sheet.dismiss()
+            chooseTextTrack()
+        }
+        sheetBinding.btnSheetSubtitleOff.setOnClickListener {
+            disableSubtitles()
+            Toast.makeText(this, "زیرنویس خاموش شد", Toast.LENGTH_SHORT).show()
+            sheet.dismiss()
+        }
+        sheetBinding.btnSheetAudio.setOnClickListener {
+            sheet.dismiss()
+            chooseAudioTrack()
+        }
+        sheetBinding.btnSheetAspect.setOnClickListener {
+            currentAspectIndex = (currentAspectIndex + 1) % aspectModes.size
+            binding.playerView.resizeMode = aspectModes[currentAspectIndex]
+            sheetBinding.tvSheetAspectValue.text = aspectLabels[currentAspectIndex]
+            showIndicator("نسبت تصویر", aspectLabels[currentAspectIndex])
+        }
+        sheetBinding.btnSheetLock.setOnClickListener {
+            sheet.dismiss()
+            lockScreen()
+        }
+        sheetBinding.btnSheetExternal.setOnClickListener {
+            sheet.dismiss()
+            openWithExternalPlayer()
+        }
+
+        sheet.show()
+    }
+
+    private fun chooseTextTrack() {
+        val groups = exoPlayer?.currentTracks?.groups
+            ?.filter { it.type == C.TRACK_TYPE_TEXT && it.length > 0 }
+            .orEmpty()
+        if (groups.isEmpty()) {
+            Toast.makeText(this, "این ویدیو زیرنویس قابل انتخاب ندارد", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val options = mutableListOf<String>()
+        groups.forEach { group ->
+            for (i in 0 until group.length) {
+                val format = group.getTrackFormat(i)
+                options.add(
+                    format.label?.takeIf { it.isNotBlank() }
+                        ?: format.language?.takeIf { it.isNotBlank() }
+                        ?: "زیرنویس ${options.size + 1}"
+                )
+            }
+        }
+
+        val items = arrayOf("خاموش") + options.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("زیرنویس")
+            .setItems(items) { _, which ->
+                if (which == 0) {
+                    disableSubtitles()
+                } else {
+                    var flat = which - 1
+                    for (group in groups) {
+                        if (flat < group.length) {
+                            selectTextGroup(group, flat)
+                            selectedTextLabel = options[which - 1]
+                            textDisabled = false
+                            Toast.makeText(this, "زیرنویس: ${options[which - 1]}", Toast.LENGTH_SHORT).show()
+                            break
+                        }
+                        flat -= group.length
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun chooseAudioTrack() {
+        val groups = exoPlayer?.currentTracks?.groups
+            ?.filter { it.type == C.TRACK_TYPE_AUDIO && it.length > 0 }
+            .orEmpty()
+        if (groups.isEmpty()) {
+            Toast.makeText(this, "ترک صوتی قابل انتخابی وجود ندارد", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val options = mutableListOf<String>()
+        groups.forEach { group ->
+            for (i in 0 until group.length) {
+                val format = group.getTrackFormat(i)
+                options.add(
+                    format.label?.takeIf { it.isNotBlank() }
+                        ?: format.language?.takeIf { it.isNotBlank() }
+                        ?: "صوت ${options.size + 1}"
+                )
+            }
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("ترک صوتی")
+            .setSingleChoiceItems(options.toTypedArray(), -1) { dialog, which ->
+                var flat = which
+                for (group in groups) {
+                    if (flat < group.length) {
+                        selectAudioGroup(group, flat)
+                        selectedAudioLabel = options[which]
+                        Toast.makeText(this, "صدا: ${options[which]}", Toast.LENGTH_SHORT).show()
+                        break
+                    }
+                    flat -= group.length
+                }
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun selectTextGroup(group: Tracks.Group, trackIndex: Int) {
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, trackIndex))
+        )
+    }
+
+    private fun selectAudioGroup(group: Tracks.Group, trackIndex: Int) {
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters()
+                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
+                .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, trackIndex))
+        )
+    }
+
+    private fun disableSubtitles() {
+        trackSelector.setParameters(
+            trackSelector.buildUponParameters().setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+        )
+        selectedTextLabel = "خاموش"
+        textDisabled = true
+    }
+
+    private fun describeDefaultAudio(): String {
+        val group = exoPlayer?.currentTracks?.groups
+            ?.firstOrNull { it.type == C.TRACK_TYPE_AUDIO && it.length > 0 } ?: return ""
+        val format = group.getTrackFormat(0)
+        return format.label ?: format.language ?: ""
+    }
+
+    private fun lockScreen() {
+        isScreenLocked = true
+        binding.playerView.useController = false
+        binding.topPlayerBar.visibility = View.GONE
+        binding.cardUnlockScreen.visibility = View.VISIBLE
+        showIndicator("قفل لمس صفحه", "برای باز کردن دکمه بالا را لمس کنید")
+    }
+
+    private fun unlockScreen() {
+        isScreenLocked = false
+        binding.playerView.useController = true
+        binding.cardUnlockScreen.visibility = View.GONE
+        binding.topPlayerBar.visibility = View.VISIBLE
+        showIndicator("قفل صفحه باز شد", "")
+        handler.postDelayed(hideControlsRunnable, 4000)
     }
 
     private fun openWithExternalPlayer() {
@@ -548,3 +735,4 @@ class PlayerActivity : AppCompatActivity() {
         exoPlayer = null
     }
 }
+

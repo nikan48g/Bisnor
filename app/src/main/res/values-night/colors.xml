@@ -1,51 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand Primary Colors (Cinematic Amber & Gold Glow) -->
-    <color name="primary">#FFB86B</color>
-    <color name="on_primary">#492900</color>
-    <color name="primary_container">#673D00</color>
+    <!-- ============================================================
+         Bisnor design tokens — DARK theme (primary experience)
+         Deep cinematic brown-black with a warm amber accent.
+         ============================================================ -->
+
+    <!-- Brand / accent -->
+    <color name="primary">#FF891F</color>
+    <color name="on_primary">#2A1500</color>
+    <color name="primary_container">#4A2A08</color>
     <color name="on_primary_container">#FFDDB8</color>
 
-    <!-- Secondary (Electric Cyan/Teal) -->
-    <color name="secondary">#80D5DB</color>
-    <color name="on_secondary">#00363B</color>
-    <color name="secondary_container">#004F56</color>
-    <color name="on_secondary_container">#9DF1F7</color>
+    <!-- Secondary -->
+    <color name="secondary">#FFB067</color>
+    <color name="on_secondary">#2A1500</color>
+    <color name="secondary_container">#3B2A19</color>
+    <color name="on_secondary_container">#FFDDB8</color>
 
-    <!-- Tertiary (Warm Coral / Crimson) -->
-    <color name="tertiary">#FFB4AB</color>
-    <color name="on_tertiary">#690005</color>
-    <color name="tertiary_container">#93000A</color>
-    <color name="on_tertiary_container">#FFDAD6</color>
+    <!-- Tertiary -->
+    <color name="tertiary">#FFB4A2</color>
+    <color name="on_tertiary">#4A1105</color>
+    <color name="tertiary_container">#6B2114</color>
+    <color name="on_tertiary_container">#FFDAD4</color>
 
-    <!-- Surface & Background Dark Tokens (M3 Elevation Tones) -->
-    <color name="background">#0F0F13</color>
-    <color name="on_background">#E6E1E5</color>
-    <color name="surface">#131318</color>
-    <color name="on_surface">#E6E1E5</color>
-    <color name="surface_variant">#22222B</color>
-    <color name="on_surface_variant">#CAC4D0</color>
-    <color name="surface_container_lowest">#0A0A0D</color>
-    <color name="surface_container_low">#17171E</color>
-    <color name="surface_container">#1B1B22</color>
-    <color name="surface_container_high">#26262F</color>
-    <color name="surface_container_highest">#31313C</color>
+    <!-- Surfaces -->
+    <color name="background">#100E0C</color>
+    <color name="on_background">#F8F5F1</color>
+    <color name="surface">#1C1815</color>
+    <color name="on_surface">#F8F5F1</color>
+    <color name="surface_variant">#27201A</color>
+    <color name="on_surface_variant">#A9A19A</color>
+    <color name="surface_container_lowest">#0A0908</color>
+    <color name="surface_container_low">#161311</color>
+    <color name="surface_container">#1C1815</color>
+    <color name="surface_container_high">#27201A</color>
+    <color name="surface_container_highest">#332A23</color>
 
-    <color name="outline">#8E9099</color>
-    <color name="outline_variant">#3C3D4A</color>
+    <color name="outline">#6E625A</color>
+    <color name="outline_variant">#38302A</color>
 
-    <!-- Accents & Functional -->
-    <color name="rating_gold">#FFC107</color>
+    <!-- Accents & functional -->
+    <color name="rating_gold">#FFC24B</color>
     <color name="error">#FFB4AB</color>
     <color name="on_error">#690005</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="transparent">#00000000</color>
     <color name="overlay_scrim">#B3000000</color>
-    <color name="shimmer_base">#1C1C24</color>
-    <color name="shimmer_highlight">#2E2E3C</color>
-    <color name="nav_bar_translucent">#D914141B</color>
+    <color name="shimmer_base">#1C1815</color>
+    <color name="shimmer_highlight">#2B241E</color>
+    <color name="nav_bar_translucent">#F2161311</color>
     <color name="glass_border">#33FFFFFF</color>
-    <color name="glass_card_bg">#CC14141C</color>
-    <color name="glass_elevated_bg">#E61E1E28</color>
+    <color name="glass_card_bg">#CC161311</color>
+    <color name="glass_elevated_bg">#E61C1815</color>
+
+    <!-- Semantic aliases -->
+    <color name="bisnor_bg">@color/background</color>
+    <color name="bisnor_surface">@color/surface</color>
+    <color name="bisnor_surface_elevated">@color/surface_container_high</color>
+    <color name="bisnor_accent">@color/primary</color>
+    <color name="bisnor_accent_soft">#33200C</color>
+    <color name="bisnor_text_primary">@color/on_surface</color>
+    <color name="bisnor_text_secondary">@color/on_surface_variant</color>
+    <color name="bisnor_border">@color/outline_variant</color>
+    <color name="bisnor_on_accent">@color/on_primary</color>
+    <color name="bisnor_success">#5BD6A0</color>
+    <color name="bisnor_scrim_top">#CC000000</color>
+    <color name="bisnor_scrim_bottom">#F20B0908</color>
+
+    <!-- Activity heatmap scale (0 = no activity) -->
+    <color name="heat_0">#241E19</color>
+    <color name="heat_1">#5A3A17</color>
+    <color name="heat_2">#8A5211</color>
+    <color name="heat_3">#C06A0D</color>
+    <color name="heat_4">#FF891F</color>
 </resources>

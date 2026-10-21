@@ -1,19 +1,25 @@
 package com.hnn.bisnor.ui.home
 
 import android.content.Intent
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import coil.load
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.hnn.bisnor.MainActivity
+import com.hnn.bisnor.R
 import com.hnn.bisnor.data.model.RealMedia
+import com.hnn.bisnor.data.remote.AuthManager
+import com.hnn.bisnor.data.repository.FavoritesManager
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.data.repository.PlaybackProgress
 import com.hnn.bisnor.data.repository.RealMediaRepository
@@ -24,16 +30,27 @@ import com.hnn.bisnor.ui.adapter.RealHomeSection
 import com.hnn.bisnor.ui.adapter.RealHomeSectionAdapter
 import com.hnn.bisnor.ui.detail.DetailActivity
 import com.hnn.bisnor.ui.player.PlayerActivity
-import kotlinx.coroutines.async
+import com.hnn.bisnor.util.ImageUrlHelper
+import com.hnn.bisnor.util.PlayerLauncherHelper
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.random.Random
+import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+
     private lateinit var historyManager: PlaybackHistoryManager
+    private lateinit var favoritesManager: FavoritesManager
+    private lateinit var authManager: AuthManager
+
     private var allFetchedMedia = listOf<RealMedia>()
+    private var loadJob: Job? = null
+    private var autoScrollJob: Job? = null
+    private var heroCount = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -45,137 +62,248 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         historyManager = PlaybackHistoryManager(requireContext())
+        favoritesManager = FavoritesManager(requireContext())
+        authManager = AuthManager(requireContext())
 
         binding.recyclerSections.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding.recyclerSections.itemAnimator = null
 
-        binding.swipeRefresh.setOnRefreshListener { loadData() }
-        binding.btnQuickSearch.setOnClickListener {
-            (activity as? MainActivity)?.selectExploreTab()
+        binding.swipeRefresh.setOnRefreshListener { loadData(userInitiated = true) }
+        binding.btnHomeSearch.setOnClickListener { openExplore() }
+        binding.cardHomeSearch.setOnClickListener { openExplore() }
+        binding.btnHomeAvatar.setOnClickListener { openProfile() }
+        binding.btnHomeRetry.setOnClickListener { loadData(userInitiated = true) }
+        binding.btnContinueAll.setOnClickListener {
+            (activity as? MainActivity)?.selectLibraryTab()
         }
 
-        loadData()
+        bindGreeting()
+        loadData(userInitiated = false)
     }
 
-    private fun showRandomMovieDialog() {
-        val goodCandidates = allFetchedMedia.filter { it.imdb >= 7.0 && it.image.isNotEmpty() }
-        val pool = if (goodCandidates.isNotEmpty()) goodCandidates else allFetchedMedia
-        if (pool.isNotEmpty()) {
-            val randomItem = pool[Random.nextInt(pool.size)]
-            val genreStr = randomItem.genres.joinToString("، ") { it.title }
-            val yearStr = if (randomItem.year > 0) " (${randomItem.year})" else ""
+    // ------------------------------------------------------------------ header
 
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle("🎲 پیشنهاد امشب بیسنور:")
-                .setMessage("فیلم: «${randomItem.title}$yearStr»\n⭐ نمره آی‌ام‌دی‌بی: ${String.format("%.1f", randomItem.imdb)}\n🎭 ژانر: $genreStr\n\nآیا مایلید این اثر را مشاهده کنید؟")
-                .setPositiveButton("تماشای فیلم") { _, _ ->
-                    openDetail(randomItem)
-                }
-                .setNeutralButton("یک پیشنهاد دیگر 🔄") { _, _ ->
-                    showRandomMovieDialog()
-                }
-                .setNegativeButton("انصراف", null)
-                .show()
+    private fun bindGreeting() {
+        if (authManager.isLoggedIn && authManager.currentUsername.isNotEmpty()) {
+            val display = authManager.currentUsername
+            binding.tvHomeGreeting.text = "سلام، ${display.replaceFirstChar { it.uppercase() }}"
+            binding.tvHomeGreetingSub.text = "امشب چه چیزی ببینیم؟"
         } else {
-            Toast.makeText(requireContext(), "در حال دریافت لیست فیلم‌ها...", Toast.LENGTH_SHORT).show()
+            binding.tvHomeGreeting.text = "سلام"
+            binding.tvHomeGreetingSub.text = "به بیسنور خوش آمدی"
+        }
+
+        val avatarUrl = authManager.userAvatarUrl
+        val initial = authManager.currentUsername.trim().take(1).uppercase(Locale.getDefault())
+        when {
+            avatarUrl.isNotEmpty() -> {
+                binding.imgHomeAvatar.visibility = View.VISIBLE
+                binding.tvHomeAvatarInitial.visibility = View.GONE
+                binding.imgHomeAvatar.load(avatarUrl) {
+                    crossfade(true)
+                    placeholder(R.drawable.ic_account_circle)
+                    error(R.drawable.ic_account_circle)
+                }
+            }
+            authManager.isLoggedIn && initial.isNotEmpty() -> {
+                binding.imgHomeAvatar.visibility = View.GONE
+                binding.tvHomeAvatarInitial.visibility = View.VISIBLE
+                binding.tvHomeAvatarInitial.text = initial
+            }
+            else -> {
+                binding.imgHomeAvatar.visibility = View.VISIBLE
+                binding.tvHomeAvatarInitial.visibility = View.GONE
+                binding.imgHomeAvatar.setImageResource(R.drawable.ic_account_circle)
+            }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (_binding != null) {
-            updateContinueWatchingRow()
-        }
+    private fun openExplore() {
+        (activity as? MainActivity)?.selectExploreTab()
     }
 
-    private fun loadData() {
+    private fun openProfile() {
+        (activity as? MainActivity)?.selectProfileTab()
+    }
+
+    // ------------------------------------------------------------------ data
+
+    private fun loadData(userInitiated: Boolean) {
         if (_binding == null) return
-        binding.progressBar.visibility = View.VISIBLE
-        lifecycleScope.launch {
-            val moviesP0 = async { RealMediaRepository.getLatestMovies(0) }
-            val moviesP1 = async { RealMediaRepository.getLatestMovies(1) }
-            val seriesP0 = async { RealMediaRepository.getPopularSeries(0) }
-            val seriesP1 = async { RealMediaRepository.getPopularSeries(1) }
-            val topMovies = async { RealMediaRepository.getTopImdbMovies(0) }
-            val korean = async { RealMediaRepository.getPostersByCountry(14, 0) }
-            val anime = async { RealMediaRepository.getPostersByCountry(10, 0) }
+        loadJob?.cancel()
+        if (!userInitiated) {
+            showSkeleton(true)
+            binding.layoutHomeError.visibility = View.GONE
+        } else {
+            binding.progressBar.visibility = View.VISIBLE
+        }
+        binding.swipeRefresh.isRefreshing = false
 
-            val allMovies = (moviesP0.await() + moviesP1.await()).distinctBy { it.id }
-            val allSeries = (seriesP0.await() + seriesP1.await()).distinctBy { it.id }
-            val topList = topMovies.await()
-            val koreanList = korean.await()
-            val animeList = anime.await()
+        loadJob = lifecycleScope.launch {
+            // Paint genuine cached data immediately, then refresh from the network.
+            if (!userInitiated) {
+                val cached = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    RealMediaRepository.cachedHomeCatalog()
+                }
+                if (cached != null && cached.hero.isNotEmpty() && _binding != null) {
+                    showSkeleton(false)
+                    renderCatalog(cached, userInitiated = false)
+                    binding.progressBar.visibility = View.VISIBLE
+                }
+            }
 
-            allFetchedMedia = (allMovies + allSeries + topList + koreanList + animeList).distinctBy { it.id }
-
+            val catalog = runCatching { RealMediaRepository.getHomeCatalog() }
+                .getOrElse {
+                    RealMediaRepository.HomeCatalog(emptyList(), emptyList(), false, true)
+                }
             if (_binding == null) return@launch
 
+            showSkeleton(false)
             binding.progressBar.visibility = View.GONE
-            binding.swipeRefresh.isRefreshing = false
 
-            updateContinueWatchingRow()
-
-            // Hero banner
-            val heroItems = (allMovies.take(4) + allSeries.take(3)).filter { it.cover.isNotEmpty() || it.image.isNotEmpty() }
-            if (heroItems.isNotEmpty()) {
-                binding.viewPagerHero.adapter = RealHeroBannerAdapter(heroItems) { openDetail(it) }
+            if (catalog.failed || catalog.hero.isEmpty()) {
+                // Keep a cached home on screen if we already painted one.
+                if (binding.homeContent.visibility != View.VISIBLE) {
+                    binding.homeContent.visibility = View.GONE
+                    binding.layoutHomeError.visibility = View.VISIBLE
+                    binding.tvHomeErrorTitle.text = "ارتباط با سرور برقرار نشد"
+                    binding.tvHomeErrorDesc.text =
+                        "کاتالوگ ایران‌فلیکس در دسترس نیست. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+                }
+                return@launch
             }
 
-            // Rich and diverse movie categories
-            val contentPref = try { com.hnn.bisnor.data.database.SmartTasteDatabase(requireContext()).getContentTypePreference() } catch (_: Exception) { "all" }
-            val sections = mutableListOf<RealHomeSection>()
-
-            if (contentPref == "series") {
-                if (allSeries.isNotEmpty()) sections.add(RealHomeSection("📺 سریال‌های پرمخاطب و داغ", allSeries.take(18)))
-                if (koreanList.isNotEmpty()) sections.add(RealHomeSection("🇰🇷 سریال‌های محبوب کره‌ای (K-Drama)", koreanList))
-                if (allMovies.isNotEmpty()) sections.add(RealHomeSection("🔥 تازه‌ترین فیلم‌های روز", allMovies.take(18)))
-            } else {
-                if (allMovies.isNotEmpty()) sections.add(RealHomeSection("🔥 تازه‌ترین فیلم‌های روز", allMovies.take(18)))
-                if (allSeries.isNotEmpty()) sections.add(RealHomeSection("📺 سریال‌های پرمخاطب و داغ", allSeries.take(18)))
-                if (koreanList.isNotEmpty()) sections.add(RealHomeSection("🇰🇷 سریال‌های محبوب کره‌ای (K-Drama)", koreanList))
-            }
-
-            if (topList.isNotEmpty()) sections.add(RealHomeSection("⭐ برترین فیلم‌های تاریخ سینما (IMDb Top)", topList))
-            if (animeList.isNotEmpty()) sections.add(RealHomeSection("🇯🇵 انیمه و دنیای سینمای ژاپن", animeList))
-
-            val actionMovies = allMovies.filter { it.genres.any { g -> g.title.contains("اکشن") || g.title.contains("هیجان") } }
-            if (actionMovies.isNotEmpty()) sections.add(RealHomeSection("💥 هیجان و اکشن بدون توقف", actionMovies))
-
-            val animationMovies = allMovies.filter { it.genres.any { g -> g.title.contains("انیمیشن") || g.title.contains("کارتون") } }
-            if (animationMovies.isNotEmpty()) sections.add(RealHomeSection("🎨 انیمیشن‌های خانوادگی و جذاب", animationMovies))
-
-            val comedyMovies = allMovies.filter { it.genres.any { g -> g.title.contains("کمدی") || g.title.contains("خنده") } }
-            if (comedyMovies.isNotEmpty()) sections.add(RealHomeSection("🍿 فیلم‌های کمدی و سرگرم‌کننده", comedyMovies))
-
-            binding.recyclerSections.adapter = RealHomeSectionAdapter(sections) { openDetail(it) }
+            renderCatalog(catalog, userInitiated)
         }
     }
+
+    private fun renderCatalog(catalog: RealMediaRepository.HomeCatalog, userInitiated: Boolean) {
+        binding.layoutHomeError.visibility = View.GONE
+        binding.homeContent.visibility = View.VISIBLE
+
+        allFetchedMedia = (catalog.hero + catalog.rows.flatMap { it.items }).distinctBy { it.id }
+        bindHero(catalog.hero)
+        bindSections(catalog.rows)
+        updateContinueWatchingRow()
+
+        if (catalog.fromCache && userInitiated) {
+            Toast.makeText(requireContext(), "محتوای ذخیره‌شده نمایش داده می‌شود", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showSkeleton(show: Boolean) {
+        binding.skeletonHome.visibility = if (show) View.VISIBLE else View.GONE
+        binding.homeContent.visibility = if (show) View.GONE else View.VISIBLE
+        if (show) binding.skeletonHome.startShimmer() else binding.skeletonHome.stopShimmer()
+    }
+
+    // ------------------------------------------------------------------ hero
+
+    private fun bindHero(items: List<RealMedia>) {
+        if (items.isEmpty()) {
+            binding.viewPagerHero.visibility = View.GONE
+            binding.layoutHeroIndicator.visibility = View.GONE
+            return
+        }
+        binding.viewPagerHero.visibility = View.VISIBLE
+        heroCount = items.size
+
+        binding.viewPagerHero.adapter = RealHeroBannerAdapter(
+            items,
+            onDetailsClick = { openDetail(it) },
+            onPlayClick = { playOrOpen(it) },
+            onSaveClick = { toggleWatchlist(it) }
+        )
+        binding.viewPagerHero.offscreenPageLimit = 1
+
+        binding.viewPagerHero.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                renderIndicators(position)
+                scheduleAutoScroll()
+            }
+        })
+
+        renderIndicators(0)
+        scheduleAutoScroll()
+    }
+
+    private fun renderIndicators(selected: Int) {
+        val container = binding.layoutHeroIndicator
+        container.removeAllViews()
+        if (heroCount <= 1) {
+            container.visibility = View.GONE
+            return
+        }
+        container.visibility = View.VISIBLE
+        val density = resources.displayMetrics.density
+        for (i in 0 until heroCount) {
+            val dot = View(requireContext())
+            val width = if (i == selected) (20 * density).toInt() else (6 * density).toInt()
+            val params = ViewGroup.MarginLayoutParams(width, (6 * density).toInt())
+            params.marginStart = (3 * density).toInt()
+            params.marginEnd = (3 * density).toInt()
+            dot.layoutParams = params
+            dot.background = GradientDrawable().apply {
+                cornerRadius = 100f
+                setColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        if (i == selected) R.color.primary else R.color.surface_container_highest
+                    )
+                )
+            }
+            container.addView(dot)
+        }
+    }
+
+    private fun scheduleAutoScroll() {
+        autoScrollJob?.cancel()
+        if (!isResumed || heroCount <= 1 || !animationsEnabled()) return
+        autoScrollJob = lifecycleScope.launch {
+            delay(7000)
+            val pager = _binding?.viewPagerHero ?: return@launch
+            val next = (pager.currentItem + 1) % heroCount
+            pager.setCurrentItem(next, true)
+        }
+    }
+
+    private fun animationsEnabled(): Boolean {
+        return try {
+            Settings.Global.getFloat(
+                requireContext().contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f
+            ) > 0f
+        } catch (_: Exception) {
+            true
+        }
+    }
+
+    // ------------------------------------------------------------------ sections
+
+    private fun bindSections(rows: List<RealMediaRepository.HomeRow>) {
+        val sections = rows.map { RealHomeSection(it.title, it.items) }
+        binding.recyclerSections.adapter = RealHomeSectionAdapter(sections) { openDetail(it) }
+    }
+
+    // ------------------------------------------------------------------ continue watching
 
     private fun updateContinueWatchingRow() {
         if (_binding == null) return
-        try {
-            val historyList = historyManager.getAllContinueWatching()
-            if (historyList.isNotEmpty()) {
-                binding.layoutContinueWatching.visibility = View.VISIBLE
-                binding.recyclerContinueWatching.adapter = ContinueWatchingAdapter(historyList)
-            } else {
-                binding.layoutContinueWatching.visibility = View.GONE
-            }
-        } catch (e: Exception) {
-            // Safe guard
+        val history = runCatching { historyManager.getAllContinueWatching() }.getOrDefault(emptyList())
+        if (history.isEmpty()) {
+            binding.layoutContinueWatching.visibility = View.GONE
+            return
         }
+        binding.layoutContinueWatching.visibility = View.VISIBLE
+        binding.recyclerContinueWatching.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.recyclerContinueWatching.adapter = ContinueWatchingAdapter(history)
     }
 
-    private fun openDetail(item: RealMedia) {
-        val intent = Intent(requireContext(), DetailActivity::class.java).apply {
-            putExtra("real_media", item)
-        }
-        startActivity(intent)
-    }
-
-    inner class ContinueWatchingAdapter(
-        private val items: List<PlaybackProgress>
-    ) : RecyclerView.Adapter<ContinueWatchingAdapter.Holder>() {
+    private inner class ContinueWatchingAdapter(val items: List<PlaybackProgress>) :
+        RecyclerView.Adapter<ContinueWatchingAdapter.Holder>() {
 
         inner class Holder(val b: ItemContinueWatchingBinding) : RecyclerView.ViewHolder(b.root)
 
@@ -186,30 +314,39 @@ class HomeFragment : Fragment() {
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
             val item = items[position]
-            val matchedMedia = allFetchedMedia.find { it.id == item.mediaId }
-            val banner = item.mediaCover.ifEmpty { matchedMedia?.cover?.ifEmpty { matchedMedia.image } ?: "" }
-
-            if (banner.isNotEmpty()) {
-                holder.b.imgContinueCover.load(banner) { crossfade(true) }
+            val matched = allFetchedMedia.find { it.id == item.mediaId }
+            val cover = item.mediaCover.ifEmpty {
+                matched?.cover?.ifEmpty { matched.image } ?: ""
             }
+            if (cover.isNotEmpty()) {
+                holder.b.imgContinueCover.load(ImageUrlHelper.getOptimizedImageUrl(cover)) { crossfade(true) }
+            }
+            val title = item.mediaTitle.ifEmpty { matched?.title ?: "" }
+            holder.b.tvContinueTitle.text = title.ifEmpty { "در حال تماشا" }
 
-            val title = item.mediaTitle.ifEmpty { matchedMedia?.title ?: "فیلم / سریال" }
-            holder.b.tvContinueTitle.text = title
-
-            val mins = (item.positionMs / 1000) / 60
-            val totalMins = (item.durationMs / 1000) / 60
-            val epSubtitle = if (item.episodeTitle.isNotEmpty()) "${item.episodeTitle} • " else ""
-            holder.b.tvContinueSubtitle.text = "$epSubtitle$mins از $totalMins دقیقه"
-
+            val watchedMin = (item.positionMs / 60000).toInt()
+            val totalMin = (item.durationMs / 60000).toInt()
+            val ep = item.episodeTitle.trim()
+            holder.b.tvContinueSubtitle.text = buildString {
+                if (ep.isNotEmpty()) {
+                    append(ep)
+                    append(" • ")
+                }
+                if (totalMin > 0) {
+                    append("$watchedMin از $totalMin دقیقه")
+                } else {
+                    append("$watchedMin دقیقه تماشا شده")
+                }
+            }
             holder.b.progressContinueBar.progress = item.progressPercent
 
             holder.b.root.setOnClickListener {
                 val intent = Intent(requireContext(), PlayerActivity::class.java).apply {
-                    putExtra("video_title", "$title - ${item.episodeTitle}")
+                    putExtra("video_title", if (ep.isNotEmpty()) "$title - $ep" else title)
                     putExtra("video_url", item.url)
                     putExtra("media_id", item.mediaId)
                     putExtra("media_title", title)
-                    putExtra("media_cover", banner)
+                    putExtra("media_cover", cover)
                     putExtra("episode_title", item.episodeTitle)
                     putExtra("episode_index", item.episodeIndex)
                     putExtra("start_position", item.positionMs)
@@ -221,8 +358,66 @@ class HomeFragment : Fragment() {
         override fun getItemCount(): Int = items.size
     }
 
+    // ------------------------------------------------------------------ actions
+
+    private fun playOrOpen(item: RealMedia) {
+        val playable = item.sources.firstOrNull {
+            !it.quality.contains("تیزر") && !it.url.contains("tizer", true)
+        }
+        if (!item.isSeries && playable != null) {
+            val banner = item.cover.ifEmpty { item.image }
+            PlayerLauncherHelper.launchPlayer(
+                activity = requireActivity(),
+                playerChoice = historyManager.preferredPlayer,
+                title = "${item.title} - ${playable.quality}",
+                url = playable.url,
+                mediaId = item.id,
+                mediaCover = banner,
+                episodeTitle = playable.quality,
+                episodeIndex = 0,
+                startPositionMs = 0L,
+                mediaType = "movie",
+                genres = ArrayList(item.genres.map { it.title })
+            )
+        } else {
+            openDetail(item)
+        }
+    }
+
+    private fun toggleWatchlist(item: RealMedia) {
+        val added = favoritesManager.toggleFavorite(item)
+        val message = if (added) "به واچ‌لیست اضافه شد" else "از واچ‌لیست حذف شد"
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun openDetail(item: RealMedia) {
+        startActivity(
+            Intent(requireContext(), DetailActivity::class.java).apply {
+                putExtra("real_media", item)
+            }
+        )
+    }
+
+    // ------------------------------------------------------------------ lifecycle
+
+    override fun onResume() {
+        super.onResume()
+        if (_binding != null) {
+            bindGreeting()
+            updateContinueWatchingRow()
+            scheduleAutoScroll()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        autoScrollJob?.cancel()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        loadJob?.cancel()
+        autoScrollJob?.cancel()
         _binding = null
     }
 }

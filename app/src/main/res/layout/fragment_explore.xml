@@ -5,160 +5,120 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:orientation="vertical"
-    android:paddingTop="12dp">
+    android:paddingTop="14dp">
 
-    <!-- Search Input Bar M3 -->
+    <!-- Title -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="18dp">
+
+        <TextView
+            android:id="@+id/tv_explore_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:text="کشف"
+            android:textColor="@color/on_surface"
+            android:textSize="26sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:fontFamily="@font/vazirmatn_regular"
+            android:text="در کاتالوگ بیسنور جستجو کنید"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="12.5sp" />
+    </LinearLayout>
+
+    <!-- Search field -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="18dp">
 
-        <com.google.android.material.card.MaterialCardView
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_weight="1"
-            app:cardBackgroundColor="@color/nav_bar_translucent"
-            app:cardCornerRadius="26dp"
-            app:cardElevation="2dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/outline_variant">
+            android:background="@drawable/bg_search_pill"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_search"
+                app:tint="@color/on_surface_variant" />
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_explore"
-                    app:tint="@color/on_surface_variant" />
+            <EditText
+                android:id="@+id/et_search"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:paddingHorizontal="10dp"
+                android:textColor="@color/on_surface"
+                android:textColorHint="@color/on_surface_variant"
+                android:textSize="13.5sp" />
 
-                <EditText
-                    android:id="@+id/et_search"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:fontFamily="@font/vazirmatn_regular"
-                    android:hint="@string/search_hint"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:paddingHorizontal="12dp"
-                    android:textColor="@color/on_surface"
-                    android:textColorHint="@color/on_surface_variant"
-                    android:textSize="14sp" />
+            <ImageView
+                android:id="@+id/btn_clear_search"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_refresh"
+                android:visibility="gone"
+                app:tint="@color/on_surface_variant" />
+        </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/btn_clear_search"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_refresh"
-                    android:visibility="gone"
-                    app:tint="@color/on_surface_variant" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Filter Modal Menu Button (Glass Pill) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_open_filters_dialog"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginStart="8dp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:padding="0dp"
-            app:backgroundTint="@color/nav_bar_translucent"
-            app:cornerRadius="16dp"
-            app:strokeColor="@color/outline_variant"
-            app:strokeWidth="1dp"
+            android:layout_marginStart="9dp"
+            android:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="17dp"
             app:icon="@drawable/ic_tune"
-            app:iconGravity="textStart"
-            app:iconPadding="0dp"
-            app:iconSize="24dp"
-            app:iconTint="@color/primary" />
+            app:iconSize="22dp"
+            app:iconTint="@color/primary"
+            app:strokeColor="@color/outline_variant"
+            app:strokeWidth="1dp" />
     </LinearLayout>
 
-    <!-- Search Scope Chips: All / Actors / Directors -->
-    <HorizontalScrollView
+    <!-- Random picker -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_explore_random_movie"
+        style="@style/Widget.Bisnor.Button.Tonal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false"
-        android:paddingHorizontal="16dp"
-        android:scrollbars="none">
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/vazirmatn_medium"
+        android:text="امشب چه ببینیم؟"
+        android:textSize="13sp"
+        app:backgroundTint="@color/surface_container_high"
+        app:cornerRadius="16dp"
+        app:icon="@drawable/ic_play_circle"
+        app:iconTint="@color/primary" />
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chip_group_search_scope"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:singleSelection="true">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_scope_all"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="همه موارد"
-                android:textColor="@color/on_surface" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_scope_actor"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="🎭 بازیگران (Actors)"
-                android:textColor="@color/on_surface" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip_scope_director"
-                style="@style/Widget.Material3.Chip.Filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="🎬 کارگردانان (Directors)"
-                android:textColor="@color/on_surface" />
-        </com.google.android.material.chip.ChipGroup>
-    </HorizontalScrollView>
-
-    <!-- Random Movie Button ("امشب چی ببینم؟") In Explore Screen Based On Watched/Taste -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:paddingHorizontal="16dp">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_explore_random_movie"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="🎲 امشب چی ببینم؟"
-            android:textColor="@color/on_surface"
-            android:textSize="13sp"
-            app:backgroundTint="@color/surface_container_high"
-            app:cornerRadius="14dp"
-            app:icon="@drawable/ic_play"
-            app:iconTint="@color/primary" />
-    </LinearLayout>
-
-    <!-- Recent Searches Chips Container -->
+    <!-- Recent searches -->
     <LinearLayout
         android:id="@+id/layout_recent_searches"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="10dp"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -167,7 +127,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="18dp">
 
             <TextView
                 android:layout_width="0dp"
@@ -176,7 +136,7 @@
                 android:fontFamily="@font/vazirmatn_medium"
                 android:text="جستجوهای اخیر"
                 android:textColor="@color/on_surface_variant"
-                android:textSize="12sp" />
+                android:textSize="11.5sp" />
 
             <TextView
                 android:id="@+id/btn_clear_recent_searches"
@@ -195,8 +155,9 @@
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:clipToPadding="false"
-            android:paddingHorizontal="16dp"
+            android:paddingHorizontal="18dp"
             android:scrollbars="none">
 
             <com.google.android.material.chip.ChipGroup
@@ -207,14 +168,89 @@
         </HorizontalScrollView>
     </LinearLayout>
 
-    <!-- Search Results Grid -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_search_results"
+    <!-- Result count -->
+    <TextView
+        android:id="@+id/tv_results_count"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false"
-        android:paddingHorizontal="10dp"
-        android:paddingBottom="96dp" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/vazirmatn_medium"
+        android:paddingHorizontal="18dp"
+        android:textColor="@color/on_surface_variant"
+        android:textSize="11.5sp"
+        android:visibility="gone" />
 
+    <!-- Results -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_search_results"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="112dp" />
+
+        <LinearLayout
+            android:id="@+id/layout_empty_results"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="42dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="40dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:alpha="0.55"
+                android:src="@drawable/ic_movie_placeholder"
+                app:tint="@color/outline" />
+
+            <TextView
+                android:id="@+id/tv_empty_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:gravity="center"
+                android:text="نتیجهای پیدا نشد"
+                android:textColor="@color/on_surface"
+                android:textSize="14.5sp" />
+
+            <TextView
+                android:id="@+id/tv_empty_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:text="عبارت دیگری را امتحان کنید یا فیلترها را بازنشانی کنید."
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_reset_filters"
+                style="@style/Widget.Bisnor.Button.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginTop="16dp"
+                android:text="بازنشانی جستجو" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress_search"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="24dp"
+            android:indeterminateTint="@color/primary"
+            android:visibility="gone" />
+    </FrameLayout>
 </LinearLayout>

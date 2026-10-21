@@ -33,6 +33,7 @@ class BisnorApp {
         this.tasteStorageKey = this.isNativeDesktop ? "bisnor_taste_v1" : "bisnor_pwa_taste_v1";
         this.currentTab = "home";
         this.activeMedia = null;
+        this.hlsInstance = null;
         this.selectedAvatarForPicker = "avatar_breakingbad";
         this.selectedPlayerChoice = localStorage.getItem("bisnor_player") || "bisnor";
         this.authMode = "login";
@@ -55,12 +56,15 @@ class BisnorApp {
         };
         
         // Watch analytics state
-        this.analytics = JSON.parse(localStorage.getItem("bisnor_analytics") || JSON.stringify({
-            watchMinutes: 460,
-            simulatedDataGb: 4.8,
-            moviesWatched: 3,
-            seriesEpisodesWatched: 8
-        }));
+        // Real local activity only. Never seed demo statistics.
+        this.analytics = Object.assign({
+            watchMinutes: 0,
+            moviesWatched: 0,
+            seriesWatched: 0,
+            episodesCompleted: 0,
+            completedMovieIds: [],
+            completedSeriesIds: []
+        }, JSON.parse(localStorage.getItem("bisnor_analytics") || "{}"));
     }
 
     init() {
@@ -80,6 +84,79 @@ class BisnorApp {
         if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
             navigator.serviceWorker.register("sw.js").catch(() => {});
         }
+
+        // Deep-linkable screens (also useful for the installed PWA).
+        const hashTab = (location.hash || "").replace("#", "");
+        if (hashTab === "settings-screen") {
+            this.switchTab("settings", { push: false });
+            this.showSettingsScreen(false);
+        } else if (["home", "explore", "favorites", "settings"].includes(hashTab)) {
+            this.switchTab(hashTab, { push: false });
+        } else {
+            history.replaceState({ view: "tab", tab: this.currentTab }, "", `#${this.currentTab}`);
+        }
+
+        window.addEventListener("popstate", () => this.handleHistoryPop());
+        this.setupHeatmapResize();
+    }
+
+    // --- History / back-button routing (Android back parity) ---
+    handleHistoryPop() {
+        const state = history.state || {};
+        if (state.view === "overlay") {
+            this.showOverlay(state.id);
+            return;
+        }
+        this.hideAllOverlays();
+        if (state.view === "settings") {
+            this.showSettingsScreen(false);
+            return;
+        }
+        this.hideSettingsScreen();
+        this.applyTab(state.view === "tab" && state.tab ? state.tab : "home");
+    }
+
+    openOverlay(id) {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.style.display = "flex";
+        if (history.state?.view === "overlay" && history.state.id === id) return;
+        const base = { view: this.isSettingsScreenOpen() ? "settings" : "tab", tab: this.currentTab };
+        history.pushState({ view: "overlay", id, base }, "", location.hash || "#home");
+    }
+
+    rewindOverlay(id) {
+        if (history.state?.view === "overlay" && history.state.id === id) history.back();
+    }
+
+    showOverlay(id) {
+        const element = document.getElementById(id);
+        if (element) element.style.display = "flex";
+    }
+
+    hideAllOverlays() {
+        ["modal-detail", "modal-player", "modal-person", "modal-auth", "modal-avatar-picker",
+            "modal-player-choice", "modal-auto-next-time", "modal-random-suggest"].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.style.display = "none";
+        });
+        const errorOverlay = document.getElementById("player-error-overlay");
+        if (errorOverlay) errorOverlay.style.display = "none";
+        const video = document.getElementById("html-video-player");
+        if (video && !video.paused) video.pause();
+    }
+
+    setupHeatmapResize() {
+        const container = document.getElementById("profile-heatmap");
+        if (!container || typeof ResizeObserver === "undefined") return;
+        let lastWidth = 0;
+        const observer = new ResizeObserver(entries => {
+            const width = Math.round(entries[0]?.contentRect?.width || 0);
+            if (!width || Math.abs(width - lastWidth) < 8) return;
+            lastWidth = width;
+            this.renderHeatmap();
+        });
+        observer.observe(container);
     }
 
     loadTaste() {
@@ -104,8 +181,8 @@ class BisnorApp {
         };
         text("platform-brand-badge", "نسخه وب • PWA برای iOS");
         text("downloads-setting-title", "مدیریت دانلودهای مرورگر");
-        text("platform-about-title", "بیسنور وب (Bisnor PWA)");
-        text("tv-app-version-about", "نسخه آزمایشی وب • نصب‌پذیر روی iOS، اندروید و ویندوز");
+        text("about-platform-title", "نسخه وب (Bisnor PWA)");
+        text("about-version", "نسخه ۵.۲.۰-beta.4 • نصب‌پذیر روی iOS، اندروید و ویندوز");
         text("detail-external-player-label", "پخش در مرورگر");
         text("player-error-desc", "این فرمت در مرورگر فعلی قابل کدگشایی نیست. می‌توانید فایل را دانلود کنید یا کیفیت دیگری را انتخاب کنید.");
     }
@@ -176,9 +253,9 @@ class BisnorApp {
                 const msg = event.data;
                 if (!msg) return;
                 if (msg.action === "appInfoResponse") {
-                    const tvVersion = document.getElementById("tv-app-version-about");
-                    if (tvVersion) {
-                        tvVersion.textContent = `نسخه v${msg.version} (${msg.channel}) • مجهز به ${msg.runtime}`;
+                    const aboutVersion = document.getElementById("about-version");
+                    if (aboutVersion) {
+                        aboutVersion.textContent = `نسخه v${msg.version} (${msg.channel}) • مجهز به ${msg.runtime}`;
                     }
                 } else if (msg.action === "updateCheckResult") {
                     this.handleUpdateCheckResult(msg);
@@ -248,8 +325,14 @@ class BisnorApp {
         }
     }
 
-    switchTab(tabName) {
+    isSettingsScreenOpen() {
+        return document.body.classList.contains("settings-screen-open");
+    }
+
+    applyTab(tabName) {
         this.currentTab = tabName;
+        document.body.classList.remove("tab-home", "tab-explore", "tab-favorites", "tab-settings");
+        document.body.classList.add(`tab-${tabName}`);
         document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("active"));
         document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
 
@@ -263,6 +346,56 @@ class BisnorApp {
         if (tabName === "explore") this.renderExploreTab();
         if (tabName === "favorites") this.renderFavoritesTab();
         if (tabName === "settings") this.loadProfile();
+    }
+
+    switchTab(tabName, { push = true } = {}) {
+        this.hideSettingsScreen();
+        this.applyTab(tabName);
+        const state = { view: "tab", tab: tabName };
+        if (push) history.pushState(state, "", `#${tabName}`);
+        else history.replaceState(state, "", `#${tabName}`);
+    }
+
+    showAboutModal() {
+        const modal = document.getElementById("modal-about");
+        if (!modal) return;
+        modal.style.display = "flex";
+        requestAnimationFrame(() => modal.classList.add("active"));
+    }
+
+    hideAboutModal() {
+        const modal = document.getElementById("modal-about");
+        if (!modal) return;
+        modal.classList.remove("active");
+        modal.style.display = "none";
+    }
+
+    showSettingsScreen(push = true) {
+        document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("active"));
+        document.getElementById("screen-settings")?.classList.add("active");
+        document.body.classList.add("settings-screen-open");
+        this.currentTab = "settings";
+        this.loadProfile();
+        this.loadSettings();
+        const state = { view: "settings", tab: "settings" };
+        if (push) history.pushState(state, "", "#settings-screen");
+        else history.replaceState(state, "", "#settings-screen");
+        const main = document.getElementById("main-content");
+        if (main) main.scrollTop = 0;
+    }
+
+    hideSettingsScreen() {
+        document.body.classList.remove("settings-screen-open");
+        document.getElementById("screen-settings")?.classList.remove("active");
+    }
+
+    closeSettingsScreen() {
+        if (!this.isSettingsScreenOpen()) return;
+        if (history.state?.view === "settings") {
+            history.back();
+            return;
+        }
+        this.switchTab("settings");
     }
 
     // --- Event Listeners Setup ---
@@ -428,15 +561,59 @@ class BisnorApp {
         });
 
         if (video) {
+            if (video) {
+                video.addEventListener("loadedmetadata", () => {
+                    if (this.pendingSeek && video.duration) {
+                        video.currentTime = Math.min(this.pendingSeek, Math.max(0, video.duration - 5));
+                    }
+                    this.pendingSeek = 0;
+                });
+                video.addEventListener("error", () => {
+                    if (this.hlsInstance) return;
+                    const error = video.error;
+                    this.showPlayerCodecError(error ? `codec ${error.code}` : "unknown");
+                });
+            }
+            let lastTick = 0;
             video.addEventListener("timeupdate", () => {
                 if (seekbar && video.duration) {
                     seekbar.value = (video.currentTime / video.duration) * 100;
                     if (timeLabel) timeLabel.textContent = `${this.formatTime(video.currentTime)} / ${this.formatTime(video.duration)}`;
                 }
+                if (!video.duration || video.paused) return;
+                const now = Date.now();
+                if (now - lastTick >= 5000) {
+                    const deltaMinutes = lastTick ? Math.min((now - lastTick) / 60000, 0.2) : 0;
+                    lastTick = now;
+                    const media = this.activeMedia;
+                    if (media && media.id) {
+                        this.savePlaybackProgress({
+                            id: media.id,
+                            title: media.title || this.currentPlayingTitle,
+                            cover: media.image || media.cover || "",
+                            episodeTitle: this.currentEpisodeLabel || "",
+                            url: this.currentPlayingUrl,
+                            position: video.currentTime,
+                            duration: video.duration,
+                            updatedAt: now
+                        });
+                    }
+                    if (deltaMinutes > 0) {
+                        this.recordWatchActivity(deltaMinutes, media?.id, media?.type === "serie" || media?.isSeries ? "series" : "movie", false);
+                    }
+                }
             });
             video.addEventListener("ended", () => {
                 if (playPauseBtn) playPauseBtn.textContent = "▶️";
-                this.recordWatchTime(30);
+                const media = this.activeMedia;
+                this.recordWatchActivity(0, media?.id, media?.type === "serie" || media?.isSeries ? "series" : "movie", true);
+                if (media?.id) {
+                    this.taste.watched = this.taste.watched || {};
+                    this.taste.watched[String(media.id)] = Date.now();
+                    this.saveTaste();
+                    this.clearPlaybackProgress(media.id);
+                }
+                this.renderContinueWatching();
                 if (this.settings.autoNext) this.playNextWebEpisode();
             });
             video.addEventListener("error", (e) => {
@@ -455,17 +632,27 @@ class BisnorApp {
             }
         });
 
+        // Profile shortcuts (Android profile screen)
+        document.getElementById("btn-profile-settings")?.addEventListener("click", () => this.showSettingsScreen());
+        document.getElementById("profile-row-settings")?.addEventListener("click", () => this.showSettingsScreen());
+        document.getElementById("profile-row-account")?.addEventListener("click", () => this.openAccountArea());
+        document.getElementById("btn-profile-login")?.addEventListener("click", () => this.openAccountArea());
+        document.getElementById("profile-row-downloads")?.addEventListener("click", () => this.openDownloads());
+        document.getElementById("profile-row-about")?.addEventListener("click", () => this.showAboutModal());
+        document.getElementById("btn-close-about")?.addEventListener("click", () => this.hideAboutModal());
+        document.getElementById("modal-about")?.addEventListener("click", (event) => {
+            if (event.target.id === "modal-about") this.hideAboutModal();
+        });
+        document.getElementById("profile-logout-row")?.addEventListener("click", () => this.onLogout());
+        document.getElementById("btn-settings-back")?.addEventListener("click", () => this.closeSettingsScreen());
+
         // Settings Category 1: User Profile & Auth
-        document.getElementById("btn-profile-action")?.addEventListener("click", () => this.openAuthModal());
+        document.getElementById("btn-profile-action")?.addEventListener("click", () => this.openAccountArea());
         document.getElementById("btn-profile-change-avatar")?.addEventListener("click", () => this.openAvatarPicker());
         document.getElementById("btn-profile-logout")?.addEventListener("click", () => this.onLogout());
         document.getElementById("card-user-profile")?.addEventListener("click", (e) => {
             if (e.target.tagName === "BUTTON") return;
-            if (!window.supabaseAuth.isLoggedIn()) {
-                this.openAuthModal();
-            } else {
-                this.openAvatarPicker();
-            }
+            this.openAccountArea();
         });
 
         // Settings Category 2: Downloads
@@ -593,13 +780,13 @@ class BisnorApp {
                      alt="${media.title}" 
                      loading="lazy" 
                      onerror="this.onerror=null; this.src='${fallbackSvg}';">
-                <span class="card-rating-badge">⭐ ${(media.imdb || 8.0).toFixed(1)}</span>
+                ${media.imdb > 0 ? `<span class="card-rating-badge">⭐ ${Number(media.imdb).toFixed(1)}</span>` : ""}
                 <span class="card-type-badge">${media.type === 'serie' ? 'سریال' : 'سینمایی'}</span>
             </div>
             <div class="card-info">
                 <h4 class="card-title">${media.title}</h4>
                 <div class="card-sub">
-                    <span>${media.year || 2024}</span> • <span>${genreTitle}</span>
+                    ${media.year > 0 ? `<span>${media.year}</span> • ` : ""}<span>${genreTitle}</span>
                 </div>
             </div>
         `;
@@ -609,6 +796,21 @@ class BisnorApp {
 
     // --- Home Tab ---
     async renderHomeTab() {
+        const cleanSynopsis = (raw) => {
+            let text = String(raw || "").replace(/\r\n/g, "\n").trim();
+            if (!text) return "";
+            const storySplit = text.split(/(?:خلاصه\s*داستان|داستان\s*فیلم|داستان)\s*[:：]/);
+            if (storySplit.length > 1) text = storySplit[storySplit.length - 1];
+            const metaLine = /^(?:نام|عنوان|ژانر|سال|محصول|کشور|زبان|رده|کارگردان|بازیگران|ستارگان|با\s*حضور|کیفیت|فرمت|حجم|امتیاز|IMDb|تاریخ|شبکه|نویسنده|تهیه)/i;
+            const lines = text.split("\n").map(line => line.trim()).filter(Boolean)
+                .filter(line => !metaLine.test(line));
+            return lines.join(" ")
+                .replace(/(?:زیرنویس\s*چسبیده\s*پارسی|زیرنویس\s*فارسی|دوبله\s*فارسی)\s*$/g, "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .slice(0, 260);
+        };
+
         const updateHero = (hero) => {
             if (!hero) return;
             const heroCard = document.getElementById("hero-banner-card");
@@ -622,19 +824,29 @@ class BisnorApp {
                 heroCard.innerHTML = `
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-info-wrap">
-                        <div class="hero-rating-badge">⭐ ${(hero.imdb || 8.0).toFixed(1)} IMDb • اثر برتر روز</div>
+                        ${hero.imdb > 0 ? `<div class="hero-rating-badge">⭐ ${Number(hero.imdb).toFixed(1)} IMDb</div>` : ""}
                         <h1 class="hero-title">${hero.title}</h1>
-                        <div class="hero-genre-year">${(hero.genres || []).map(g => g.title).join('، ')} • سال ${hero.year || 2026}</div>
-                        <p class="hero-desc">${hero.description || ''}</p>
-                        <button class="btn-play-primary" id="btn-hero-play-main">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                            <span>تماشای آنلاین رایگان</span>
-                        </button>
+                        <div class="hero-genre-year">${[
+                            hero.year > 0 ? String(hero.year) : "",
+                            (hero.genres || []).slice(0, 3).map(g => g.title).join("، ")
+                        ].filter(Boolean).join("  •  ")}</div>
+                        <p class="hero-desc">${cleanSynopsis(hero.description)}</p>
+                        <div class="hero-actions">
+                            <button class="btn-play-primary" id="btn-hero-play-main">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                <span>تماشا</span>
+                            </button>
+                            <button class="hero-details-btn" id="btn-hero-details">اطلاعات</button>
+                        </div>
                     </div>
                 `;
                 heroCard.querySelector("#btn-hero-play-main")?.addEventListener("click", (e) => {
                     e.stopPropagation();
                     this.playMedia(hero);
+                });
+                heroCard.querySelector("#btn-hero-details")?.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    this.openDetailModal(hero);
                 });
                 heroCard.onclick = () => this.openDetailModal(hero);
             }
@@ -711,6 +923,12 @@ class BisnorApp {
     // --- Explore Tab with Search & Filtering ---
     async renderExploreTab() {
         const requestedQuery = this.searchQuery.trim();
+
+        // Paint the last real catalogue immediately, then refresh from the API.
+        if (!requestedQuery && !window.mediaService.exploreLoaded && window.mediaService.catalog.length) {
+            this.renderExploreResults(window.mediaService.catalog);
+        }
+
         let items = requestedQuery
             ? await window.mediaService.search(requestedQuery)
             : await window.mediaService.getExploreCatalog();
@@ -718,7 +936,11 @@ class BisnorApp {
         // Ignore a slower response for text the user has already replaced.
         if (requestedQuery !== this.searchQuery.trim()) return;
         this.renderExplorePeople(requestedQuery, items);
+        this.renderExploreResults(items);
+    }
 
+    renderExploreResults(items) {
+        items = items.slice();
         // 1. Filter by Genre
         if (this.currentGenre && this.currentGenre !== "all") {
             items = items.filter(x => {
@@ -832,16 +1054,29 @@ class BisnorApp {
         if (badgeType) badgeType.textContent = media.type === 'serie' ? 'سریال' : 'سینمایی';
 
         const badgeYear = document.getElementById("detail-badge-year");
-        if (badgeYear) badgeYear.textContent = `سال ${media.year || 2024}`;
+        if (badgeYear) {
+            badgeYear.textContent = media.year > 0 ? `سال ${media.year}` : "";
+            badgeYear.style.display = media.year > 0 ? "" : "none";
+        }
 
         const badgeImdb = document.getElementById("detail-badge-imdb");
-        if (badgeImdb) badgeImdb.textContent = `⭐ ${(media.imdb || 8.0).toFixed(1)}`;
+        if (badgeImdb) {
+            badgeImdb.textContent = media.imdb > 0 ? `⭐ ${Number(media.imdb).toFixed(1)}` : "";
+            badgeImdb.style.display = media.imdb > 0 ? "" : "none";
+        }
 
         const badgeCountry = document.getElementById("detail-badge-country");
-        if (badgeCountry) badgeCountry.textContent = (media.country && media.country[0]) ? media.country[0].title : 'جهانی';
+        if (badgeCountry) {
+            badgeCountry.textContent = (media.country && media.country[0]) ? media.country[0].title : "";
+            badgeCountry.style.display = (media.country && media.country[0]) ? "" : "none";
+        }
 
         const storylineEl = document.getElementById("detail-storyline");
-        if (storylineEl) storylineEl.textContent = media.description || 'توضیحاتی برای این اثر ثبت نشده است.';
+        if (storylineEl) {
+            const clean = this.cleanSynopsisText(media.description);
+            storylineEl.textContent = clean || "توضیحاتی برای این اثر ثبت نشده است.";
+        }
+        this.renderDetailBadges(media);
         this.renderPeople(media.people || []);
 
         // Series Average Size Calculation
@@ -879,7 +1114,7 @@ class BisnorApp {
         const isFav = window.supabaseAuth.isFavorite(media.id);
         this.updateDetailFavButton(isFav);
 
-        modal.style.display = "flex";
+        this.openOverlay("modal-detail");
     }
 
     renderPeople(people) {
@@ -911,7 +1146,7 @@ class BisnorApp {
             if (url && this.activePerson === person) photo.style.backgroundImage = `url("${url.replace(/"/g, "%22")}")`;
         });
         this.updatePersonFollowButton();
-        modal.style.display = "flex";
+        this.openOverlay("modal-person");
         const credits = document.getElementById("person-profile-credits");
         const empty = document.getElementById("person-profile-empty");
         credits.replaceChildren();
@@ -928,6 +1163,7 @@ class BisnorApp {
         const modal = document.getElementById("modal-person");
         if (modal) modal.style.display = "none";
         this.activePerson = null;
+        this.rewindOverlay("modal-person");
     }
 
     togglePersonPreference() {
@@ -977,6 +1213,7 @@ class BisnorApp {
     closeDetailModal() {
         const modal = document.getElementById("modal-detail");
         if (modal) modal.style.display = "none";
+        this.rewindOverlay("modal-detail");
     }
 
     renderSimilarMedia(media) {
@@ -1174,31 +1411,46 @@ class BisnorApp {
     }
 
     // --- Player Management ---
+    scoreSource(source) {
+        const url = String((source && source.url) || "").split("?")[0].toLowerCase();
+        const quality = String((source && source.quality) || "");
+        let score = 10;
+        if (/\.m3u8$/.test(url)) score += 100;
+        else if (/\.mp4$/.test(url)) score += 80;
+        if (/1080/.test(quality)) score += 30;
+        else if (/720/.test(quality)) score += 20;
+        else if (/480/.test(quality)) score += 5;
+        if (/2160|4k/i.test(quality)) score += 12;
+        if (/تیزر|trailer/i.test(quality)) score -= 1000;
+        return score;
+    }
+
+    pickBestSource(sources) {
+        const list = (sources || []).filter(source => source && source.url);
+        if (list.length === 0) return null;
+        return list.slice().sort((a, b) => this.scoreSource(b) - this.scoreSource(a))[0];
+    }
+
     playMedia(media) {
         this.nextEpisodeContext = null;
-        if (media?.id) {
-            this.taste.watched = this.taste.watched || {};
-            this.taste.watched[String(media.id)] = Date.now();
-            this.saveTaste();
+        let source = this.pickBestSource(media.sources);
+        if (!source && media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
+            source = this.pickBestSource(media.seasons[0].episodes[0].sources);
         }
-        let streamUrl = "";
-        if (media.sources && media.sources.length > 0) {
-            streamUrl = media.sources[0].url;
-        } else if (media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
-            streamUrl = media.seasons[0].episodes[0].sources?.[0]?.url || "";
-        }
-        if (!streamUrl) {
+        if (!source) {
             alert("لینکی برای پخش این محتوا موجود نیست.");
             return;
         }
-        this.playStream(streamUrl, media.title);
+        this.playStream(source.url, media.title);
     }
 
     getStreamUrl(media) {
         if (!media) return "";
-        if (media.sources && media.sources.length > 0) return media.sources[0].url;
+        const source = this.pickBestSource(media.sources);
+        if (source) return source.url;
         if (media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
-            return media.seasons[0].episodes[0].sources?.[0]?.url || "";
+            const episodeSource = this.pickBestSource(media.seasons[0].episodes[0].sources);
+            if (episodeSource) return episodeSource.url;
         }
         return "";
     }
@@ -1210,19 +1462,23 @@ class BisnorApp {
         }
         this.currentPlayingUrl = url;
         this.currentPlayingTitle = title;
+        if (this.activeMedia && this.activeMedia.id) {
+            this.currentEpisodeLabel = "";
+        }
 
-        // WebView2 cannot reliably decode MKV/HEVC. Route known incompatible
-        // containers straight to the first installed Windows player instead of
-        // opening a player that is guaranteed to fail.
         const cleanUrl = url.split("?")[0].toLowerCase();
-        if (/\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(cleanUrl)) {
-            this.postNative("launchExternalPlayer", { player: "auto", url, title });
+        const isUnsupportedContainer = /\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(cleanUrl);
+
+        if (this.settings.player !== "bisnor") {
+            // Launch the Windows external player configured in Settings.
+            this.postNative("launchExternalPlayer", { player: this.settings.player, url, title });
             return;
         }
 
-        if (this.settings.player !== "bisnor") {
-            // Launch Windows external player configured in Settings
-            this.postNative("launchExternalPlayer", { player: this.settings.player, url, title });
+        if (this.isNativeDesktop && isUnsupportedContainer) {
+            // WebView2 cannot demux MKV/AVI; use the built-in Windows Media
+            // Foundation player instead of silently falling back to VLC.
+            this.postNative("launchInternalPlayer", { url, title });
             return;
         }
 
@@ -1234,20 +1490,80 @@ class BisnorApp {
 
         if (errOverlay) errOverlay.style.display = "none";
         if (titleEl) titleEl.textContent = title;
-        video.src = url;
-        video.load();
-        modal.style.display = "flex";
+        this.attachStreamSource(video, url);
+        this.openOverlay("modal-player");
         if (modal.requestFullscreen) {
             modal.requestFullscreen().catch(() => {});
         }
         video.play().catch(e => console.log("Auto-play blocked", e));
     }
 
+    /** Attaches HLS through hls.js when the browser lacks native HLS support. */
+    attachStreamSource(video, url) {
+        if (this.hlsInstance) {
+            this.hlsInstance.destroy();
+            this.hlsInstance = null;
+        }
+        video.removeAttribute("src");
+        video.load();
+
+        const isHls = /\.m3u8(?:$|[?#])/i.test(url);
+        const nativeHls = video.canPlayType("application/vnd.apple.mpegurl");
+
+        if (isHls && !nativeHls && window.Hls && window.Hls.isSupported()) {
+            const hls = new window.Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                enableWorker: true,
+                lowLatencyMode: false
+            });
+            this.hlsInstance = hls;
+            hls.on(window.Hls.Events.ERROR, (_, data) => {
+                if (!data || !data.fatal) return;
+                if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
+                    hls.startLoad();
+                } else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
+                    hls.recoverMediaError();
+                } else {
+                    this.showPlayerCodecError(data.details || "hls-error");
+                }
+            });
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            return;
+        }
+
+        if (isHls && !nativeHls) {
+            this.showPlayerCodecError("hls-unsupported");
+            return;
+        }
+
+        video.src = url;
+        video.load();
+    }
+
+    showPlayerCodecError(detail) {
+        const overlay = document.getElementById("player-error-overlay");
+        const desc = document.getElementById("player-error-desc");
+        if (desc) {
+            desc.textContent = detail
+                ? `پخش‌کننده داخلی این فرمت را پشتیبانی نمی‌کند (${detail}). می‌توانید از پلیر خارجی یا دانلود استفاده کنید.`
+                : "این فرمت توسط پخش‌کننده داخلی پشتیبانی نمی‌شود. می‌توانید از پلیر خارجی یا دانلود استفاده کنید.";
+        }
+        if (overlay) overlay.style.display = "flex";
+    }
+
     closePlayerModal() {
+        this.renderHeatmap();
+        this.renderContinueWatching();
         const modal = document.getElementById("modal-player");
         const video = document.getElementById("html-video-player");
         const errOverlay = document.getElementById("player-error-overlay");
         if (errOverlay) errOverlay.style.display = "none";
+        if (this.hlsInstance) {
+            this.hlsInstance.destroy();
+            this.hlsInstance = null;
+        }
         if (video) {
             video.pause();
             video.removeAttribute("src");
@@ -1255,6 +1571,7 @@ class BisnorApp {
         }
         if (modal) modal.style.display = "none";
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        this.rewindOverlay("modal-player");
     }
 
     // --- Favorites Tab ---
@@ -1375,17 +1692,34 @@ class BisnorApp {
         const char = CHARACTERS.find(c => c.id === currentAvatarId) || CHARACTERS[0];
         this.updateAvatarLivePreview(char);
         this.renderAvatarPickerGrid();
-        document.getElementById("modal-avatar-picker").style.display = "flex";
+        this.openOverlay("modal-avatar-picker");
     }
 
     closeAvatarPicker() {
         document.getElementById("modal-avatar-picker").style.display = "none";
+        this.rewindOverlay("modal-avatar-picker");
     }
 
     saveAvatar() {
         window.supabaseAuth.setAvatarId(this.selectedAvatarForPicker);
         this.loadProfile();
         this.closeAvatarPicker();
+    }
+
+    openAccountArea() {
+        if (!window.supabaseAuth.isLoggedIn()) {
+            this.openAuthModal();
+            return;
+        }
+        this.openAvatarPicker();
+    }
+
+    openDownloads() {
+        if (this.isNativeDesktop) {
+            this.postNative("openFolder");
+            return;
+        }
+        alert("دانلودها از طریق مرورگر انجام می‌شود. فایل‌های ذخیره‌شده را در بخش دانلودهای مرورگر خود ببینید.");
     }
 
     // --- User Profile & Offline Analytics ---
@@ -1395,19 +1729,39 @@ class BisnorApp {
         const isLoggedIn = window.supabaseAuth.isLoggedIn();
 
         const char = CHARACTERS.find(c => c.id === avatarId) || CHARACTERS[0];
-        const avatarSrc = `assets/avatars/${char.file}`;
+        const avatarSrc = isLoggedIn
+            ? `assets/avatars/${char.file}`
+            : "assets/avatars/avatar_guest.svg";
 
         const headerAvatar = document.getElementById("img-header-avatar");
         if (headerAvatar) headerAvatar.src = avatarSrc;
 
-        const profileAvatar = document.getElementById("img-profile-avatar");
-        if (profileAvatar) profileAvatar.src = avatarSrc;
+        document.querySelectorAll("#img-profile-avatar, #profile-avatar-img").forEach(img => {
+            img.src = avatarSrc;
+        });
+
+        const nameLabel = isLoggedIn && username ? username.replace(/^./, c => c.toUpperCase()) : "مهمان";
+        const userLabel = isLoggedIn ? `@${username}` : "برای همگام‌سازی وارد شوید";
+        const displayName = document.getElementById("profile-display-name");
+        if (displayName) displayName.textContent = nameLabel;
+        const displayUsername = document.getElementById("profile-display-username");
+        if (displayUsername) displayUsername.textContent = userLabel;
+
+        const loginButton = document.getElementById("btn-profile-login");
+        if (loginButton) loginButton.textContent = isLoggedIn ? "مدیریت" : "ورود";
 
         const tvUsername = document.getElementById("tv-profile-username");
         const tvStatus = document.getElementById("tv-profile-sync-status");
         const btnAction = document.getElementById("btn-profile-action");
         const btnAvatar = document.getElementById("btn-profile-change-avatar");
         const btnLogout = document.getElementById("btn-profile-logout");
+        const profileLogoutRow = document.getElementById("profile-logout-row");
+        const profileLogoutDivider = document.getElementById("profile-row-logout");
+
+        const greeting = document.getElementById("home-greeting");
+        const greetingSub = document.getElementById("home-greeting-sub");
+        if (greeting) greeting.textContent = isLoggedIn && username ? `سلام، ${username}` : "سلام";
+        if (greetingSub) greetingSub.textContent = isLoggedIn ? "امشب چه چیزی ببینیم؟" : "به بیسنور خوش آمدی";
 
         if (isLoggedIn) {
             if (tvUsername) tvUsername.textContent = username;
@@ -1417,7 +1771,7 @@ class BisnorApp {
             if (btnLogout) btnLogout.style.display = "inline-block";
         } else {
             if (tvUsername) tvUsername.textContent = "ورود به حساب کاربری";
-            if (tvStatus) tvStatus.textContent = "جهت مدیریت پروفایل و ذخیره علایق وارد شوید";
+            if (tvStatus) tvStatus.textContent = "برای همگام‌سازی وارد شوید";
             if (btnAction) {
                 btnAction.style.display = "inline-block";
                 btnAction.textContent = "ورود";
@@ -1425,31 +1779,260 @@ class BisnorApp {
             if (btnAvatar) btnAvatar.style.display = "none";
             if (btnLogout) btnLogout.style.display = "none";
         }
+        if (profileLogoutRow) profileLogoutRow.style.display = isLoggedIn ? "flex" : "none";
+        if (profileLogoutDivider) profileLogoutDivider.style.display = isLoggedIn ? "block" : "none";
+
+        const version = document.getElementById("profile-version");
+        if (version) version.textContent = "v5.2.0-beta.3";
 
         this.renderAnalytics();
+        this.renderHeatmap();
+        this.renderContinueWatching();
     }
 
     renderAnalytics() {
-        const watchHours = document.getElementById("stat-watch-hours");
-        if (watchHours) {
-            watchHours.textContent = `${(this.analytics.watchMinutes / 60).toFixed(1)} ساعت`;
+        const hours = this.analytics.watchMinutes / 60;
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+        setText("profile-stat-movies", this.toPersianNumber(this.analytics.moviesWatched || 0));
+        setText("profile-stat-series", this.toPersianNumber(this.analytics.seriesWatched || 0));
+        setText("profile-stat-hours", this.toPersianNumber(Math.floor(hours)));
+
+        setText("stat-watch-hours", `${hours.toFixed(1)} ساعت`);
+        setText("metric-movie-hours", `${this.analytics.moviesWatched || 0} فیلم`);
+        setText("metric-series-hours", `${this.analytics.episodesCompleted || 0} قسمت`);
+    }
+
+    toPersianNumber(value) {
+        return String(value).replace(/[0-9]/g, d => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+    }
+
+    renderDetailBadges(media) {
+        const container = document.getElementById("detail-extra-badges");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const raw = String((media && media.description) || "");
+        const grab = (pattern) => {
+            const match = raw.match(pattern);
+            if (!match) return "";
+            return String(match[1] || "").replace(/[\s:：\-–—]+$/g, "").trim();
+        };
+
+        const badges = [];
+        const age = grab(/(?:رده\s*سنی|محدودیت\s*سنی|مناسب\s*برای|گروه\s*سنی|درجه\s*بندی)\s*[:：\-]?\s*([^\n\r,،]+)/i);
+        if (age) badges.push(/^\d+$/.test(age) ? `+${age}` : age);
+
+        const language = grab(/(?:زبان)\s*[:：\-]?\s*([^\n\r,،]+)/i);
+        if (language) badges.push(language);
+
+        if (/زیرنویس/.test(raw)) badges.push("زیرنویس فارسی");
+
+        const country = (media.country && media.country[0] && media.country[0].title) || "";
+        if (country) badges.push(country);
+
+        const quality = grab(/(?:کیفیت)\s*[:：\-]?\s*([^\n\r,،]+)/i);
+        if (quality) badges.push(`کیفیت ${quality.replace(/[0-9]/g, d => "۰۱۲۳۴۵۶۷۸۹"[Number(d)])}`);
+
+        const format = grab(/(?:فرمت)\s*[:：\-]?\s*([^\n\r,،]+)/i);
+        if (format) badges.push(`فرمت ${format}`);
+
+        const size = grab(/(?:حجم(?:\s*کل|\s*تقریبی|\s*فایل|\s*هر\s*قسمت|\s*قسمت‌ها)?)\s*[:：\-]?\s*([0-9.]+\s*(?:گیگابایت|مگابایت|GB|MB|گیگ|مگ))/i);
+        if (size) badges.push(`حجم ${size}`);
+
+        badges.slice(0, 7).forEach((label) => {
+            const span = document.createElement("span");
+            span.className = "detail-meta-badge";
+            span.textContent = label;
+            container.appendChild(span);
+        });
+    }
+
+    cleanSynopsisText(raw) {
+        let text = String(raw || "").replace(/\r\n/g, "\n").trim();
+        if (!text) return "";
+        const storySplit = text.split(/(?:خلاصه\s*داستان|داستان\s*فیلم|داستان)\s*[:：]/);
+        if (storySplit.length > 1) text = storySplit[storySplit.length - 1];
+        const metaLine = /^(?:نام|عنوان|ژانر|سال|محصول|کشور|زبان|رده|کارگردان|بازیگران|ستارگان|با\s*حضور|کیفیت|فرمت|حجم|امتیاز|IMDb|تاریخ|شبکه|نویسنده|تهیه)/i;
+        const lines = text.split("\n").map(line => line.trim()).filter(Boolean)
+            .filter(line => !metaLine.test(line));
+        return lines.join(" ")
+            .replace(/(?:زیرنویس\s*چسبیده\s*پارسی|زیرنویس\s*فارسی|دوبله\s*فارسی)\s*$/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    /** Records real elapsed playback. Called from the video timeupdate loop only. */
+    recordWatchActivity(minutes, mediaId, mediaType, completed) {
+        if (!(minutes > 0) && !completed) return;
+        if (minutes > 0) {
+            this.analytics.watchMinutes = (this.analytics.watchMinutes || 0) + minutes;
         }
-        const movieHours = document.getElementById("metric-movie-hours");
-        if (movieHours) {
-            movieHours.textContent = `${this.analytics.moviesWatched} فیلم`;
+
+        // Genuine activity log used by the heatmap.
+        const events = JSON.parse(localStorage.getItem("bisnor_watch_events") || "[]");
+        events.push({ ts: Date.now(), minutes: Math.min(minutes, 30) });
+        localStorage.setItem("bisnor_watch_events", JSON.stringify(events.slice(-2000)));
+
+        if (completed && mediaId) {
+            if (mediaType === "series") {
+                this.analytics.episodesCompleted = (this.analytics.episodesCompleted || 0) + 1;
+                this.analytics.completedSeriesIds = Array.from(new Set([...(this.analytics.completedSeriesIds || []), String(mediaId)]));
+                this.analytics.seriesWatched = this.analytics.completedSeriesIds.length;
+            } else {
+                this.analytics.completedMovieIds = Array.from(new Set([...(this.analytics.completedMovieIds || []), String(mediaId)]));
+                this.analytics.moviesWatched = this.analytics.completedMovieIds.length;
+            }
         }
-        const seriesHours = document.getElementById("metric-series-hours");
-        if (seriesHours) {
-            seriesHours.textContent = `${this.analytics.seriesEpisodesWatched} قسمت`;
+
+        localStorage.setItem("bisnor_analytics", JSON.stringify(this.analytics));
+        this.renderAnalytics();
+    }
+
+    loadWatchEvents() {
+        try {
+            return JSON.parse(localStorage.getItem("bisnor_watch_events") || "[]");
+        } catch (_) {
+            return [];
         }
     }
 
-    recordWatchTime(minutes) {
-        this.analytics.watchMinutes += minutes;
-        this.analytics.simulatedDataGb += (minutes * 0.015);
-        this.analytics.moviesWatched += 1;
-        localStorage.setItem("bisnor_analytics", JSON.stringify(this.analytics));
-        this.renderAnalytics();
+    renderHeatmap() {
+        const container = document.getElementById("profile-heatmap");
+        if (!container) return;
+        const events = this.loadWatchEvents();
+        const byDay = new Map();
+        events.forEach(e => {
+            if (!e || !e.ts) return;
+            const d = new Date(e.ts);
+            d.setHours(0, 0, 0, 0);
+            const key = d.getTime();
+            byDay.set(key, (byDay.get(key) || 0) + (Number(e.minutes) || 0));
+        });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Android parity: the week count follows the available width, so tablets
+        // get a dense grid that fills the whole card instead of a stretched one.
+        const gap = 3;
+        const available = Math.max(container.clientWidth || container.parentElement?.clientWidth || 320, 200);
+        const targetCell = 18;
+        const weeks = Math.max(17, Math.min(53, Math.floor((available + gap) / (targetCell + gap))));
+        const cellSize = Math.max(8, (available - gap * (weeks - 1)) / weeks);
+
+        // Align the grid to Saturday (start of the Iranian week).
+        const daysSinceSaturday = (today.getDay() + 1) % 7;
+        const start = new Date(today.getTime() - (daysSinceSaturday + (weeks - 1) * 7) * 86400000);
+
+        container.replaceChildren();
+        container.style.gridTemplateColumns = `repeat(${weeks}, ${cellSize}px)`;
+        container.style.gridTemplateRows = `repeat(7, ${cellSize}px)`;
+        container.style.gap = `${gap}px`;
+
+        let totalMinutes = 0;
+        for (let week = 0; week < weeks; week++) {
+            for (let day = 0; day < 7; day++) {
+                const date = new Date(start.getTime() + (week * 7 + day) * 86400000);
+                const cell = document.createElement("i");
+                cell.className = "heat-cell";
+                if (date > today) {
+                    cell.classList.add("empty");
+                } else {
+                    const minutes = byDay.get(date.getTime()) || 0;
+                    totalMinutes += minutes;
+                    const level = minutes <= 0 ? 0 : minutes < 15 ? 1 : minutes < 45 ? 2 : minutes < 90 ? 3 : 4;
+                    cell.classList.add(`level-${level}`);
+                    cell.title = `${minutes} دقیقه • ${date.toLocaleDateString("fa-IR")}`;
+                }
+                container.appendChild(cell);
+            }
+        }
+
+        const rangeLabel = document.getElementById("profile-heatmap-range");
+        if (rangeLabel) rangeLabel.textContent = `${this.toPersianNumber(weeks)} هفته اخیر`;
+
+        const total = document.getElementById("profile-heatmap-total");
+        if (total) {
+            total.textContent = totalMinutes <= 0
+                ? "هنوز فعالیتی ثبت نشده"
+                : `در بازه اخیر: ${this.toPersianNumber(Math.floor(totalMinutes / 60))} ساعت و ${this.toPersianNumber(Math.floor(totalMinutes % 60))} دقیقه`;
+        }
+    }
+
+    loadPlaybackProgress() {
+        try {
+            return JSON.parse(localStorage.getItem("bisnor_progress") || "{}");
+        } catch (_) {
+            return {};
+        }
+    }
+
+    savePlaybackProgress(entry) {
+        if (!entry || !entry.id || !entry.url) return;
+        const progress = this.loadPlaybackProgress();
+        progress[String(entry.id)] = entry;
+        localStorage.setItem("bisnor_progress", JSON.stringify(progress));
+    }
+
+    clearPlaybackProgress(id) {
+        if (!id) return;
+        const progress = this.loadPlaybackProgress();
+        delete progress[String(id)];
+        localStorage.setItem("bisnor_progress", JSON.stringify(progress));
+    }
+
+    renderContinueWatching() {
+        const row = document.getElementById("continue-watching-row");
+        const section = document.getElementById("continue-watching-section");
+        const profileRow = document.getElementById("profile-continue-row");
+        const profileSection = document.getElementById("profile-continue-section");
+        const progress = Object.values(this.loadPlaybackProgress())
+            .filter(p => p && p.position > 5 && p.duration > 0 && p.position / p.duration < 0.95)
+            .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        if (!row || !section) return;
+        if (!progress.length) {
+            section.style.display = "none";
+            if (profileSection) profileSection.style.display = "none";
+            return;
+        }
+        section.style.display = "block";
+        row.innerHTML = "";
+        progress.slice(0, 10).forEach(p => {
+            const card = document.createElement("div");
+            card.className = "continue-card";
+            card.innerHTML = `
+                <div class="continue-cover" style="background-image:url('${p.cover || ""}')">
+                    <span class="continue-play">▶</span>
+                </div>
+                <div class="continue-meta">
+                    <span class="continue-title">${p.title || ""}</span>
+                    <span class="continue-sub">${p.episodeTitle ? p.episodeTitle + " • " : ""}${Math.round(p.position / 60)} از ${Math.round(p.duration / 60)} دقیقه</span>
+                    <div class="continue-progress"><i style="width:${Math.min(100, Math.round((p.position / p.duration) * 100))}%"></i></div>
+                </div>`;
+            card.addEventListener("click", () => this.resumePlayback(p));
+            row.appendChild(card);
+        });
+
+        if (profileRow && profileSection) {
+            profileSection.style.display = "block";
+            profileRow.innerHTML = "";
+            progress.slice(0, 8).forEach(p => {
+                const clone = row.children[progress.indexOf(p)]?.cloneNode(true);
+                if (clone) {
+                    clone.addEventListener("click", () => this.resumePlayback(p));
+                    profileRow.appendChild(clone);
+                }
+            });
+        }
+    }
+
+    resumePlayback(entry) {
+        if (!entry || !entry.url) return;
+        this.pendingSeek = Number(entry.position) || 0;
+        this.playStream(entry.url, entry.title || "");
     }
 
     // --- Preferred Player and Auto Next Modals ---
@@ -1460,12 +2043,13 @@ class BisnorApp {
         document.querySelectorAll(".player-option-card").forEach(c => {
             c.classList.toggle("active", c.getAttribute("data-player") === this.selectedPlayerChoice);
         });
-        modal.style.display = "flex";
+        this.openOverlay("modal-player-choice");
     }
 
     closePlayerChoiceModal() {
         const modal = document.getElementById("modal-player-choice");
         if (modal) modal.style.display = "none";
+        this.rewindOverlay("modal-player-choice");
     }
 
     updatePlayerSettingLabel() {
@@ -1492,12 +2076,13 @@ class BisnorApp {
                 btn.classList.toggle("active", mins === this.settings.autoNextMinutes);
             }
         });
-        modal.style.display = "flex";
+        this.openOverlay("modal-auto-next-time");
     }
 
     closeAutoNextTimeModal() {
         const modal = document.getElementById("modal-auto-next-time");
         if (modal) modal.style.display = "none";
+        this.rewindOverlay("modal-auto-next-time");
     }
 
     // --- Settings Tab ---
@@ -1531,13 +2116,13 @@ class BisnorApp {
 
     // --- Auth Modal & Supabase Actions ---
     openAuthModal() {
-        const modal = document.getElementById("modal-auth");
-        if (modal) modal.style.display = "flex";
+        this.openOverlay("modal-auth");
     }
 
     closeAuthModal() {
         const modal = document.getElementById("modal-auth");
         if (modal) modal.style.display = "none";
+        this.rewindOverlay("modal-auth");
     }
 
     toggleAuthMode() {
@@ -1608,16 +2193,20 @@ class BisnorApp {
         const desc = document.getElementById("random-desc");
 
         if (cover) cover.src = item.cover || item.image;
-        if (rating) rating.textContent = `⭐ ${(item.imdb || 8.5).toFixed(1)}`;
+        if (rating) {
+            rating.textContent = item.imdb > 0 ? `⭐ ${Number(item.imdb).toFixed(1)}` : "";
+            rating.style.display = item.imdb > 0 ? "" : "none";
+        }
         if (title) title.textContent = item.title;
         if (desc) desc.textContent = item.description;
 
-        modal.style.display = "flex";
+        this.openOverlay("modal-random-suggest");
     }
 
     closeRandomModal() {
         const modal = document.getElementById("modal-random-suggest");
         if (modal) modal.style.display = "none";
+        this.rewindOverlay("modal-random-suggest");
     }
 }
 
@@ -1626,3 +2215,4 @@ window.addEventListener("DOMContentLoaded", () => {
     window.app = new BisnorApp();
     window.app.init();
 });
+

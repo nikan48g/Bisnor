@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar_person"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/background"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="@color/on_surface"
+        app:title="پروفایل"
+        app:titleTextColor="@color/on_surface" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="6dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            app:cardBackgroundColor="@color/surface_container_high"
+            app:cardCornerRadius="64dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/outline_variant"
+            app:strokeWidth="1dp">
+
+            <ImageView
+                android:id="@+id/img_person_avatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:padding="30dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_person"
+                app:tint="@color/on_surface_variant" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/tv_person_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:fontFamily="@font/vazirmatn_bold"
+            android:gravity="center"
+            android:textColor="@color/on_surface"
+            android:textSize="21sp" />
+
+        <TextView
+            android:id="@+id/tv_person_role"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/badge_background"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="3dp"
+            android:textColor="@color/primary"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/vazirmatn_bold"
+        android:text="آثار"
+        android:textColor="@color/on_surface"
+        android:textSize="15.5sp" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_person_works"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="14dp"
+            android:paddingBottom="24dp" />
+
+        <ProgressBar
+            android:id="@+id/progress_person"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/primary" />
+
+        <LinearLayout
+            android:id="@+id/layout_person_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="36dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:alpha="0.5"
+                android:src="@drawable/ic_movie_placeholder"
+                app:tint="@color/on_surface_variant" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:gravity="center"
+                android:text="اثری پیدا نشد"
+                android:textColor="@color/on_surface"
+                android:textSize="15sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:gravity="center"
+                android:text="در حال حاضر اثری از این شخص در کاتالوگ موجود نیست."
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

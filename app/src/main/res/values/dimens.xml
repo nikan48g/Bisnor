@@ -1,10 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="hero_banner_height">240dp</dimen>
-    <dimen name="poster_card_width">135dp</dimen>
-    <dimen name="poster_card_height">200dp</dimen>
-    <dimen name="poster_image_height">195dp</dimen>
-    <dimen name="continue_card_width">200dp</dimen>
+    <!-- Spacing scale -->
+    <dimen name="space_2">2dp</dimen>
+    <dimen name="space_4">4dp</dimen>
+    <dimen name="space_6">6dp</dimen>
+    <dimen name="space_8">8dp</dimen>
+    <dimen name="space_12">12dp</dimen>
+    <dimen name="space_16">16dp</dimen>
+    <dimen name="space_20">20dp</dimen>
+    <dimen name="space_24">24dp</dimen>
+    <dimen name="space_32">32dp</dimen>
+
+    <!-- Screen rhythm -->
+    <dimen name="screen_padding">18dp</dimen>
+    <dimen name="bottom_nav_space">104dp</dimen>
+
+    <!-- Radii -->
+    <dimen name="radius_sm">12dp</dimen>
+    <dimen name="radius_md">16dp</dimen>
+    <dimen name="radius_lg">22dp</dimen>
+    <dimen name="radius_xl">28dp</dimen>
+
+    <!-- Media -->
+    <dimen name="poster_card_width">132dp</dimen>
+    <dimen name="poster_card_height">196dp</dimen>
+    <dimen name="poster_image_height">190dp</dimen>
+    <dimen name="hero_banner_height">420dp</dimen>
+    <dimen name="continue_card_width">232dp</dimen>
+    <dimen name="detail_backdrop_height">380dp</dimen>
+    <dimen name="episode_thumb_width">112dp</dimen>
+    <dimen name="episode_thumb_height">70dp</dimen>
     <dimen name="content_max_width">600dp</dimen>
     <integer name="grid_columns_count">2</integer>
 </resources>

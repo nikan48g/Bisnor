@@ -131,6 +131,14 @@ public partial class MainWindow : Window
                     LaunchPlayer(playerType, streamUrl, title);
                     break;
 
+                case "launchInternalPlayer":
+                    var internalUrl = root.GetProperty("url").GetString();
+                    var internalTitle = root.TryGetProperty("title", out var it) ? it.GetString() : "Bisnor Media";
+                    var playerWindow = new PlayerWindow(internalUrl ?? "", internalTitle ?? "Bisnor Media");
+                    playerWindow.Owner = this;
+                    playerWindow.ShowDialog();
+                    break;
+
                 case "downloadWithIDM":
                     var downloadUrl = root.GetProperty("url").GetString();
                     LaunchIDM(downloadUrl);

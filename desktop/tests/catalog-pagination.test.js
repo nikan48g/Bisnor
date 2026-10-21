@@ -83,7 +83,7 @@ service.getPopularSeries = stub("series");
     assert.match(desktopController, /episode-card/);
     assert.match(desktopController, /playNextWebEpisode/);
     assert.doesNotMatch(desktopController, /class="episode-cover"/);
-    assert.match(desktopController, /player: "auto"/);
+    assert.match(desktopController, /player: localStorage\.getItem\("bisnor_player"\) \|\| "bisnor"/);
     assert.match(desktopController, /openPersonProfile/);
     assert.match(desktopController, /renderExplorePeople/);
     assert.match(desktopController, /createPersonCard/);

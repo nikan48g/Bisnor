@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#10131f">
+    <meta name="theme-color" content="#100E0C">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="بیسنور">
@@ -11,16 +11,21 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="assets/logo.png">
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/bisnor-android.css">
 </head>
 <body class="theme-dark">
     <div id="app" class="app-container">
         <!-- Top App Bar -->
         <header class="app-header">
+            <div class="header-greeting">
+                <span id="home-greeting" class="greeting-title">سلام</span>
+                <span id="home-greeting-sub" class="greeting-sub">امشب چه چیزی ببینیم؟</span>
+            </div>
             <div class="header-brand">
                 <img src="assets/logo.png" alt="Bisnor Logo" class="brand-logo">
                 <div class="brand-text">
                     <span class="brand-title">بیسنور</span>
-                    <span id="platform-brand-badge" class="brand-badge">نسخه ۵.۱.۳ ویندوز</span>
+                    <span id="platform-brand-badge" class="brand-badge">نسخه ۵.۲.۰ بتا</span>
                 </div>
             </div>
             <div class="header-actions">
@@ -49,47 +54,36 @@
                 <!-- Continue Watching Row (if any) -->
                 <div id="continue-watching-section" class="content-section" style="display: none;">
                     <div class="section-header">
-                        <span class="section-title">⏱️ در حال تماشا (ادامه پخش)</span>
+                        <span class="section-title">در حال تماشا</span>
                     </div>
                     <div id="continue-watching-row" class="media-row horizontal-scroll"></div>
-                </div>
-
-                <div id="for-you-section" class="content-section" style="display: none;">
-                    <div class="section-header">
-                        <span class="section-title">✨ For You</span>
-                        <span id="for-you-subtitle" class="section-subtitle">با توجه به سلیقه شما</span>
-                    </div>
-                    <div id="row-for-you" class="media-row horizontal-scroll"></div>
                 </div>
 
                 <!-- Trending / Latest Rows -->
                 <div class="content-section">
                     <div class="section-header">
-                        <span class="section-title">🔥 جدیدترین فیلم‌های برتر</span>
-                        <span class="section-subtitle">بروزرسانی زنده</span>
+                        <span class="section-title">تازه اضافه‌شده‌ها</span>
                     </div>
                     <div id="row-latest-movies" class="media-row horizontal-scroll"></div>
                 </div>
 
                 <div class="content-section">
                     <div class="section-header">
-                        <span class="section-title">📺 سریال‌های پرطرفدار</span>
-                        <span class="section-subtitle">فصل‌ها و قسمت‌های کامل</span>
+                        <span class="section-title">سریال‌های تازه</span>
                     </div>
                     <div id="row-popular-series" class="media-row horizontal-scroll"></div>
                 </div>
 
                 <div class="content-section">
                     <div class="section-header">
-                        <span class="section-title">⭐ شاهکارهای منتخب IMDb</span>
-                        <span class="section-subtitle">امتیاز بالای ۸.۰</span>
+                        <span class="section-title">برترین‌های IMDb</span>
                     </div>
                     <div id="row-top-imdb" class="media-row horizontal-scroll"></div>
                 </div>
 
                 <div class="content-section">
                     <div class="section-header">
-                        <span class="section-title">🎨 انیمیشن، انیمه و کارتون</span>
+                        <span class="section-title">انیمیشن و انیمه</span>
                     </div>
                     <div id="row-animations" class="media-row horizontal-scroll"></div>
                 </div>
@@ -147,12 +141,12 @@
                 <div id="grid-explore-results" class="media-grid"></div>
             </section>
 
-            <!-- TAB 3: WATCHLIST / FAVORITES -->
+            <!-- TAB 3: LIBRARY -->
             <section id="tab-favorites" class="tab-pane">
                 <div class="watchlist-title-row">
                     <div>
-                        <h2 class="page-title">واچ‌لیست من</h2>
-                        <p class="page-subtitle">نشان‌شده‌ها و آثاری که برای تماشا ذخیره کرده‌اید</p>
+                        <h2 class="page-title">علاقه‌مندی‌های من</h2>
+                        <p class="page-subtitle">لیست‌ها، تماشا و واچ‌لیست</p>
                     </div>
                     <button id="btn-sync-favorites" class="glass-pill-btn">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
@@ -185,30 +179,137 @@
                 </article>
             </section>
 
-            <!-- TAB 4: SETTINGS (Matches Android 1:1) -->
+            <!-- TAB 4: PROFILE (matches Android fragment_profile.xml) -->
             <section id="tab-settings" class="tab-pane">
-                <h2 class="page-title">تنظیمات</h2>
+                <div class="profile-header">
+                    <h2 class="page-title">پروفایل</h2>
+                    <button id="btn-profile-settings" class="icon-btn-square" type="button" title="تنظیمات">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    </button>
+                </div>
 
-                <!-- Category 1: User Account -->
-                <div class="settings-category-title">حساب کاربری</div>
-                <div id="card-user-profile" class="settings-group glass-panel profile-account-card">
+                <div class="settings-group glass-panel profile-account-card">
                     <div class="profile-account-row">
                         <div class="avatar-ring-sm">
-                            <img id="img-profile-avatar" src="assets/avatars/avatar_breakingbad.png" alt="Avatar">
+                            <img id="profile-avatar-img" src="assets/avatars/avatar_guest.svg" alt="Avatar">
                         </div>
                         <div class="profile-account-meta">
-                            <h3 id="tv-profile-username">ورود به حساب کاربری</h3>
-                            <p id="tv-profile-sync-status">جهت مدیریت پروفایل و ذخیره علایق وارد شوید</p>
+                            <h3 id="profile-display-name">مهمان</h3>
+                            <p id="profile-display-username">برای همگام‌سازی وارد شوید</p>
                         </div>
-                        <div class="profile-account-action">
-                            <button id="btn-profile-action" class="btn-tonal-sm">ورود</button>
-                            <button id="btn-profile-change-avatar" class="btn-tonal-sm" style="display: none;">تغییر چهره 🎭</button>
-                            <button id="btn-profile-logout" class="btn-danger-sm" style="display: none;">خروج</button>
-                        </div>
+                        <button id="btn-profile-login" class="btn-tonal-sm" type="button">ورود</button>
                     </div>
                 </div>
 
-                <!-- Category 2: Downloads & Storage -->
+                <!-- Real activity statistics (local watch history only) -->
+                <div class="profile-stats-row">
+                    <div class="profile-stat">
+                        <span id="profile-stat-movies" class="profile-stat-value">۰</span>
+                        <span class="profile-stat-label">فیلم</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span id="profile-stat-series" class="profile-stat-value">۰</span>
+                        <span class="profile-stat-label">سریال</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span id="profile-stat-hours" class="profile-stat-value">۰</span>
+                        <span class="profile-stat-label">ساعت تماشا</span>
+                    </div>
+                </div>
+
+                <div class="settings-group glass-panel heatmap-card">
+                    <div class="panel-header-flex">
+                        <span class="group-inner-title">فعالیت تماشا</span>
+                        <span class="tag-pill" id="profile-heatmap-range">بر اساس آخرین فعالیت‌ها</span>
+                    </div>
+                    <div id="profile-heatmap" class="profile-heatmap"></div>
+                    <div class="heatmap-footer">
+                        <span id="profile-heatmap-total">هنوز فعالیتی ثبت نشده</span>
+                        <span class="heatmap-legend">کم
+                            <i class="heat-cell level-1"></i><i class="heat-cell level-2"></i>
+                            <i class="heat-cell level-3"></i><i class="heat-cell level-4"></i>
+                            زیاد
+                        </span>
+                    </div>
+                </div>
+
+                <div id="profile-continue-section" class="content-section" style="display:none;">
+                    <div class="section-header"><span class="section-title">در حال تماشا</span></div>
+                    <div id="profile-continue-row" class="media-row horizontal-scroll"></div>
+                </div>
+
+                <!-- Settings & account shortcuts (Android profile card) -->
+                <div class="settings-category-title">تنظیمات و حساب</div>
+                <div class="settings-group glass-panel">
+                    <div id="profile-row-account" class="setting-item clickable-row">
+                        <div class="setting-icon-box">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <div class="setting-text">
+                            <span class="setting-name">حساب کاربری و آواتار</span>
+                        </div>
+                        <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    </div>
+
+                    <div class="setting-divider"></div>
+
+                    <div id="profile-row-settings" class="setting-item clickable-row">
+                        <div class="setting-icon-box">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+                        </div>
+                        <div class="setting-text">
+                            <span class="setting-name">ظاهر، پخش و تنظیمات برنامه</span>
+                        </div>
+                        <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    </div>
+
+                    <div class="setting-divider"></div>
+
+                    <div id="profile-row-downloads" class="setting-item clickable-row">
+                        <div class="setting-icon-box">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                        </div>
+                        <div class="setting-text">
+                            <span class="setting-name">دانلودها</span>
+                        </div>
+                        <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    </div>
+
+                    <div class="setting-divider"></div>
+
+                    <div id="profile-row-about" class="setting-item clickable-row">
+                        <div class="setting-icon-box">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+                        </div>
+                        <div class="setting-text">
+                            <span class="setting-name">درباره بیسنور</span>
+                        </div>
+                        <span id="profile-version" class="setting-desc"></span>
+                    </div>
+
+                    <div id="profile-row-logout" class="setting-divider" style="display:none;"></div>
+
+                    <div id="profile-logout-row" class="setting-item clickable-row" style="display:none;">
+                        <div class="setting-text">
+                            <span class="setting-name" style="color:#FFB4A2 !important;">خروج از حساب</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SETTINGS SCREEN (matches Android fragment_settings.xml) -->
+            <section id="screen-settings" class="tab-pane subscreen">
+                <div class="subscreen-header">
+                    <button id="btn-settings-back" class="icon-btn-square" type="button" title="بازگشت">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                    </button>
+                    <div class="subscreen-title">
+                        <h2 class="page-title">تنظیمات</h2>
+                        <p class="page-subtitle">پخش، ظاهر و دانلودها</p>
+                    </div>
+                </div>
+
+                <!-- Downloads & storage -->
                 <div class="settings-category-title">دانلودها و ذخیره‌سازی</div>
                 <div class="settings-group glass-panel">
                     <div id="btn-setting-downloads" class="setting-item clickable-row">
@@ -216,8 +317,8 @@
                             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
                         </div>
                         <div class="setting-text">
-                            <span id="downloads-setting-title" class="setting-name">مدیریت دانلودها و پوشه ویندوز</span>
-                            <span class="setting-desc">مشاهده فایل‌های ذخیره شده و دانلود آفلاین در Downloads</span>
+                            <span id="downloads-setting-title" class="setting-name">مدیریت دانلودها</span>
+                            <span class="setting-desc">فایل‌های ذخیره‌شده و تماشای آفلاین</span>
                         </div>
                         <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
                     </div>
@@ -225,12 +326,9 @@
                     <div class="setting-divider"></div>
 
                     <div class="setting-item">
-                        <div class="setting-icon-box secondary-icon">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        </div>
                         <div class="setting-text">
-                            <span class="setting-name">موتور دانلود چندتکه‌ای (۸ پارت IDM)</span>
-                            <span class="setting-desc">دانلود پرسرعت موازی فایل‌ها مانند IDM</span>
+                            <span class="setting-name">موتور دانلود چندتکه‌ای (۸ پارت)</span>
+                            <span class="setting-desc">دانلود پرسرعت موازی فایل‌ها</span>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="switch-segmented-download" checked>
@@ -239,26 +337,24 @@
                     </div>
                 </div>
 
-                <!-- Category 3: App & Player Settings -->
-                <div class="settings-category-title">تنظیمات پخش و برنامه</div>
-                
-                <!-- Theme Card -->
+                <!-- Appearance -->
+                <div class="settings-category-title">ظاهر برنامه</div>
                 <div class="settings-group glass-panel">
-                    <span class="group-inner-title">حالت پوسته (تم)</span>
+                    <span class="group-inner-title">پوسته برنامه</span>
                     <div id="chip-group-themes" class="theme-chips-wrap">
-                        <button class="chip-theme" id="chip-theme-system" data-theme="system">📱 پیش‌فرض سیستم</button>
-                        <button class="chip-theme active" id="chip-theme-dark" data-theme="dark">🌙 حالت تاریک (Dark)</button>
-                        <button class="chip-theme" id="chip-theme-light" data-theme="light">☀️ حالت روشن (Light)</button>
+                        <button class="chip-theme" id="chip-theme-system" data-theme="system">سیستم</button>
+                        <button class="chip-theme active" id="chip-theme-dark" data-theme="dark">تاریک</button>
+                        <button class="chip-theme" id="chip-theme-light" data-theme="light">روشن</button>
                     </div>
                 </div>
 
-                <!-- Player Settings Card -->
+                <!-- Playback -->
+                <div class="settings-category-title">پخش و ویدیو</div>
                 <div class="settings-group glass-panel">
-                    <!-- Auto Next -->
                     <div class="setting-item">
                         <div class="setting-text">
-                            <span class="setting-name">رفتن خودکار به قسمت بعدی</span>
-                            <span class="setting-desc">نمایش تایمر و شروع خودکار قسمت بعد سریال</span>
+                            <span class="setting-name">پخش خودکار قسمت بعدی</span>
+                            <span class="setting-desc">نمایش تایمر و پخش خودکار قسمت بعد</span>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="switch-auto-next" checked>
@@ -268,32 +364,29 @@
 
                     <div class="setting-divider"></div>
 
-                    <!-- Auto Next Time -->
                     <div id="btn-setting-auto-next-time" class="setting-item clickable-row">
                         <div class="setting-text">
-                            <span class="setting-name">زمان شروع پیشنهاد قسمت بعدی</span>
+                            <span class="setting-name">زمان نمایش قسمت بعدی</span>
                         </div>
                         <span id="tv-auto-next-minutes-label" class="setting-value-highlight">۲ دقیقه مانده به پایان</span>
                     </div>
 
                     <div class="setting-divider"></div>
 
-                    <!-- Player Choice -->
                     <div id="btn-setting-player-choice" class="setting-item clickable-row">
                         <div class="setting-text">
-                            <span class="setting-name">پخش‌کننده پیش‌فرض ویدیو</span>
-                            <span id="tv-current-player-label" class="setting-desc-highlight">پلیر داخلی بیسنور (پیش‌فرض)</span>
+                            <span class="setting-name">پخش‌کننده پیش‌فرض</span>
+                            <span id="tv-current-player-label" class="setting-desc-highlight">پلیر داخلی بیسنور</span>
                         </div>
                         <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
                     </div>
 
                     <div class="setting-divider"></div>
 
-                    <!-- Content Warning -->
                     <div class="setting-item">
                         <div class="setting-text">
-                            <span class="setting-name">هشدار رده سنی (+۱۶ و +۱۸)</span>
-                            <span class="setting-desc">نمایش هشدار قبل از ورود به عناوین رده سنی بالا</span>
+                            <span class="setting-name">هشدار رده سنی</span>
+                            <span class="setting-desc">نمایش هشدار برای عناوین +۱۶ و +۱۸</span>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="switch-content-warning" checked>
@@ -302,62 +395,6 @@
                     </div>
                 </div>
 
-                <!-- Category 4: About & Update & GitHub -->
-                <div class="settings-category-title">درباره برنامه و به‌روزرسانی</div>
-                <div class="settings-group glass-panel">
-                    <div class="setting-item about-row">
-                        <img src="assets/logo.png" alt="Bisnor Logo" class="about-app-logo">
-                        <div class="setting-text">
-                            <span id="platform-about-title" class="setting-name">بیسنور دسکتاپ (Bisnor Desktop)</span>
-                            <span id="tv-app-version-about" class="setting-desc">نسخه v5.1.3 (آزمایشی) • مجهز به .NET 10 و WebView2</span>
-                        </div>
-                        <button id="btn-check-update" class="btn-tonal-sm">بررسی به‌روزرسانی 🔄</button>
-                    </div>
-
-                    <div class="setting-divider"></div>
-
-                    <div id="btn-open-github" class="setting-item clickable-row">
-                        <div class="setting-icon-box">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-                        </div>
-                        <div class="setting-text">
-                            <span class="setting-name">مخزن رسمی گیت‌هاب</span>
-                            <span class="setting-desc">مشاهده سورس‌کد و مشارکت در پروژه</span>
-                        </div>
-                        <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-                    </div>
-                </div>
-
-                <!-- Monthly Analytics & Taste (Local & Private) -->
-                <div class="settings-category-title">سلیقه هوشمند و کارنامه تماشا</div>
-                <div class="settings-group glass-panel">
-                    <div class="panel-header-flex">
-                        <span class="group-inner-title">📊 کارنامه ماهانه تماشا (محلی و بدون ارسال به سرور 🔒)</span>
-                        <span class="tag-pill">۳۰ روز اخیر</span>
-                    </div>
-
-                    <div class="analytics-metrics-grid">
-                        <div class="metric-box">
-                            <span class="metric-label">🎬 فیلم‌های دیده شده</span>
-                            <span id="metric-movie-hours" class="metric-value">۳ فیلم</span>
-                        </div>
-                        <div class="metric-box">
-                            <span class="metric-label">📺 قسمت‌های سریال</span>
-                            <span id="metric-series-hours" class="metric-value">۸ قسمت</span>
-                        </div>
-                        <div class="metric-box">
-                            <span class="metric-label">⏱️ مجموع زمان تماشا</span>
-                            <span id="stat-watch-hours" class="metric-value">۷.۶ ساعت</span>
-                        </div>
-                    </div>
-
-                    <div class="genre-progress-title">توزیع سلیقه سینمایی شما:</div>
-                    <div id="genre-distribution-bar" class="genre-distribution-bar">
-                        <div class="genre-bar-slice" style="width: 40%; background: #FFB86B;" title="اکشن ۴۰٪"></div>
-                        <div class="genre-bar-slice" style="width: 35%; background: #80D5DB;" title="درام ۳۵٪"></div>
-                        <div class="genre-bar-slice" style="width: 25%; background: #E85D75;" title="انیمیشن ۲۵٪"></div>
-                    </div>
-                </div>
             </section>
         </main>
 
@@ -369,17 +406,29 @@
             </button>
             <button class="nav-item" data-tab="tab-explore">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                <span>جستجو</span>
+                <span>کشف</span>
             </button>
             <button class="nav-item" data-tab="tab-favorites">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
-                <span>واچ‌لیست</span>
+                <span>علاقه‌مندی</span>
             </button>
             <button class="nav-item" data-tab="tab-settings">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-                <span>تنظیمات</span>
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>پروفایل</span>
             </button>
         </nav>
+
+        <!-- ABOUT MODAL -->
+        <div id="modal-about" class="detail-overlay" style="display: none;">
+            <div class="glass-panel" style="position:relative;width:min(92vw,400px);padding:28px 24px;border-radius:24px;text-align:center;">
+                <button id="btn-close-about" class="detail-close-btn" type="button">✕</button>
+                <img src="assets/logo.png" alt="Bisnor" style="width:72px;height:72px;object-fit:contain;margin-bottom:10px;">
+                <h2 style="margin:0 0 6px;font-size:20px;">بیسنور</h2>
+                <p id="about-platform-title" style="margin:0 0 4px;font-size:13px;opacity:.85;">نسخه وب (Bisnor PWA)</p>
+                <p id="about-version" style="margin:0 0 14px;font-size:12px;opacity:.7;">نسخه ۵.۲.۰-beta.4</p>
+                <p style="margin:0;font-size:12.5px;line-height:1.9;opacity:.85;">پخش فیلم و سریال با کیفیت بالا، اطلاعات واقعی از کاتالوگ و تماشای بدون مرز.</p>
+            </div>
+        </div>
 
         <!-- DETAIL MODAL / SCREEN -->
         <div id="modal-detail" class="detail-overlay" style="display: none;">
@@ -400,9 +449,8 @@
                                 <span id="detail-badge-imdb" class="badge-imdb">⭐ 8.4</span>
                                 <span id="detail-badge-country" class="badge-tag">آمریکا</span>
                             </div>
-                            <div id="detail-series-avg-size" class="series-avg-badge" style="display: none;">
-                                میانگین هر قسمت: ~۳۵۰ تا ۵۰۰ مگابایت
-                            </div>
+                            <div id="detail-extra-badges" class="detail-badges-row"></div>
+                            <div id="detail-series-avg-size" class="series-avg-badge" style="display: none;"></div>
                             <div class="detail-actions-row">
                                 <button id="btn-detail-play-now" class="btn-play-primary">
                                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -684,9 +732,11 @@
     </div>
 
     <!-- Scripts -->
+    <script src="js/vendor/hls.min.js"></script>
     <script src="js/poster-fallback.js"></script>
     <script src="js/data.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
+

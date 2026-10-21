@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:paddingTop="14dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="18dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:text="علاقه‌مندی‌های من"
+                android:textColor="@color/on_surface"
+                android:textSize="26sp" />
+
+            <TextView
+                android:id="@+id/tv_library_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:text="تماشا، واچلیست و لیستهای شخصی"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12.5sp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_create_playlist"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_bookmark"
+            app:iconTint="@color/primary"
+            app:strokeColor="@color/outline_variant"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
+
+    <!-- Library search -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginHorizontal="18dp"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_search_pill"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_search"
+            app:tint="@color/on_surface_variant" />
+
+        <EditText
+            android:id="@+id/et_favorites_search"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:fontFamily="@font/vazirmatn_regular"
+            android:hint="جستجو در علاقه‌مندی‌ها..."
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:paddingHorizontal="10dp"
+            android:textColor="@color/on_surface"
+            android:textColorHint="@color/on_surface_variant"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/btn_clear_favorites_search"
+            android:layout_width="21dp"
+            android:layout_height="21dp"
+            android:src="@drawable/ic_refresh"
+            android:visibility="gone"
+            app:tint="@color/on_surface_variant" />
+    </LinearLayout>
+
+    <!-- Sections -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="18dp"
+        android:scrollbars="none">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_library_tabs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/lib_tab_lists"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="لیستهای من" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/lib_tab_continue"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="در حال تماشا" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/lib_tab_watchlist"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="بعداً میبینم" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/lib_tab_watched"
+                style="@style/Widget.Bisnor.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="تماشا شده" />
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <!-- Tools -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="18dp">
+
+        <TextView
+            android:id="@+id/tv_library_count"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="11.5sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_library_sort"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:fontFamily="@font/vazirmatn_regular"
+            android:text="آخرین بازدید"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="11.5sp"
+            app:icon="@drawable/ic_chevron_down"
+            app:iconSize="16dp"
+            app:iconTint="@color/on_surface_variant" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_library_layout"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="2dp"
+            android:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_library"
+            app:iconSize="18dp"
+            app:iconTint="@color/on_surface" />
+    </LinearLayout>
+
+    <!-- Content -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_library"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="112dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_playlist_cards"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="6dp"
+            android:paddingBottom="112dp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/layout_library_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="40dp"
+            android:paddingBottom="64dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:alpha="0.55"
+                android:src="@drawable/ic_bookmark"
+                app:tint="@color/outline" />
+
+            <TextView
+                android:id="@+id/tv_library_empty_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:gravity="center"
+                android:text="هنوز چیزی اینجا نیست"
+                android:textColor="@color/on_surface"
+                android:textSize="14.5sp" />
+
+            <TextView
+                android:id="@+id/tv_library_empty_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:text="با تماشای فیلمها یا افزودن آنها به واچلیست، کتابخانه شما ساخته میشود."
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_library_discover"
+                style="@style/Widget.Bisnor.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="46dp"
+                android:layout_marginTop="18dp"
+                android:text="کشف محتوا" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

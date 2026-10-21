@@ -61,6 +61,8 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks {
         com.hnn.bisnor.util.ThemeHelper.initAppTheme(this)
         registerActivityLifecycleCallbacks(this)
         com.hnn.bisnor.data.repository.SegmentedDownloadManager.init(this)
+        com.hnn.bisnor.data.repository.RealMediaRepository.init(this)
+        com.hnn.bisnor.util.PersonPhotoResolver.init(this)
 
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

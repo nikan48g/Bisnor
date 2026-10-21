@@ -1,7 +1,6 @@
 package com.hnn.bisnor.ui.settings
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,35 +11,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import coil.load
-import coil.transform.CircleCropTransformation
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.radiobutton.MaterialRadioButton
-import com.google.android.material.textfield.TextInputEditText
-import com.hnn.bisnor.MainActivity
 import com.hnn.bisnor.R
-import com.hnn.bisnor.data.remote.AuthManager
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.databinding.FragmentSettingsBinding
 import com.hnn.bisnor.ui.downloads.DownloadsActivity
-import com.hnn.bisnor.ui.profile.AccountProfileActivity
 import com.hnn.bisnor.util.PlayerLauncherHelper
 import com.hnn.bisnor.util.ThemeHelper
-import com.hnn.bisnor.util.UpdateChecker
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var historyManager: PlaybackHistoryManager
-    private lateinit var authManager: AuthManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -52,9 +38,6 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         historyManager = PlaybackHistoryManager(requireContext())
-        authManager = AuthManager(requireContext())
-
-        setupUserProfileSection()
 
         // Light / Dark / System Themes
         when (historyManager.themeMode) {
@@ -111,180 +94,6 @@ class SettingsFragment : Fragment() {
             startActivity(Intent(requireContext(), DownloadsActivity::class.java))
         }
 
-        binding.btnOpenGithub.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nikan48g/Bisnor")).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            startActivity(intent)
-        }
-
-        binding.tvAppVersionAbout.text = "نسخه v${com.hnn.bisnor.BuildConfig.VERSION_NAME}"
-
-        binding.btnCheckUpdate.setOnClickListener {
-            lifecycleScope.launch {
-                Toast.makeText(requireContext(), "در حال بررسی آخرین نسخه در گیت‌هاب...", Toast.LENGTH_SHORT).show()
-                UpdateChecker.checkForUpdates(requireContext(), showToastIfLatest = true)
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        setupUserProfileSection()
-    }
-
-    private fun setupUserProfileSection() {
-        if (authManager.isLoggedIn) {
-            val username = "@${authManager.currentUsername}"
-            binding.tvProfileUsername.text = username
-            binding.tvProfileSyncStatus.text = "مدیریت پروفایل، علایق و تنظیمات"
-            binding.btnProfileAction.visibility = View.GONE
-            binding.imgProfileChevron.visibility = View.VISIBLE
-
-            val avatarUrl = authManager.userAvatarUrl
-            if (avatarUrl.isNotEmpty()) {
-                binding.imgProfileAvatar.load(avatarUrl) {
-                    crossfade(true)
-                    transformations(CircleCropTransformation())
-                    placeholder(R.drawable.ic_account_circle)
-                    error(R.drawable.ic_account_circle)
-                }
-            } else {
-                binding.imgProfileAvatar.setImageResource(AuthManager.getAvatarDrawable(authManager.userAvatarId))
-            }
-
-            binding.cardUserProfile.setOnClickListener {
-                startActivity(Intent(requireContext(), AccountProfileActivity::class.java))
-            }
-        } else {
-            binding.tvProfileUsername.text = "ورود به حساب کاربری"
-            binding.imgProfileAvatar.setImageResource(R.drawable.ic_account_circle)
-            binding.tvProfileSyncStatus.text = "جهت مدیریت پروفایل و ذخیره علایق وارد شوید"
-            binding.btnProfileAction.visibility = View.VISIBLE
-            binding.btnProfileAction.text = "ورود"
-            binding.imgProfileChevron.visibility = View.GONE
-
-            val loginClick = View.OnClickListener {
-                showAuthDialog()
-            }
-            binding.btnProfileAction.setOnClickListener(loginClick)
-            binding.cardUserProfile.setOnClickListener(loginClick)
-        }
-    }
-
-    private fun showAvatarPickerDialog() {
-        com.hnn.bisnor.util.AvatarPickerDialogHelper.show(requireContext(), authManager) { avatar ->
-            lifecycleScope.launch {
-                authManager.updateAvatar(avatar.id)
-                setupUserProfileSection()
-                Toast.makeText(requireContext(), "آواتار شما با موفقیت تغییر کرد!", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun showAuthDialog() {
-        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_auth, null)
-        val tvTitle = dialogView.findViewById<TextView>(R.id.tv_auth_dialog_title)
-        val layoutAvatarPicker = dialogView.findViewById<LinearLayout>(R.id.layout_avatar_picker)
-        val imgAvatar1 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_1)
-        val imgAvatar2 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_2)
-        val imgAvatar3 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_3)
-        val imgAvatar4 = dialogView.findViewById<ImageView>(R.id.img_avatar_opt_4)
-        val etUser = dialogView.findViewById<TextInputEditText>(R.id.et_auth_username)
-        val etPass = dialogView.findViewById<TextInputEditText>(R.id.et_auth_password)
-        val btnSubmit = dialogView.findViewById<MaterialButton>(R.id.btn_auth_submit)
-        val btnSwitch = dialogView.findViewById<MaterialButton>(R.id.btn_auth_switch_mode)
-
-        var isRegisterMode = false
-        var selectedAvatarId = authManager.userAvatarId
-
-        val avatarViews = listOf(
-            imgAvatar1 to "avatar_breakingbad",
-            imgAvatar2 to "avatar_luffy",
-            imgAvatar3 to "avatar_wednesday",
-            imgAvatar4 to "avatar_film"
-        )
-
-        fun updateAvatarSelection() {
-            avatarViews.forEach { (iv, id) ->
-                if (id == selectedAvatarId) {
-                    iv.alpha = 1.0f
-                    iv.scaleX = 1.15f
-                    iv.scaleY = 1.15f
-                } else {
-                    iv.alpha = 0.5f
-                    iv.scaleX = 0.95f
-                    iv.scaleY = 0.95f
-                }
-            }
-        }
-
-        avatarViews.forEach { (iv, id) ->
-            iv.setOnClickListener {
-                com.hnn.bisnor.util.AvatarPickerDialogHelper.show(requireContext(), authManager) { avatar ->
-                    selectedAvatarId = avatar.id
-                    updateAvatarSelection()
-                }
-            }
-        }
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogView)
-            .create()
-
-        fun updateUI() {
-            if (isRegisterMode) {
-                tvTitle.text = "ثبت‌نام در بیسنور"
-                layoutAvatarPicker.visibility = View.VISIBLE
-                updateAvatarSelection()
-                btnSubmit.text = "ایجاد حساب کاربری"
-                btnSwitch.text = "حساب دارید؟ وارد شوید"
-            } else {
-                tvTitle.text = "ورود به حساب کاربری"
-                layoutAvatarPicker.visibility = View.GONE
-                btnSubmit.text = "ورود به حساب"
-                btnSwitch.text = "حساب کاربری ندارید؟ ثبت‌نام"
-            }
-        }
-
-        btnSwitch.setOnClickListener {
-            isRegisterMode = !isRegisterMode
-            updateUI()
-        }
-
-        btnSubmit.setOnClickListener {
-            val username = etUser.text?.toString()?.trim() ?: ""
-            val password = etPass.text?.toString()?.trim() ?: ""
-
-            if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(requireContext(), "لطفاً تمامی فیلدها را پر کنید.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            lifecycleScope.launch {
-                btnSubmit.isEnabled = false
-                btnSubmit.text = "در حال ارتباط با سرور..."
-
-                val (success, message) = if (isRegisterMode) {
-                    authManager.register(username, password)
-                } else {
-                    authManager.login(username, password)
-                }
-
-                btnSubmit.isEnabled = true
-                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-
-                if (success) {
-                    dialog.dismiss()
-                    setupUserProfileSection()
-                } else {
-                    updateUI()
-                }
-            }
-        }
-
-        updateUI()
-        dialog.show()
     }
 
     private fun updatePlayerLabel() {

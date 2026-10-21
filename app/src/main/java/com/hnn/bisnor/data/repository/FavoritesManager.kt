@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class FavoritesManager(context: Context) {
+    private val appContext = context.applicationContext
     private val prefs: SharedPreferences =
         context.getSharedPreferences("bisnor_real_favorites", Context.MODE_PRIVATE)
     private val gson = Gson()
@@ -26,10 +27,11 @@ class FavoritesManager(context: Context) {
         }
     }
 
-    private fun saveFavorites(list: List<RealMedia>) {
+    private fun saveFavorites(list: List<RealMedia>, sync: Boolean = true) {
         val json = gson.toJson(list)
         prefs.edit().putString("favs", json).apply()
         _favoritesFlow.value = list
+        if (sync) CloudSync.request(appContext)
     }
 
     fun getFavoritesRawJson(): String {
@@ -40,7 +42,7 @@ class FavoritesManager(context: Context) {
         try {
             val type = object : TypeToken<List<RealMedia>>() {}.type
             val list: List<RealMedia> = gson.fromJson(rawJson, type) ?: emptyList()
-            saveFavorites(list)
+            saveFavorites(list, sync = false)
         } catch (e: Exception) {
             // Ignore parse error
         }

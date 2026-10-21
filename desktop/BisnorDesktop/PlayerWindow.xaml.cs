@@ -11,7 +11,6 @@ public partial class PlayerWindow : Window
     private readonly DispatcherTimer _timer;
     private readonly string _url;
     private bool _isDraggingSeek;
-    private bool _controlsVisible;
     private DispatcherTimer? _hideControlsTimer;
 
     public PlayerWindow(string url, string title)
@@ -105,7 +104,6 @@ public partial class PlayerWindow : Window
 
     private void ShowControls()
     {
-        _controlsVisible = true;
         TitleBar.Visibility = Visibility.Visible;
         ControlBar.Visibility = Visibility.Visible;
         Cursor = Cursors.Arrow;
@@ -120,7 +118,6 @@ public partial class PlayerWindow : Window
                 TitleBar.Visibility = Visibility.Collapsed;
                 ControlBar.Visibility = Visibility.Collapsed;
                 Cursor = Cursors.None;
-                _controlsVisible = false;
             }
         };
         _hideControlsTimer.Start();

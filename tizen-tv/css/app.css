@@ -1497,3 +1497,15 @@ input:checked + .slider:before {
 .chip-filter:focus {
     outline: none !important;
 }
+
+/* D-pad mode (body.tv-keynav, toggled by tizen-tv-keys.js): show where remote focus is. */
+body.tv-keynav :focus {
+    outline: 3px solid var(--primary) !important;
+    outline-offset: 2px;
+}
+
+body.tv-keynav .media-card:focus {
+    transform: translateY(-6px) scale(1.04);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary), 0 10px 24px rgba(0, 0, 0, 0.5);
+}

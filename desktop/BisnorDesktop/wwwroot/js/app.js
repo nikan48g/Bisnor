@@ -36,6 +36,7 @@ class BisnorApp {
         this.currentTab = "home";
         this.activeMedia = null;
         this.hlsInstance = null;
+        this.streamWatchdog = null;
         this.selectedAvatarForPicker = "avatar_breakingbad";
         this.selectedPlayerChoice = localStorage.getItem("bisnor_player") || "bisnor";
         this.authMode = "login";
@@ -565,12 +566,14 @@ class BisnorApp {
         if (video) {
             if (video) {
                 video.addEventListener("loadedmetadata", () => {
+                    this.clearStreamWatchdog();
                     if (this.pendingSeek && video.duration) {
                         video.currentTime = Math.min(this.pendingSeek, Math.max(0, video.duration - 5));
                     }
                     this.pendingSeek = 0;
                 });
                 video.addEventListener("error", () => {
+                    this.clearStreamWatchdog();
                     if (this.hlsInstance) return;
                     const error = video.error;
                     this.tryNextStream(error ? `codec ${error.code}` : "unknown");
@@ -1419,6 +1422,9 @@ class BisnorApp {
         // WebView2 hands MKV to the internal Media Foundation player, but browsers
         // and iOS cannot demux these containers at all, so prefer real alternatives.
         if (!this.isNativeDesktop && /\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(url)) score -= 500;
+        // HTTPS pages cannot load insecure media on iOS, so a plain-http source
+        // only makes sense after every https candidate has failed.
+        if (location.protocol === "https:" && url.startsWith("http://")) score -= 120;
         if (/1080/.test(quality)) score += 30;
         else if (/720/.test(quality)) score += 20;
         else if (/480/.test(quality)) score += 5;
@@ -1526,6 +1532,7 @@ class BisnorApp {
         video.load();
         this.streamNetworkRetries = 0;
         this.streamMediaRecovered = false;
+        this.startStreamWatchdog(video, url);
 
         const isHls = /\.m3u8(?:$|[?#])/i.test(url);
         const nativeHls = video.canPlayType("application/vnd.apple.mpegurl");
@@ -1566,6 +1573,26 @@ class BisnorApp {
         video.load();
     }
 
+    /** iOS Safari keeps a black 00:00 player when a container is unplayable and fires no error. */
+    startStreamWatchdog(video, url) {
+        this.clearStreamWatchdog();
+        this.streamWatchdog = setTimeout(() => {
+            this.streamWatchdog = null;
+            if (!video || video.readyState >= 1) return;
+            if (this.currentPlayingUrl !== url) return;
+            const modal = document.getElementById("modal-player");
+            if (modal && modal.style.display === "none") return;
+            this.tryNextStream("no-metadata");
+        }, 12000);
+    }
+
+    clearStreamWatchdog() {
+        if (this.streamWatchdog) {
+            clearTimeout(this.streamWatchdog);
+            this.streamWatchdog = null;
+        }
+    }
+
     /** Moves to the next source candidate when a container or codec cannot play. */
     tryNextStream(detail) {
         const queue = this.streamQueue || [];
@@ -1597,6 +1624,7 @@ class BisnorApp {
         this.renderHeatmap();
         this.renderContinueWatching();
         this.streamQueue = [];
+        this.clearStreamWatchdog();
         const modal = document.getElementById("modal-player");
         const video = document.getElementById("html-video-player");
         const errOverlay = document.getElementById("player-error-overlay");

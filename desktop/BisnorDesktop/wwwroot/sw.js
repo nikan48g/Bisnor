@@ -1,4 +1,4 @@
-const CACHE = "bisnor-shell-v5";
+const CACHE = "bisnor-shell-v6";
 const SHELL = [
   "./",
   "index.html",
@@ -25,8 +25,8 @@ self.addEventListener("activate", event => event.waitUntil(
 self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
-  // Live catalog responses must never be served from the shell cache.
-  if (url.pathname.startsWith("/api/")) return;
+  // Live catalog and auth/profile responses must never be served from the shell cache.
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/sb/")) return;
   event.respondWith(fetch(event.request).then(response => {
     if (response.ok) {
       const copy = response.clone();

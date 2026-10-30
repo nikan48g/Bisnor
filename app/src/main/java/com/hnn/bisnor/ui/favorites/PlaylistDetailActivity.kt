@@ -285,7 +285,9 @@ class PlaylistDetailActivity : AppCompatActivity() {
         val compressedBase64 = com.hnn.bisnor.data.remote.SupabaseManager.compressString(json)
         val urlSafeBase64 = java.net.URLEncoder.encode(compressedBase64, "UTF-8")
 
-        val shareLink = "bisnor://app/playlist?data=$urlSafeBase64"
+        // Messengers only turn https links into tappable text; the custom scheme
+        // stays as a fallback for clients that keep it.
+        val shareLink = "https://bisnor-pwa.drive-storage-hnn.workers.dev/import?data=$urlSafeBase64"
         val message = "🎬 واچ‌لیست «$playlistName» در بیسنور شامل ${allPlaylistItems.size} فیلم و سریال:\n$shareLink\n\n(با لمس این لینک، لیست مستقیماً در اپلیکیشن بیسنور باز می‌شود)"
 
         val intent = Intent(Intent.ACTION_SEND).apply {

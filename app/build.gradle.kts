@@ -23,8 +23,8 @@ android {
         applicationId = "com.hnn.bisnor"
         minSdk = 24
         targetSdk = 35
-        versionCode = 38
-        versionName = "5.2.0"
+        versionCode = 40
+        versionName = "5.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -77,6 +77,17 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    // `-Pabis` emits per-ABI release APKs next to the universal one; the default
+    // build (CI included) keeps producing the single app-release.apk.
+    splits {
+        abi {
+            isEnable = project.hasProperty("abis")
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = true
+        }
     }
 
     buildFeatures {

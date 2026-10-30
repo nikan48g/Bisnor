@@ -95,6 +95,32 @@
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
             </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
+                android:id="@+id/btn_sheet_subtitle_style"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="ظاهر زیرنویس (اندازه و رنگ)"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tv_sheet_subtitle_style_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:textColor="@color/primary"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Audio -->
@@ -138,6 +164,7 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Quality / source -->
         <!-- Speed -->
         <TextView
             style="@style/TextAppearance.Bisnor.Label"

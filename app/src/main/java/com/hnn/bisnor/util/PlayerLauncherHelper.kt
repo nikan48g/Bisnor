@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.widget.Toast
 import com.hnn.bisnor.R
+import com.hnn.bisnor.data.model.RealSource
 import com.hnn.bisnor.ui.player.PlayerActivity
 
 data class PlayerAppInfo(
@@ -117,7 +118,8 @@ object PlayerLauncherHelper {
         episodeIndex: Int,
         startPositionMs: Long,
         mediaType: String = "movie",
-        genres: ArrayList<String> = arrayListOf()
+        genres: ArrayList<String> = arrayListOf(),
+        sources: ArrayList<RealSource> = arrayListOf()
     ) {
         val cleanUrl = url.trim().replace(" ", "%20")
         if (cleanUrl.isEmpty()) return
@@ -146,6 +148,7 @@ object PlayerLauncherHelper {
                     putExtra("episode_index", episodeIndex)
                     putExtra("media_type", mediaType)
                     putStringArrayListExtra("media_genres", genres)
+                    if (sources.isNotEmpty()) putExtra("video_sources", sources)
                     if (startPositionMs > 0L) putExtra("start_position", startPositionMs)
                 }
                 activity.startActivity(intent)

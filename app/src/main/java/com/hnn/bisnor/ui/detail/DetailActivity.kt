@@ -74,7 +74,8 @@ class DetailActivity : AppCompatActivity() {
         val subtitle: String,
         val thumbnail: String?,
         val progress: PlaybackProgress?,
-        val episodeIndex: Int
+        val episodeIndex: Int,
+        val sources: List<RealSource> = emptyList()
     ) {
         val isWatched: Boolean get() = progress?.isFinished == true
     }
@@ -111,6 +112,32 @@ class DetailActivity : AppCompatActivity() {
 
         checkContentWarning(mediaItem!!)
         loadData()
+        hydrateProviders()
+    }
+
+    /**
+     * Next Movie list payloads carry no description/links, so the detail screen fills
+     * them in once and re-renders. IranFlix metadata always stays authoritative.
+     */
+    private fun hydrateProviders() {
+        val current = mediaItem ?: return
+        lifecycleScope.launch {
+            val hydrated = try {
+                RealMediaRepository.hydrate(current)
+            } catch (_: Exception) {
+                current
+            }
+            if (isFinishing || isDestroyed) return@launch
+            mediaItem = hydrated
+            updateTrailer(hydrated)
+            // Never blank the credits: a hydrated copy may arrive without people even
+            // though the row already shows them.
+            people = buildPeople(hydrated).ifEmpty { people }
+            peopleAdapter = null
+            resolvePeoplePhotos()
+            adapter.notifyDataSetChanged()
+            if (!hydrated.isSeries) buildMovieRows(hydrated)
+        }
     }
 
     // ---------------------------------------------------------------- warning & data
@@ -135,9 +162,7 @@ class DetailActivity : AppCompatActivity() {
     private fun loadData() {
         val item = mediaItem ?: return
 
-        trailerUrl = item.sources.firstOrNull {
-            it.quality.contains("تیزر") || it.quality.contains("Trailer", true) || it.url.contains("tizer")
-        }?.url
+        updateTrailer(item)
 
         lifecycleScope.launch {
             try {
@@ -158,7 +183,7 @@ class DetailActivity : AppCompatActivity() {
             adapter.notifyItemChanged(0)
             lifecycleScope.launch {
                 val seasons = try {
-                    RealMediaRepository.getSeriesSeasons(item.id)
+                    RealMediaRepository.getSeriesSeasons(item)
                 } catch (_: Exception) {
                     emptyList()
                 }
@@ -172,32 +197,65 @@ class DetailActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateTrailer(item: RealMedia) {
+        trailerUrl = item.sources.firstOrNull {
+            it.quality.contains("تیزر") || it.quality.contains("Trailer", true) || it.url.contains("tizer")
+        }?.url
+    }
+
     private fun buildMovieRows(item: RealMedia) {
         rows.clear()
-        item.sources.forEach { src ->
-            if (src.quality.contains("تیزر") || src.url.contains("tizer")) return@forEach
-            val quality = src.quality.ifBlank { "کیفیت اصلی" }
-            val progress = historyManager.getProgressByUrl(src.url)
-            rows.add(
-                DetailRow(
-                    source = src,
-                    title = quality,
-                    subtitle = buildString {
-                        if (src.type.isNotBlank() && src.type != "null") append("فرمت ${src.type.uppercase()}")
-                        if (progress != null && progress.positionMs > 1000) {
-                            if (isNotEmpty()) append(" • ")
-                            append("دیده‌شده تا ${formatMinutes(progress.positionMs)}")
-                        }
-                    },
-                    thumbnail = null,
-                    progress = progress,
-                    episodeIndex = 0
-                )
-            )
+        val choices = playableSources(item.sources)
+        if (choices.isEmpty()) {
+            sectionTitle = if (item.nextId > 0 && com.hnn.bisnor.data.repository.SourcePreferences.usesNext()) {
+                "در حال دریافت لینک‌ها..."
+            } else {
+                "لینک پخشی برای این اثر موجود نیست"
+            }
+            if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
+            return
         }
-        sectionTitle = if (rows.isEmpty()) "لینک پخشی برای این اثر موجود نیست" else "کیفیت‌های پخش"
+        // Every quality of a title lives inside the player now, so the list shows
+        // one entry instead of one row per source.
+        val best = choices.first()
+        val progress = historyManager.getProgressByUrl(best.url)
+        rows.add(
+            DetailRow(
+                source = best,
+                title = "پخش فیلم",
+                subtitle = buildString {
+                    append(qualityLabel(best))
+                    append(" • ").append(providerLabel(best))
+                    if (choices.size > 1) append(" • ").append(choices.size).append(" نسخه")
+                    if (progress != null && progress.positionMs > 1000) {
+                        append(" • دیده‌شده تا ${formatMinutes(progress.positionMs)}")
+                    }
+                },
+                thumbnail = null,
+                progress = progress,
+                episodeIndex = 0,
+                sources = choices
+            )
+        )
+        sectionTitle = "پخش و دانلود"
         if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
     }
+
+    private fun qualityLabel(source: RealSource): String {
+        val raw = source.quality
+        val match = Regex("(2160|1440|1080|720|540|480|360|240)").find(raw)
+        return match?.let { "${it.value}p" } ?: raw.ifBlank { "کیفیت اصلی" }
+    }
+
+    private fun qualityRank(source: RealSource): Int =
+        Regex("(2160|1440|1080|720|540|480|360|240)").find(source.quality)?.value?.toIntOrNull() ?: 0
+
+    private fun providerLabel(source: RealSource): String =
+        if (source.origin == "next") "نکست‌مووی" else "ایران‌فلیکس"
+
+    private fun playableSources(sources: List<RealSource>): List<RealSource> =
+        sources.filter { it.url.isNotBlank() && !it.quality.contains("تیزر") && !it.url.contains("tizer") }
+            .sortedByDescending { qualityRank(it) }
 
     private fun updateSeasonEpisodes() {
         rows.clear()
@@ -205,20 +263,27 @@ class DetailActivity : AppCompatActivity() {
             val season = allSeasons.getOrNull(selectedSeasonIndex) ?: allSeasons.first()
             sectionTitle = "قسمت‌های ${season.title}"
             season.episodes.forEachIndexed { index, episode ->
-                val source = episode.sources.firstOrNull() ?: return@forEachIndexed
-                val progress = historyManager.getProgressByUrl(source.url)
+                // One row per episode: every quality of every source stays inside
+                // the player's quality picker instead of duplicating the episode.
+                val choices = playableSources(episode.sources)
+                if (choices.isEmpty()) return@forEachIndexed
+                val best = choices.first()
+                val progress = historyManager.getProgressByUrl(best.url)
                 rows.add(
                     DetailRow(
-                        source = source,
+                        source = best,
                         title = episode.title.ifBlank { "قسمت ${index + 1}" },
                         subtitle = buildString {
                             append("قسمت ${index + 1}")
                             if (!episode.duration.isNullOrBlank()) append(" • ${episode.duration}")
-                            if (source.quality.isNotBlank()) append(" • ${source.quality}")
+                            append(" • ${qualityLabel(best)}")
+                            append(" • ${providerLabel(best)}")
+                            if (choices.size > 1) append(" • ${choices.size} نسخه")
                         },
                         thumbnail = episode.image.takeIf { it.isNotBlank() },
                         progress = progress,
-                        episodeIndex = index
+                        episodeIndex = index,
+                        sources = choices
                     )
                 )
             }
@@ -239,6 +304,7 @@ class DetailActivity : AppCompatActivity() {
         val banner = item.cover.ifEmpty { item.image }
         val genreList = item.genres.map { it.title }
         val type = if (item.isSeries) "series" else "movie"
+        val alternatives = if (row.sources.isNotEmpty()) row.sources else listOf(row.source)
 
         try {
             com.hnn.bisnor.data.database.SmartTasteDatabase(this).recordWatchEvent(
@@ -254,15 +320,16 @@ class DetailActivity : AppCompatActivity() {
         PlayerLauncherHelper.launchPlayer(
             activity = this,
             playerChoice = historyManager.preferredPlayer,
-            title = "${item.title} • ${row.title}",
+            title = if (item.isSeries) "${item.title} • ${row.title}" else item.title,
             url = row.source.url,
             mediaId = item.id,
             mediaCover = banner,
-            episodeTitle = row.title,
+            episodeTitle = if (item.isSeries) row.title else "",
             episodeIndex = row.episodeIndex,
             startPositionMs = maxOf(resumePosition, row.progress?.positionMs ?: 0L),
             mediaType = type,
-            genres = ArrayList(genreList)
+            genres = ArrayList(genreList),
+            sources = ArrayList(alternatives)
         )
     }
 

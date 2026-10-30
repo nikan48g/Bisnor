@@ -17,7 +17,13 @@ data class RealMedia(
     val sources: List<RealSource> = emptyList(),
     val country: List<RealCountry> = emptyList(),
     val classification: String? = null,
-    val people: List<RealPerson> = emptyList()
+    val people: List<RealPerson> = emptyList(),
+    // "iranflix", "next" or "both" for titles matched in both catalogues.
+    val provider: String = "iranflix",
+    val nextId: Int = 0,
+    val iranflixId: Int = 0,
+    // Playback links of the Next Movie copy, kept aside so the IranFlix row stays primary.
+    val nextSources: List<RealSource> = emptyList()
 ) : Serializable {
     val isSeries: Boolean
         get() = type.startsWith("seri", ignoreCase = true)
@@ -38,13 +44,15 @@ data class RealSource(
     val id: Int = 0,
     val quality: String = "",
     val type: String = "",
-    val url: String = ""
+    val url: String = "",
+    val origin: String = ""
 ) : Serializable
 
 data class RealSeason(
     val id: Int = 0,
     val title: String = "",
-    val episodes: List<RealEpisode> = emptyList()
+    val episodes: List<RealEpisode> = emptyList(),
+    val number: Int = 0
 ) : Serializable
 
 /** A real credit parsed from the provider payload or its description block. */
@@ -60,5 +68,6 @@ data class RealEpisode(
     val description: String = "",
     val duration: String? = null,
     val image: String = "",
-    val sources: List<RealSource> = emptyList()
+    val sources: List<RealSource> = emptyList(),
+    val number: Int = 0
 ) : Serializable

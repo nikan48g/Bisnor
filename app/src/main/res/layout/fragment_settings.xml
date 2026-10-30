@@ -92,6 +92,112 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Watchlist transfer -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="8dp"
+            android:text="واچ‌لیست"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/btn_setting_import"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:contentDescription="وارد کردن واچ‌لیست"
+                    android:src="@drawable/ic_import_list"
+                    app:tint="@color/primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:text="وارد کردن واچ‌لیست"
+                        android:textColor="@color/on_surface"
+                        android:textSize="13.5sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:text="لینک یا کد دریافتی از دوستان"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Social links (social.md) -->
+        <LinearLayout
+            android:id="@+id/settings_social_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/TextAppearance.Bisnor.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:layout_marginBottom="8dp"
+                android:text="ما را در اینترنت دنبال کنید"
+                android:textColor="@color/primary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_surface"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/vazirmatn_medium"
+                    android:text="در اینترنت مارو دنبال کن!"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13.5sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:fontFamily="@font/vazirmatn_regular"
+                    android:text="خبرهای بیسنور و لینک‌های رسمی ما در این شبکه‌ها منتشر می‌شود."
+                    android:textColor="@color/on_surface_variant"
+                    android:textSize="11.5sp" />
+
+                <LinearLayout
+                    android:id="@+id/social_links_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!-- Appearance -->
         <TextView
             style="@style/TextAppearance.Bisnor.Label"
@@ -146,6 +252,71 @@
                     android:layout_height="wrap_content"
                     android:text="روشن" />
             </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+
+        <!-- Content sources -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="8dp"
+            android:text="منابع محتوا"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:text="منبع پخش"
+                android:textColor="@color/on_surface"
+                android:textSize="13.5sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_sources"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_source_next"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="نکست‌مووی" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_source_iranflix"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ایران‌فلیکس" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_source_both"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="هر دو" />
+            </com.google.android.material.chip.ChipGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="3dp"
+                android:text="در حالت «هر دو»، هر عنوان یک‌بار نمایش داده می‌شود؛ اطلاعات از ایران‌فلیکس و قسمت‌ها و لینک‌ها از هر دو منبع می‌آید."
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <!-- Playback -->

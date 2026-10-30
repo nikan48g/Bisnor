@@ -225,6 +225,26 @@
             app:iconTint="@color/white" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_player_quality"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:backgroundTint="#33FFFFFF"
+            android:contentDescription="انتخاب کیفیت پخش"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:paddingHorizontal="10dp"
+            android:text="کیفیت"
+            android:textColor="@color/white"
+            android:textSize="11.5sp"
+            app:cornerRadius="14dp"
+            app:icon="@drawable/ic_quality"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            app:iconSize="16dp"
+            app:iconTint="@color/white" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_player_settings"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="44dp"

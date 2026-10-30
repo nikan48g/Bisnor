@@ -67,6 +67,10 @@ jobs:
         shell: pwsh
         run: node desktop/tests/catalog-pagination.test.js
 
+      - name: Test two-source matching and merging
+        shell: pwsh
+        run: node desktop/tests/two-source-merge.test.js
+
       - name: Publish Bisnor Desktop
         shell: pwsh
         run: |

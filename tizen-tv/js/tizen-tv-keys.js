@@ -124,9 +124,48 @@
         else body.classList.remove('tv-keynav');
     }
 
+    // While the in-player quality sheet is open the D-pad drives the sheet,
+    // not the transport controls underneath it.
+    function handleQualitySheetKeys(e, key) {
+        var sheet = document.getElementById('player-quality-sheet');
+        if (!isShown(sheet)) return false;
+        if (key === 10009 || key === 27) {
+            if (typeof window.bisnorTvCloseQuality === 'function') window.bisnorTvCloseQuality();
+            e.preventDefault();
+            e.stopPropagation();
+            return true;
+        }
+        if (key === 38 || key === 40) {
+            var options = sheet.querySelectorAll('.quality-option');
+            if (!options.length) return true;
+            var current = -1;
+            for (var i = 0; i < options.length; i += 1) if (options[i] === document.activeElement) current = i;
+            var next = current + (key === 40 ? 1 : -1);
+            if (next < 0) next = 0;
+            if (next >= options.length) next = options.length - 1;
+            options[next].focus();
+            e.preventDefault();
+            e.stopPropagation();
+            return true;
+        }
+        if (key === 13 || key === 415) {
+            var focused = document.activeElement;
+            if (focused && String(focused.className || '').indexOf('quality-option') !== -1) focused.click();
+            else {
+                var closeBtn = document.getElementById('btn-close-quality-sheet');
+                if (closeBtn) closeBtn.click();
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            return true;
+        }
+        return true;
+    }
+
     // Keydown listener for standard keyboard and Samsung TV remote
     window.addEventListener('keydown', function (e) {
         var key = e.keyCode;
+        if (handleQualitySheetKeys(e, key)) return;
         var playerModal = document.getElementById('modal-player');
         var playerOpen = isShown(playerModal);
 
@@ -140,6 +179,7 @@
             else if (key === 19 || e.key === 'MediaPause') command = 'toggle';
             else if (key === 10009 || key === 27 || key === 413) command = 'close';
             else if (key === 38 || e.key === 'ArrowUp') command = 'subtitle';
+            else if (key === 40 || e.key === 'ArrowDown') command = 'quality';
             if (command) {
                 // Route close through handleBackAction so a duplicate tizenhwkey 'back'
                 // for the same press is debounced instead of exiting the app.
@@ -275,7 +315,7 @@
         }
 
         var nodes = scope.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex="0"], .media-card, .episode-card, .season-tab, .season-tab-btn, .season-scroll-btn, .source-chip-btn, .episode-play-btn, .btn-play-quality, .nav-item, .btn-play-primary'
+            'button, [href], input, select, textarea, [tabindex="0"], .media-card, .episode-card, .season-tab, .season-tab-btn, .season-scroll-btn, .source-chip-btn, .episode-play-btn, .btn-play-quality, .quality-option, .play-cta-card, .nav-item, .btn-play-primary'
         );
 
         var result = [];

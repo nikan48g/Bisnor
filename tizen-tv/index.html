@@ -212,6 +212,16 @@
                     </div>
                 </div>
 
+                <!-- Source Card -->
+                <div class="settings-group glass-panel">
+                    <span class="group-inner-title">منبع محتوا</span>
+                    <div id="chip-group-sources" class="theme-chips-wrap">
+                        <button class="chip-theme chip-source" id="chip-source-next" data-source="next">🎬 نکست‌مووی</button>
+                        <button class="chip-theme chip-source" id="chip-source-iranflix" data-source="iranflix">📺 ایران‌فلیکس</button>
+                        <button class="chip-theme chip-source" id="chip-source-both" data-source="both">🔀 هر دو منبع</button>
+                    </div>
+                </div>
+
                 <!-- Player Settings Card -->
                 <div class="settings-group glass-panel">
                     <!-- Auto Next -->
@@ -268,8 +278,8 @@
                     <div class="setting-item about-row">
                         <img src="assets/logo.png" alt="Bisnor Logo" class="about-app-logo">
                         <div class="setting-text">
-                            <span class="setting-name">بیسنور دسکتاپ (Bisnor Desktop)</span>
-                            <span id="tv-app-version-about" class="setting-desc">نسخه v5.0.5 • مجهز به .NET 10 و WebView2</span>
+                            <span class="setting-name">بیسنور (Bisnor TV)</span>
+                            <span id="tv-app-version-about" class="setting-desc">نسخه v5.3.0 • دو منبع: نکست‌مووی و ایران‌فلیکس</span>
                         </div>
                         <button id="btn-check-update" class="btn-tonal-sm">بررسی به‌روزرسانی 🔄</button>
                     </div>
@@ -286,6 +296,14 @@
                         </div>
                         <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
                     </div>
+                </div>
+
+                <!-- Category 5: Social links (social.md) -->
+                <div class="settings-category-title">ما را در اینترنت دنبال کنید</div>
+                <div id="settings-social-group" class="settings-group glass-panel" style="display:none;">
+                    <span class="group-inner-title">در اینترنت مارو دنبال کن!</span>
+                    <span class="setting-desc" style="display:block;margin:4px 0 12px;">خبرهای بیسنور و لینک‌های رسمی ما در این شبکه‌ها منتشر می‌شود.</span>
+                    <div id="social-links-row" class="social-links-row"></div>
                 </div>
 
                 <!-- Monthly Analytics & Taste (Local & Private) -->
@@ -457,10 +475,20 @@
                                 <span id="player-time-label" class="player-time">00:00 / 00:00</span>
                             </div>
                             <div class="controls-right">
+                                <button id="btn-player-quality" class="player-btn player-quality-btn" title="انتخاب کیفیت">کیفیت: <span id="player-quality-label">—</span> ▾</button>
                                 <button id="btn-player-subtitles" class="player-btn player-subtitle-btn" title="زیرنویس">CC زیرنویس</button>
                                 <button id="btn-player-fullscreen" class="player-btn" title="تمام صفحه">⛶</button>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div id="player-quality-sheet" class="player-quality-sheet" style="display: none;">
+                    <div class="quality-sheet-panel glass-panel">
+                        <h3 class="quality-sheet-title">انتخاب کیفیت</h3>
+                        <p class="quality-sheet-subtitle">هر کیفیت مربوط به یکی از منابع است؛ برای تغییر، یکی را انتخاب کنید.</p>
+                        <div id="player-quality-list" class="quality-sheet-list"></div>
+                        <button id="btn-close-quality-sheet" class="btn-tonal-sm">بستن</button>
                     </div>
                 </div>
             </div>
@@ -610,6 +638,7 @@
 
     <!-- Scripts -->
     <script src="js/poster-fallback.js"></script>
+    <script src="js/providers.js"></script>
     <script src="js/data.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/tizen-avplay.js"></script>

@@ -1509,3 +1509,77 @@ body.tv-keynav .media-card:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary), 0 10px 24px rgba(0, 0, 0, 0.5);
 }
+
+/* --- Unified play card + source badges (5.3.0) --------------------------- */
+.src-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 10px 2px 3px; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border);
+    color: var(--on-surface); font-size: 12px; font-weight: 800; white-space: nowrap;
+}
+.src-logo {
+    display: grid; place-items: center; width: 20px; height: 20px;
+    border-radius: 50%; font-size: 11px; font-weight: 900; color: #fff; letter-spacing: -0.3px;
+}
+.src-logo.src-next { background: linear-gradient(135deg, #2f7cf6, #1a4fd6); }
+.src-logo.src-iranflix { background: linear-gradient(135deg, #ff7a45, #e0341f); }
+
+.play-cta-card {
+    display: flex; align-items: center; gap: 16px; width: 100%;
+    padding: 18px 20px; border-radius: 18px; cursor: pointer; text-align: right;
+    border: 1px solid rgba(255, 184, 107, 0.3);
+    background: linear-gradient(135deg, rgba(255, 184, 107, 0.16), rgba(255, 184, 107, 0.04));
+    color: var(--on-surface); font-family: inherit;
+}
+.play-cta-card:focus, .play-cta-card:hover {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(255, 184, 107, 0.28), rgba(255, 184, 107, 0.08));
+}
+.play-cta-icon {
+    display: grid; place-items: center; flex: 0 0 52px; width: 52px; height: 52px;
+    border-radius: 50%; background: var(--primary); color: var(--on-primary); font-size: 20px;
+}
+.play-cta-text { display: grid; gap: 6px; min-width: 0; }
+.play-cta-text strong { font-size: 17px; font-weight: 800; }
+.play-cta-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--on-surface-variant); font-size: 13px; font-weight: 700; }
+.empty-note { padding: 16px; color: var(--on-surface-variant); font-size: 13px; text-align: center; width: 100%; }
+
+.episode-source-info .episode-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--on-surface-variant); font-size: 12px; }
+
+/* --- In-player quality sheet --------------------------------------------- */
+.player-quality-btn { font-family: inherit; font-size: 14px; }
+.player-quality-sheet {
+    position: absolute; inset: 0; z-index: 40;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(8px);
+}
+.quality-sheet-panel { width: 90%; max-width: 560px; padding: 24px; border-radius: 20px; }
+.quality-sheet-title { margin: 0 0 6px; font-size: 18px; color: var(--on-surface); text-align: center; }
+.quality-sheet-subtitle { margin: 0 0 16px; font-size: 12.5px; color: var(--on-surface-variant); text-align: center; }
+.quality-sheet-list { display: grid; gap: 10px; max-height: 46vh; overflow-y: auto; margin-bottom: 14px; }
+.quality-option {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; padding: 14px 16px; border-radius: 14px; cursor: pointer; text-align: right;
+    background: var(--surface-container); border: 1px solid var(--glass-border);
+    color: var(--on-surface); font-family: inherit; font-size: 15px; font-weight: 700;
+}
+.quality-option:focus, .quality-option:hover { border-color: var(--primary); background: rgba(255, 184, 107, 0.16); }
+.quality-option.active { border-color: var(--primary); background: rgba(255, 184, 107, 0.12); }
+.quality-option-name { font-weight: 800; }
+.quality-option-meta { color: var(--on-surface-variant); font-size: 12px; font-weight: 700; }
+.quality-empty { color: var(--on-surface-variant); font-size: 13px; text-align: center; padding: 18px 10px; margin: 0; }
+#btn-close-quality-sheet { display: block; margin: 0 auto; }
+
+/* Social links (settings, fed by social.md) */
+.social-links-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.social-link-btn {
+    width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center;
+    background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12);
+    color: #fff; cursor: pointer; transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.social-link-btn:focus, .social-link-btn:hover {
+    background: rgba(255, 255, 255, .16);
+    box-shadow: 0 0 0 3px rgba(255, 184, 107, .55);
+    outline: none;
+}
+.social-link-btn svg { width: 26px; height: 26px; }

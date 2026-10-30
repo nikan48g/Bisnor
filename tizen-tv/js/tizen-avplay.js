@@ -23,7 +23,7 @@
             }
         },
 
-        play: function (url, title, onProgress, onEnded, onError) {
+        play: function (url, title, onProgress, onEnded, onError, startAt) {
             this.currentUrl = url;
             this.subtitleIndex = -1;
             console.log("[TizenAVPlay] Starting playback for:", title, url);
@@ -99,6 +99,11 @@
                     avplay.setDisplayRect(0, 220, 1920, 640);
                     avplay.play();
                     self.playerState = 'PLAYING';
+                    // Resuming after a quality switch: jump back to the spot the
+                    // viewer was watching instead of restarting the title.
+                    if (startAt > 1) {
+                        try { avplay.seekTo(Math.floor(startAt * 1000)); } catch (ignore) {}
+                    }
                     // Prefer the first embedded text track. This is deliberately
                     // best-effort: a source without an embedded subtitle cannot
                     // receive one from AVPlay alone.

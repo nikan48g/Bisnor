@@ -40,10 +40,10 @@ class BisnorApp {
         
         // Watch analytics state
         this.analytics = JSON.parse(localStorage.getItem("bisnor_analytics") || JSON.stringify({
-            watchMinutes: 460,
-            simulatedDataGb: 4.8,
-            moviesWatched: 3,
-            seriesEpisodesWatched: 8
+            watchMinutes: 0,
+            simulatedDataGb: 0,
+            moviesWatched: 0,
+            seriesEpisodesWatched: 0
         }));
     }
 
@@ -57,6 +57,47 @@ class BisnorApp {
         this.renderExploreTab();
         this.renderFavoritesTab();
         this.renderAvatarPickerGrid();
+        this.loadSocialLinks();
+    }
+
+    // --- Social links (social.md, parsed by the Bisnor worker) ---
+    socialIconMarkup(platform) {
+        const icons = {
+            instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>',
+            telegram: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 4.2 2.8 11.4c-.9.3-.9 1.2 0 1.5l4.6 1.5 1.8 5.5c.2.6.6.7 1 .3l2.6-2 4.6 3.4c.6.4 1.1.2 1.3-.6l3.1-14.8c.2-.9-.3-1.3-1.2-.9zM8.5 13.9l10-6.3-8.2 7.5-.3 3z"/></svg>',
+            x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h3.1l-6.8 7.8L21.9 21h-6.2l-4.9-6.4L5.2 21H2.1l7.3-8.3L2.1 3H8.5l4.4 5.8L17.5 3z"/></svg>',
+            youtube: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.5 7.2a2.8 2.8 0 0 0-2-2C18.8 4.8 12 4.8 12 4.8s-6.8 0-8.5.4a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1.1 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.4 8.5.4 8.5.4s6.8 0 8.5-.4a2.8 2.8 0 0 0 2-2 29 29 0 0 0 .4-4.8 29 29 0 0 0-.4-4.8zM10 15.2V8.8l5.5 3.2-5.5 3.2z"/></svg>',
+            facebook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.8l.4-3.2h-3.2V8.7c0-.9.3-1.6 1.7-1.6h1.7V4.2c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4v2.7H7.6V14h2.9v8h3z"/></svg>',
+            email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>',
+            website: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg>'
+        };
+        return icons[platform] || icons.website;
+    }
+
+    async loadSocialLinks() {
+        const group = document.getElementById("settings-social-group");
+        const row = document.getElementById("social-links-row");
+        if (!group || !row) return;
+        try {
+            const response = await fetch("https://bisnor-pwa.drive-storage-hnn.workers.dev/api/social", { headers: { Accept: "application/json" } });
+            if (!response.ok) return;
+            const payload = await response.json();
+            const links = Array.isArray(payload.links) ? payload.links.filter(link => link && link.url) : [];
+            if (!links.length) return;
+            row.replaceChildren(...links.map(link => {
+                const anchor = document.createElement("a");
+                anchor.className = "social-link-btn";
+                anchor.href = link.url;
+                anchor.target = "_blank";
+                anchor.rel = "noopener";
+                anchor.title = link.label || link.platform;
+                anchor.setAttribute("aria-label", anchor.title);
+                anchor.tabIndex = 0;
+                anchor.innerHTML = this.socialIconMarkup(link.platform);
+                return anchor;
+            }));
+            group.style.display = "";
+        } catch (_) { /* offline: keep the section hidden */ }
     }
 
     // --- Native Windows Interop ---
@@ -79,7 +120,7 @@ class BisnorApp {
         localStorage.setItem("bisnor_theme", theme);
         this.settings.theme = theme;
 
-        document.querySelectorAll(".chip-theme").forEach(chip => {
+        document.querySelectorAll(".chip-theme:not(.chip-source)").forEach(chip => {
             chip.classList.toggle("active", chip.getAttribute("data-theme") === theme);
         });
     }
@@ -315,12 +356,23 @@ class BisnorApp {
         });
 
         // Settings Category 3: Themes & Player Choice
-        document.querySelectorAll(".chip-theme").forEach(btn => {
+        document.querySelectorAll(".chip-theme:not(.chip-source)").forEach(btn => {
             btn.addEventListener("click", () => {
                 const th = btn.getAttribute("data-theme");
                 this.applyTheme(th);
             });
         });
+
+        // Content source restriction
+        document.querySelectorAll(".chip-source").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const source = btn.getAttribute("data-source");
+                window.mediaService.setSourceMode(source);
+                this.syncSourceChips();
+                this.renderHomeTab();
+            });
+        });
+        this.syncSourceChips();
 
         document.getElementById("switch-auto-next")?.addEventListener("change", (e) => {
             this.settings.autoNext = e.target.checked;
@@ -624,13 +676,19 @@ class BisnorApp {
         const seriesSection = document.getElementById("detail-series-section");
         const movieSourcesSection = document.getElementById("detail-sources-section");
 
+        // Next Movie rows arrive without description/links; fill them before rendering.
+        window.mediaService.hydrateMedia(media).then(() => {
+            if (storylineEl && media.description) storylineEl.textContent = media.description;
+            if (posterEl && media.image) posterEl.src = media.image;
+        }).catch(() => {});
+
         if (media.type === "serie") {
             if (movieSourcesSection) movieSourcesSection.style.display = "none";
             if (seriesSection) seriesSection.style.display = "block";
 
             if (!media.seasons || media.seasons.length === 0) {
-                // Fetch real seasons from Iranflix API
-                window.mediaService.getSeriesSeasons(media.id).then(seasons => {
+                // Fetch seasons from every enabled provider
+                window.mediaService.getSeriesSeasons(media).then(seasons => {
                     media.seasons = seasons;
                     this.renderSeriesSeasonsUI(media, avgBox);
                 }).catch(() => {
@@ -754,6 +812,18 @@ class BisnorApp {
         }
     }
 
+    /** Tizen AVPlay plays MP4 reliably; prefer it over MKV and never auto-play teasers. */
+    pickPlayable(sources) {
+        if (!sources || !sources.length) return null;
+        const usable = sources.filter(src => {
+            if (!src || !src.url) return false;
+            const label = `${src.url} ${src.quality || ''}`;
+            return !/تیزر|tizer|trailer/i.test(label);
+        });
+        const pool = usable.length ? usable : sources;
+        return pool.find(src => /mp4/i.test(src.type || '') || /\.mp4(\?|$)/i.test(src.url)) || pool[0] || null;
+    }
+
     renderEpisodeItems(episodes) {
         const epsWrap = document.getElementById("detail-episodes-list");
         if (!epsWrap) return;
@@ -785,7 +855,8 @@ class BisnorApp {
                     </div>
                 </div>
             `;
-            const epUrl = (ep.sources && ep.sources.length > 0) ? ep.sources[0].url : "";
+            const picked = this.pickPlayable(ep.sources || []);
+            const epUrl = picked ? picked.url : "";
             card.querySelector(".btn-play-ep").addEventListener("click", () => {
                 if (epUrl) {
                     this.playStream(epUrl, `${this.activeMedia.title} - ${ep.title}`);
@@ -821,9 +892,11 @@ class BisnorApp {
     playMedia(media) {
         let streamUrl = "";
         if (media.sources && media.sources.length > 0) {
-            streamUrl = media.sources[0].url;
+            const picked = this.pickPlayable(media.sources);
+            streamUrl = picked ? picked.url : "";
         } else if (media.seasons && media.seasons.length > 0 && media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
-            streamUrl = media.seasons[0].episodes[0].sources?.[0]?.url || "";
+            const picked = this.pickPlayable(media.seasons[0].episodes[0].sources || []);
+            streamUrl = picked ? picked.url : "";
         }
         if (!streamUrl) {
             alert("لینکی برای پخش این محتوا موجود نیست.");
@@ -1141,11 +1214,19 @@ class BisnorApp {
     }
 
     // --- Settings Tab ---
+    syncSourceChips() {
+        const mode = (window.mediaService && window.mediaService.sourceMode) || "both";
+        document.querySelectorAll(".chip-source").forEach(chip => {
+            chip.classList.toggle("active", chip.getAttribute("data-source") === mode);
+        });
+    }
+
     loadSettings() {
         // Theme chips
-        document.querySelectorAll(".chip-theme").forEach(chip => {
+        document.querySelectorAll(".chip-theme:not(.chip-source)").forEach(chip => {
             chip.classList.toggle("active", chip.getAttribute("data-theme") === this.settings.theme);
         });
+        this.syncSourceChips();
 
         // Switches
         const switchAuto = document.getElementById("switch-auto-next");

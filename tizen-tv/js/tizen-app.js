@@ -19,6 +19,39 @@
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
+    function providerLabel(origin) { return origin === 'next' ? 'نکست‌مووی' : 'ایران‌فلیکس'; }
+
+    function sourceBadgeHtml(origin) {
+        if (!origin) return '';
+        var kind = origin === 'next' ? 'src-next' : 'src-iranflix';
+        var initial = origin === 'next' ? 'N' : 'iF';
+        return '<span class="src-badge"><span class="src-logo ' + kind + '">' + initial + '</span>' +
+            providerLabel(origin) + '</span>';
+    }
+
+    function qualityOf(source) {
+        var raw = String((source && source.quality) || '');
+        if (/تیزر|trailer/i.test(raw)) return 'تیزر';
+        var match = raw.match(/(2160|1440|1080|720|540|480|360|240)/);
+        if (match) return match[1] + 'p';
+        var clean = raw.replace(/\([^)]*\)/g, '').trim();
+        return clean || 'کیفیت اصلی';
+    }
+
+    function qualityRank(source) {
+        var match = String((source && source.quality) || '').match(/(2160|1440|1080|720|540|480|360|240)/);
+        return match ? Number(match[1]) : 0;
+    }
+
+    // Highest quality first, then the container the TV decodes most reliably.
+    function playbackChoices(sources) {
+        return (sources || []).filter(function (source) { return source && source.url; })
+            .slice()
+            .sort(function (a, b) { return (qualityRank(b) - qualityRank(a)) || (sourceScore(b) - sourceScore(a)); });
+    }
+
+    function versionsText(count) { return count > 1 ? count + ' نسخه' : 'تک‌نسخه'; }
+
     function card(media) {
         var el = document.createElement('div');
         el.className = 'media-card';
@@ -77,6 +110,20 @@
         if (media.type === 'serie') loadSeasons(media);
         else renderMovieSources(media);
         show(modal, 'flex');
+        // Next Movie rows carry no description/links; fill them and re-render once.
+        if (window.mediaService && window.mediaService.hydrateMedia) {
+            window.mediaService.hydrateMedia(media).then(function () {
+                if (activeMedia !== media) return;
+                text(byId('detail-storyline'), media.description || 'توضیحی برای این اثر ثبت نشده است.');
+                var filled = media.cover || media.image;
+                if (filled) {
+                    var back = byId('detail-backdrop'); var art = byId('detail-poster');
+                    if (back) back.src = filled;
+                    if (art) art.src = filled;
+                }
+                if (media.type === 'serie') loadSeasons(media); else renderMovieSources(media);
+            }).catch(function () {});
+        }
     }
 
     function firstSource(media) {
@@ -112,59 +159,119 @@
 
     var playQueue = [];
     var activePlayTitle = '';
+    var activeSourceList = [];
+    var activeSource = null;
     var htmlFallbackSource = null;
 
     function playSource(source, title) {
         if (!source) return alert('لینک پخش برای این مورد موجود نیست.');
         var list = Object.prototype.toString.call(source) === '[object Array]' ? source.slice() : [source];
-        list = list.filter(function (item) { return item && item.url; });
-        if (!list.length) return alert('لینک پخش برای این مورد موجود نیست.');
-        list.sort(function (a, b) { return sourceScore(b) - sourceScore(a); });
+        var choices = playbackChoices(list);
+        if (!choices.length) return alert('لینک پخش برای این مورد موجود نیست.');
 
-        var modal = byId('modal-player');
         closeDetail();
         text(byId('player-media-title'), title);
         playerPosition = 0;
-        show(modal, 'block');
-        htmlFallbackSource = list[0];
-        playQueue = list;
+        show(byId('modal-player'), 'block');
+        activeSourceList = choices;
         activePlayTitle = title;
-        tryNextSource();
+        htmlFallbackSource = choices[0];
+        playQueue = choices.slice();
+        tryNextSource(0);
     }
 
-    function tryNextSource() {
+    function onPlayerProgress(position, duration) {
+        playerPosition = position || 0;
+        var seek = byId('player-seekbar');
+        if (seek && duration) seek.value = Math.min(100, (playerPosition / duration) * 100);
+        var label = byId('player-time-label');
+        if (label) label.textContent = formatTime(playerPosition) + ' / ' + formatTime(duration || 0);
+        rememberContinue(playerPosition, duration || 0);
+    }
+
+    function tryNextSource(startAt) {
         var source = playQueue.shift();
         if (!source) {
-            playWithHtml5(htmlFallbackSource, activePlayTitle || '');
+            playWithHtml5(htmlFallbackSource, activePlayTitle || '', startAt);
             return;
         }
+        startSource(source, startAt);
+    }
+
+    function startSource(source, startAt) {
+        activeSource = source;
+        text(byId('player-quality-label'), qualityOf(source));
         document.body.classList.add('avplay-active');
         show(byId('player-error-overlay'), 'none');
         text(byId('player-loading-spinner'), 'در حال آماده‌سازی پخش…');
 
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.isTizen()) {
-            window.TizenAVPlayEngine.play(source.url, activePlayTitle, function (position, duration) {
-                playerPosition = position || 0;
-                var seek = byId('player-seekbar');
-                if (seek && duration) seek.value = Math.min(100, (playerPosition / duration) * 100);
-                var label = byId('player-time-label');
-                if (label) label.textContent = formatTime(playerPosition) + ' / ' + formatTime(duration || 0);
-                rememberContinue(playerPosition, duration || 0);
-            }, function () { closePlayer(); }, function (error) {
+            window.TizenAVPlayEngine.play(source.url, activePlayTitle, onPlayerProgress, function () { closePlayer(); }, function () {
                 // AVPlay rejected this container/codec. Try the next real source
                 // before surfacing an error to the viewer.
                 if (playQueue.length > 0) {
-                    tryNextSource();
+                    tryNextSource(startAt);
                     return;
                 }
-                playWithHtml5(htmlFallbackSource, activePlayTitle || '');
-            });
+                playWithHtml5(htmlFallbackSource, activePlayTitle || '', startAt);
+            }, startAt);
         } else {
-            playWithHtml5(source, activePlayTitle || '');
+            playWithHtml5(source, activePlayTitle || '', startAt);
         }
     }
 
-    function playWithHtml5(source, title) {
+    function switchPlayerSource(index) {
+        var source = activeSourceList[index];
+        if (!source || !source.url) return;
+        closeQualitySheet();
+        if (source === activeSource && window.TizenAVPlayEngine &&
+            (window.TizenAVPlayEngine.playerState === 'PLAYING' || window.TizenAVPlayEngine.playerState === 'PAUSED')) {
+            return;
+        }
+        var resumeAt = playerPosition || 0;
+        playQueue = [];
+        for (var i = 0; i < activeSourceList.length; i += 1) {
+            if (activeSourceList[i] !== source) playQueue.push(activeSourceList[i]);
+        }
+        startSource(source, resumeAt);
+    }
+
+    function renderQualitySheet() {
+        var list = byId('player-quality-list');
+        if (!list) return;
+        list.innerHTML = '';
+        if (activeSourceList.length < 2) {
+            list.innerHTML = '<p class="quality-empty">برای این مورد فقط یک نسخه موجود است.</p>';
+            return;
+        }
+        for (var i = 0; i < activeSourceList.length; i += 1) {
+            (function (index) {
+                var source = activeSourceList[index];
+                var btn = document.createElement('button');
+                btn.className = 'quality-option' + (source === activeSource ? ' active' : '');
+                btn.innerHTML = '<span class="quality-option-name">' + qualityOf(source) +
+                    (source === activeSource ? ' • در حال پخش' : '') + '</span>' +
+                    sourceBadgeHtml(source.origin) +
+                    '<span class="quality-option-meta">' + escapeHtml(String(source.type || 'MKV').toUpperCase()) + '</span>';
+                btn.addEventListener('click', function () { switchPlayerSource(index); });
+                list.appendChild(btn);
+            }(i));
+        }
+    }
+
+    function openQualitySheet() {
+        renderQualitySheet();
+        show(byId('player-quality-sheet'), 'flex');
+        var first = document.querySelector('#player-quality-list .quality-option');
+        if (first && first.focus) first.focus();
+    }
+
+    function closeQualitySheet() {
+        show(byId('player-quality-sheet'), 'none');
+    }
+    window.bisnorTvCloseQuality = closeQualitySheet;
+
+    function playWithHtml5(source, title, startAt) {
         if (!source || !source.url) {
             document.body.classList.remove('avplay-active');
             show(byId('player-error-overlay'), 'flex');
@@ -179,6 +286,12 @@
         show(byId('player-error-overlay'), 'none');
         video.src = source.url;
         video.load();
+        if (startAt > 1) {
+            video.addEventListener('loadedmetadata', function seekOnce() {
+                video.removeEventListener('loadedmetadata', seekOnce);
+                try { video.currentTime = startAt; } catch (ignore) {}
+            });
+        }
         video.play().catch(function () {
             show(byId('player-error-overlay'), 'flex');
             text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
@@ -187,6 +300,9 @@
     }
     function closePlayer() {
         playQueue = [];
+        activeSourceList = [];
+        activeSource = null;
+        var qualitySheet = byId('player-quality-sheet'); if (qualitySheet) qualitySheet.style.display = 'none';
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.stop) window.TizenAVPlayEngine.stop();
         var video = byId('html-video-player'); if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
         show(byId('modal-player'), 'none');
@@ -206,6 +322,7 @@
         }
         if (command === 'forward') { engine.seek(playerPosition + 10); return; }
         if (command === 'rewind') { engine.seek(Math.max(0, playerPosition - 10)); return; }
+        if (command === 'quality') { openQualitySheet(); return; }
         if (command === 'subtitle') {
             var result = engine.selectSubtitle ? engine.selectSubtitle(1) : { ok: false, message: 'زیرنویس در دسترس نیست.' };
             var subtitleButton = byId('btn-player-subtitles'); if (subtitleButton) subtitleButton.textContent = result.ok ? '✓ ' + result.message : '⚠ ' + result.message;
@@ -231,23 +348,30 @@
         for (var i = 0; i < items.length; i += 1) if (items[i].media) row.appendChild(card(items[i].media));
         section.style.display = row.children.length ? 'block' : 'none';
     }
-    function sourceButton(source, title) {
-        var btn = document.createElement('button'); btn.className = 'source-chip-btn';
-        btn.textContent = '▶ ' + (source.quality || 'کیفیت اصلی');
-        btn.addEventListener('click', function () { playSource(source, title); }); return btn;
-    }
     function renderMovieSources(media) {
         show(byId('detail-series-section'), 'none'); show(byId('detail-sources-section'), 'block');
         var list = byId('detail-sources-list'); if (!list) return; list.innerHTML = '';
-        var sources = media.sources || [];
-        for (var i = 0; i < sources.length; i += 1) if ((sources[i].quality || '').indexOf('تیزر') === -1) list.appendChild(sourceButton(sources[i], media.title));
+        var choices = playbackChoices(sourceList(media));
+        if (!choices.length) {
+            list.innerHTML = '<div class="empty-note">⚠️ لینکی برای این اثر در سرور یافت نشد.</div>';
+            return;
+        }
+        var best = choices[0];
+        var cardEl = document.createElement('button');
+        cardEl.className = 'play-cta-card';
+        cardEl.innerHTML = '<span class="play-cta-icon">▶</span><span class="play-cta-text">' +
+            '<strong>پخش فیلم</strong><span class="play-cta-meta"><span>' + qualityOf(best) + '</span>' +
+            sourceBadgeHtml(best.origin) + '<span>' + versionsText(choices.length) +
+            (choices.length > 1 ? ' • انتخاب کیفیت در پلیر' : '') + '</span></span></span>';
+        cardEl.addEventListener('click', function () { playSource(choices, media.title); });
+        list.appendChild(cardEl);
     }
     function loadSeasons(media) {
         show(byId('detail-sources-section'), 'none'); show(byId('detail-series-section'), 'block');
         text(byId('detail-episodes-list'), 'در حال دریافت فصل‌ها و قسمت‌ها…');
         byId('detail-seasons-tabs').innerHTML = '';
         text(byId('detail-season-position'), '');
-        window.mediaService.getSeriesSeasons(media.id).then(function (seasons) { renderSeasons(seasons, media.title); }).catch(function () { text(byId('detail-episodes-list'), 'فصل یا قسمتی پیدا نشد.'); });
+        window.mediaService.getSeriesSeasons(media).then(function (seasons) { renderSeasons(seasons, media.title); }).catch(function () { text(byId('detail-episodes-list'), 'فصل یا قسمتی پیدا نشد.'); });
     }
     function renderSeasons(seasons, title) {
         var tabs = byId('detail-seasons-tabs'); var episodes = byId('detail-episodes-list');
@@ -264,12 +388,24 @@
             if (focusButton) buttons[index].focus();
             episodes.innerHTML = ''; var list = seasons[index].episodes;
             for (var i = 0; i < list.length; i += 1) {
-                var sources = list[i].sources || [];
-                for (var s = 0; s < sources.length; s += 1) {
+                (function (episode, epIndex) {
+                    var sources = playbackChoices(episode.sources || []);
+                    var best = sources[0];
+                    var epTitle = episode.title || ('قسمت ' + (epIndex + 1));
                     var ep = document.createElement('div'); ep.className = 'episode-source-row';
-                    ep.innerHTML = '<span class="episode-play-icon">▶</span><div class="episode-source-info"><strong>' + escapeHtml(list[i].title) + (sources[s].quality ? ' (' + escapeHtml(sources[s].quality) + ')' : '') + '</strong><span>استریم مستقیم ایران‌فلیکس • ' + escapeHtml((sources[s].type || 'MKV').toUpperCase()) + '</span></div>';
-                    var play = sourceButton(sources[s], title + ' — ' + list[i].title); play.className = 'episode-play-btn'; play.textContent = 'پخش'; ep.appendChild(play); episodes.appendChild(ep);
-                }
+                    var meta = (best ? qualityOf(best) : 'بدون لینک') +
+                        (best ? sourceBadgeHtml(best.origin) : '') +
+                        (sources.length > 1 ? '<span>' + sources.length + ' نسخه</span>' : '');
+                    ep.innerHTML = '<span class="episode-play-icon">' + (epIndex + 1) + '</span>' +
+                        '<div class="episode-source-info"><strong>' + escapeHtml(epTitle) + '</strong>' +
+                        '<span class="episode-meta">' + meta + '</span></div>';
+                    var play = document.createElement('button');
+                    play.className = 'episode-play-btn';
+                    play.textContent = 'پخش';
+                    play.addEventListener('click', function () { playSource(sources, title + ' — ' + epTitle); });
+                    ep.appendChild(play);
+                    episodes.appendChild(ep);
+                }(list[i], i));
             }
         }
         tabs.innerHTML = '';
@@ -336,10 +472,9 @@
 
     function merge(items) {
         if (!items) return;
-        for (var i = 0; i < items.length; i += 1) {
-            var exists = false;
-            for (var j = 0; j < catalog.length; j += 1) if (catalog[j].id === items[i].id) exists = true;
-            if (!exists) catalog.push(items[i]);
+        // The data service owns the authoritative, de-duplicated catalogue.
+        if (window.mediaService && window.mediaService.catalog) {
+            catalog = window.mediaService.catalog;
         }
     }
 
@@ -394,6 +529,10 @@
             this.textContent = result.ok ? '✓ ' + result.message : '⚠ ' + result.message;
         });
         var seek = byId('player-seekbar'); if (seek) seek.addEventListener('change', function () { if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.duration) window.TizenAVPlayEngine.seek((Number(this.value) / 100) * (window.TizenAVPlayEngine.duration / 1000)); });
+        var qualityBtn = byId('btn-player-quality');
+        if (qualityBtn) qualityBtn.addEventListener('click', openQualitySheet);
+        var closeQuality = byId('btn-close-quality-sheet');
+        if (closeQuality) closeQuality.addEventListener('click', closeQualitySheet);
         var external = byId('btn-player-open-external'); if (external) external.style.display = 'none';
         var headerSearch = byId('btn-header-search');
         if (headerSearch) headerSearch.addEventListener('click', function () { switchTab('explore'); var field = byId('input-explore-search'); if (field) field.focus(); });
@@ -407,6 +546,23 @@
             for (var z = 0; z < chips.length; z += 1) chips[z].classList.remove('active');
             this.classList.add('active'); renderExplore(catalog);
         });
+        var sourceChips = document.querySelectorAll('.chip-source');
+        function syncSourceChips() {
+            var mode = (window.mediaService && window.mediaService.sourceMode) || 'both';
+            for (var k = 0; k < sourceChips.length; k += 1) {
+                if (sourceChips[k].getAttribute('data-source') === mode) sourceChips[k].classList.add('active');
+                else sourceChips[k].classList.remove('active');
+            }
+        }
+        for (var sc = 0; sc < sourceChips.length; sc += 1) sourceChips[sc].addEventListener('click', function () {
+            if (!window.mediaService) return;
+            window.mediaService.setSourceMode(this.getAttribute('data-source'));
+            syncSourceChips();
+            catalog = [];
+            loadLiveCatalog();
+            renderExplore(catalog);
+        });
+        syncSourceChips();
         renderContinueWatching();
         loadLiveCatalog();
     }

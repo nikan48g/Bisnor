@@ -25,7 +25,7 @@
                 <img src="assets/logo.png" alt="Bisnor Logo" class="brand-logo">
                 <div class="brand-text">
                     <span class="brand-title">بیسنور</span>
-                    <span id="platform-brand-badge" class="brand-badge">نسخه ۵.۲.۰ بتا</span>
+                    <span id="platform-brand-badge" class="brand-badge">نسخه ۵.۴.۰ بتا</span>
                 </div>
             </div>
             <div class="header-actions">
@@ -148,10 +148,16 @@
                         <h2 class="page-title">علاقه‌مندی‌های من</h2>
                         <p class="page-subtitle">لیست‌ها، تماشا و واچ‌لیست</p>
                     </div>
+                    <div class="watchlist-actions">
+                    <button id="btn-share-favorites" class="glass-pill-btn">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+                        <span>اشتراک‌گذاری</span>
+                    </button>
                     <button id="btn-sync-favorites" class="glass-pill-btn">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
                         <span>همگام‌سازی ابری</span>
                     </button>
+                    </div>
                 </div>
 
                 <div class="watchlist-search search-input-wrapper">
@@ -348,6 +354,18 @@
                     </div>
                 </div>
 
+                <!-- Content sources -->
+                <div class="settings-category-title">منابع محتوا</div>
+                <div class="settings-group glass-panel">
+                    <span class="group-inner-title">منبع پیش‌فرض</span>
+                    <span class="setting-desc" style="display:block;margin:0 0 10px;">در حالت «هر دو منبع»، هر عنوان یک‌بار نمایش داده می‌شود و لینک‌ها و قسمت‌های هر دو منبع با هم ترکیب می‌شوند.</span>
+                    <div id="chip-group-sources" class="theme-chips-wrap">
+                        <button class="chip-theme active" id="chip-source-next" data-source="next">نکست‌مووی</button>
+                        <button class="chip-theme" id="chip-source-iranflix" data-source="iranflix">ایران‌فلیکس</button>
+                        <button class="chip-theme" id="chip-source-both" data-source="both">هر دو منبع</button>
+                    </div>
+                </div>
+
                 <!-- Playback -->
                 <div class="settings-category-title">پخش و ویدیو</div>
                 <div class="settings-group glass-panel">
@@ -395,6 +413,39 @@
                     </div>
                 </div>
 
+                <!-- Watchlist transfer -->
+                <div class="settings-category-title">واچ‌لیست</div>
+                <div class="settings-group glass-panel">
+                    <div id="btn-setting-import-list" class="setting-item clickable-row">
+                        <div class="setting-icon-box">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        </div>
+                        <div class="setting-text">
+                            <span class="setting-name">وارد کردن واچ‌لیست</span>
+                            <span class="setting-desc">لینک یا کد دریافتی از دوستان را اینجا وارد کنید</span>
+                        </div>
+                        <svg class="chevron-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    </div>
+                </div>
+
+                <!-- Social links (filled from social.md) -->
+                <div class="settings-category-title">ما را در اینترنت دنبال کنید</div>
+                <div class="settings-group glass-panel" id="settings-social-group" style="display:none;">
+                    <span class="group-inner-title">در اینترنت مارو دنبال کن!</span>
+                    <span class="setting-desc" style="display:block;margin:0 0 12px;">خبرهای بیسنور و لینک‌های رسمی ما در این شبکه‌ها منتشر می‌شود.</span>
+                    <div id="social-links-row" class="social-links-row"></div>
+                </div>
+
+                <!-- Subtitle appearance -->
+                <div class="settings-category-title">ظاهر زیرنویس</div>
+                <div class="settings-group glass-panel">
+                    <span class="setting-desc" style="display:block;margin:0 0 12px;">این تنظیمات روی زیرنویس‌هایی که در پلیر بارگذاری می‌کنید (یا همراه منبع ارائه می‌شوند) اعمال می‌شود.</span>
+                    <div id="settings-subtitle-controls" class="sub-style-controls"></div>
+                    <div class="sub-preview-box">
+                        <span id="settings-subtitle-preview">نمونهٔ نمایش زیرنویس فارسی</span>
+                    </div>
+                </div>
+
             </section>
         </main>
 
@@ -425,7 +476,7 @@
                 <img src="assets/logo.png" alt="Bisnor" style="width:72px;height:72px;object-fit:contain;margin-bottom:10px;">
                 <h2 style="margin:0 0 6px;font-size:20px;">بیسنور</h2>
                 <p id="about-platform-title" style="margin:0 0 4px;font-size:13px;opacity:.85;">نسخه وب (Bisnor PWA)</p>
-                <p id="about-version" style="margin:0 0 14px;font-size:12px;opacity:.7;">نسخه ۵.۲.۰</p>
+                <p id="about-version" style="margin:0 0 14px;font-size:12px;opacity:.7;">نسخه ۵.۳.۰</p>
                 <p style="margin:0;font-size:12.5px;line-height:1.9;opacity:.85;">پخش فیلم و سریال با کیفیت بالا، اطلاعات واقعی از کاتالوگ و تماشای بدون مرز.</p>
             </div>
         </div>
@@ -479,9 +530,9 @@
                         <div id="detail-people-row" class="people-row"></div>
                     </div>
 
-                    <!-- Qualities / Sources / Seasons -->
+                    <!-- Playback / download entry -->
                     <div id="detail-sources-section" class="detail-section">
-                        <h3>کیفیت‌ها و لینک‌های پخش مستقیم</h3>
+                        <h3>پخش و دانلود</h3>
                         <div id="detail-sources-list" class="sources-chips-grid"></div>
                     </div>
 
@@ -535,12 +586,13 @@
                 <div id="player-error-overlay" class="player-error-overlay" style="display: none;">
                     <div class="player-error-card glass-panel">
                         <div class="player-error-icon">⚠️</div>
-                        <h3 id="player-error-title">پخش‌کننده داخلی قادر به کدگشایی این فرمت نیست</h3>
-                        <p id="player-error-desc">این ویدیو با کانتینر MKV یا صدای پیشرفته کدگذاری شده است. می‌توانید آن را بدون هیچ مشکلی در پلیر ویندوز (VLC، PotPlayer یا مدیا پلیر پیش‌فرض) تماشا کنید.</p>
+                        <h3 id="player-error-title">این فرمت در مرورگر پخش نمی‌شود</h3>
+                        <p id="player-error-desc">این ویدیو با کانتینر MKV یا کدک صوتی پیشرفته است. می‌توانید آن را با VLC، پلیر سیستم یا دانلود تماشا کنید.</p>
                         <div class="player-error-actions">
-                            <button id="btn-player-err-open-vlc" class="btn-primary-gradient">پخش فوری در VLC / PotPlayer 🚀</button>
-                            <button id="btn-player-err-open-default" class="btn-tonal-sm">پلیر پیش‌فرض ویندوز 🎬</button>
-                            <button id="btn-player-err-download" class="glass-pill-btn">دانلود با IDM ⬇️</button>
+                            <button id="btn-player-err-quality" class="btn-tonal-sm" style="display: none;">انتخاب کیفیت دیگر 🎚</button>
+                            <button id="btn-player-err-open-vlc" class="btn-primary-gradient">پخش در VLC 🚀</button>
+                            <button id="btn-player-err-open-default" class="btn-tonal-sm">پلیر پیش‌فرض سیستم 🎬</button>
+                            <button id="btn-player-err-download" class="glass-pill-btn">دانلود فایل ⬇️</button>
                             <button id="btn-player-err-close" class="btn-danger-sm">بستن ✕</button>
                         </div>
                     </div>
@@ -549,12 +601,23 @@
                 <!-- Player Controls Overlay -->
                 <div id="player-controls" class="player-controls">
                     <div class="player-top-bar">
-                        <button id="btn-close-player" class="player-back-btn">✕ بستن پلیر</button>
+                        <button id="btn-close-player" class="player-back-btn">✕</button>
                         <div class="player-titles">
                             <span id="player-media-title" class="player-main-title">عنوان فیلم</span>
                             <span id="player-episode-title" class="player-sub-title"></span>
                         </div>
-                        <button id="btn-player-open-external" class="player-ext-btn">پخش در VLC / پلیر ویندوز</button>
+                        <div class="player-top-actions">
+                            <button id="btn-player-quality" class="player-chip-btn" type="button" aria-label="انتخاب کیفیت پخش">
+                                <svg class="player-chip-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="12" rx="2"></rect>
+                                    <path d="M8 20h8M12 16v4"></path>
+                                    <path d="M9.5 12.5l1.8-3 1.8 2 1.9-3.5"></path>
+                                </svg>
+                                <span class="player-chip-caption">کیفیت</span>
+                                <span id="player-quality-label">خودکار</span>
+                            </button>
+                            <button id="btn-player-menu" class="player-icon-btn" type="button" aria-label="تنظیمات پخش">⋯</button>
+                        </div>
                     </div>
 
                     <div class="player-bottom-bar">
@@ -570,11 +633,27 @@
                                 <span id="player-time-label" class="player-time">00:00 / 00:00</span>
                             </div>
                             <div class="controls-right">
+                                <button id="btn-player-subs" class="player-btn" title="زیرنویس">CC</button>
                                 <button id="btn-player-fullscreen" class="player-btn" title="تمام صفحه">⛶</button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Player settings sheet (quality / subtitles / more) -->
+                <div id="player-sheet" class="player-sheet" style="display: none;">
+                    <div class="player-sheet-panel">
+                        <div class="player-sheet-head">
+                            <strong id="player-sheet-title">کیفیت پخش</strong>
+                            <button id="btn-close-player-sheet" class="player-sheet-close" type="button">✕</button>
+                        </div>
+                        <div id="player-sheet-body" class="player-sheet-body"></div>
+                    </div>
+                </div>
+
+                <div id="player-subtitle-layer" class="player-subtitle-layer"></div>
+                <div id="player-toast" class="player-toast" style="display: none;"></div>
+                <input type="file" id="player-subtitle-input" accept=".srt,.vtt,text/vtt,application/x-subrip" style="display: none;">
             </div>
         </div>
 
@@ -734,6 +813,7 @@
     <!-- Scripts -->
     <script src="js/vendor/hls.min.js"></script>
     <script src="js/poster-fallback.js"></script>
+    <script src="js/providers.js"></script>
     <script src="js/data.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/app.js"></script>

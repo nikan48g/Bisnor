@@ -55,8 +55,18 @@ class BisnorApp {
             player: localStorage.getItem("bisnor_player") || "bisnor",
             autoNext: localStorage.getItem("bisnor_auto_next") !== "false",
             autoNextMinutes: parseInt(localStorage.getItem("bisnor_auto_next_min") || "2", 10),
-            contentWarning: localStorage.getItem("bisnor_content_warn") !== "false"
+            contentWarning: localStorage.getItem("bisnor_content_warn") !== "false",
+            subtitleFont: localStorage.getItem("bisnor_sub_font") || "Vazirmatn",
+            subtitleSize: parseInt(localStorage.getItem("bisnor_sub_size") || "26", 10),
+            subtitleColor: localStorage.getItem("bisnor_sub_color") || "#ffffff",
+            subtitleBg: localStorage.getItem("bisnor_sub_bg") || "#05070c",
+            subtitleBgOpacity: parseInt(localStorage.getItem("bisnor_sub_bg_opacity") || "72", 10)
         };
+
+        this.playerContext = null;
+        this.subtitleCues = null;
+        this.subtitleName = "";
+        this.subtitleVisible = true;
         
         // Watch analytics state
         // Real local activity only. Never seed demo statistics.
@@ -82,6 +92,7 @@ class BisnorApp {
         this.renderExploreTab();
         this.renderFavoritesTab();
         this.renderAvatarPickerGrid();
+        this.loadSocialLinks();
         this.setupNativeMessageListener();
         this.postNative("getAppInfo");
         if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
@@ -185,8 +196,8 @@ class BisnorApp {
         text("platform-brand-badge", "نسخه وب • PWA برای iOS");
         text("downloads-setting-title", "مدیریت دانلودهای مرورگر");
         text("about-platform-title", "نسخه وب (Bisnor PWA)");
-        text("about-version", "نسخه ۵.۲.۰ • نصب‌پذیر روی iOS، اندروید و ویندوز");
-        text("detail-external-player-label", "پخش در مرورگر");
+        text("about-version", "نسخه ۵.۴.۰ • نصب‌پذیر روی iOS، اندروید و ویندوز");
+        text("detail-external-player-label", "پخش با VLC");
         text("player-error-desc", "این فرمت در مرورگر فعلی قابل کدگشایی نیست. می‌توانید فایل را دانلود کنید یا کیفیت دیگری را انتخاب کنید.");
     }
 
@@ -297,7 +308,7 @@ class BisnorApp {
         localStorage.setItem("bisnor_theme", theme);
         this.settings.theme = theme;
 
-        document.querySelectorAll(".chip-theme").forEach(chip => {
+        document.querySelectorAll("#chip-group-themes .chip-theme").forEach(chip => {
             chip.classList.toggle("active", chip.getAttribute("data-theme") === theme);
         });
     }
@@ -475,6 +486,9 @@ class BisnorApp {
             }
         });
 
+        document.getElementById("btn-share-favorites")?.addEventListener("click", () => this.shareFavorites());
+        document.getElementById("btn-setting-import-list")?.addEventListener("click", () => this.openImportDialog());
+
         // Detail Modal buttons
         document.getElementById("btn-close-detail")?.addEventListener("click", () => this.closeDetailModal());
         document.getElementById("btn-close-person")?.addEventListener("click", () => this.closePersonProfile());
@@ -483,13 +497,17 @@ class BisnorApp {
             if (this.activeMedia) this.playMedia(this.activeMedia);
         });
         document.getElementById("btn-detail-external-player")?.addEventListener("click", () => {
-            if (this.activeMedia) {
-                const streamUrl = this.getStreamUrl(this.activeMedia);
-                this.postNative("launchExternalPlayer", { 
-                    player: this.settings.player, 
-                    url: streamUrl, 
-                    title: this.activeMedia.title 
+            if (!this.activeMedia) return;
+            const streamUrl = this.getStreamUrl(this.activeMedia);
+            if (!streamUrl) return;
+            if (this.isNativeDesktop) {
+                this.postNative("launchExternalPlayer", {
+                    player: this.settings.player,
+                    url: streamUrl,
+                    title: this.activeMedia.title
                 });
+            } else {
+                this.launchVlcUrl(streamUrl);
             }
         });
         document.getElementById("btn-detail-favorite")?.addEventListener("click", () => {
@@ -506,32 +524,39 @@ class BisnorApp {
         const timeLabel = document.getElementById("player-time-label");
 
         document.getElementById("btn-close-player")?.addEventListener("click", () => this.closePlayerModal());
-        document.getElementById("btn-player-open-external")?.addEventListener("click", () => {
-            if (this.currentPlayingUrl) {
-                const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
-                this.postNative("launchExternalPlayer", { player: this.settings.player === "bisnor" ? "vlc" : this.settings.player, url: this.currentPlayingUrl, title });
-            }
+        document.getElementById("btn-player-quality")?.addEventListener("click", () => this.openPlayerSheet("quality"));
+        document.getElementById("btn-player-menu")?.addEventListener("click", () => this.openPlayerSheet("more"));
+        document.getElementById("btn-player-subs")?.addEventListener("click", () => this.openPlayerSheet("subtitles"));
+        document.getElementById("btn-close-player-sheet")?.addEventListener("click", () => this.closePlayerSheet());
+        document.getElementById("player-sheet")?.addEventListener("click", (event) => {
+            if (event.target.id === "player-sheet") this.closePlayerSheet();
         });
+        document.getElementById("player-subtitle-input")?.addEventListener("change", (event) => {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = "";
+            if (file) this.loadSubtitleFile(file);
+        });
+        document.addEventListener("input", (event) => this.handleSubtitleStyleInput(event));
+        document.addEventListener("change", (event) => this.handleSubtitleStyleInput(event));
 
+        document.getElementById("btn-player-err-quality")?.addEventListener("click", () => {
+            document.getElementById("player-error-overlay").style.display = "none";
+            this.openPlayerSheet("quality");
+        });
         // Error overlay buttons
         document.getElementById("btn-player-err-open-vlc")?.addEventListener("click", () => {
-            if (this.currentPlayingUrl) {
-                const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
-                this.postNative("launchExternalPlayer", { player: "vlc", url: this.currentPlayingUrl, title });
-                this.closePlayerModal();
-            }
+            this.openInVlc();
         });
         document.getElementById("btn-player-err-open-default")?.addEventListener("click", () => {
-            if (this.currentPlayingUrl) {
-                const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
-                this.postNative("launchExternalPlayer", { player: "potplayer", url: this.currentPlayingUrl, title });
-                this.closePlayerModal();
-            }
+            if (!this.currentPlayingUrl) return;
+            const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
+            if (this.isNativeDesktop) this.postNative("launchExternalPlayer", { player: "potplayer", url: this.currentPlayingUrl, title });
+            else window.open(this.currentPlayingUrl, "_blank", "noopener");
         });
         document.getElementById("btn-player-err-download")?.addEventListener("click", () => {
-            if (this.currentPlayingUrl) {
-                this.postNative("downloadWithIDM", { url: this.currentPlayingUrl });
-            }
+            if (!this.currentPlayingUrl) return;
+            if (this.isNativeDesktop) this.postNative("downloadWithIDM", { url: this.currentPlayingUrl });
+            else window.open(this.currentPlayingUrl, "_blank", "noopener");
         });
         document.getElementById("btn-player-err-close")?.addEventListener("click", () => {
             this.closePlayerModal();
@@ -585,6 +610,7 @@ class BisnorApp {
                     seekbar.value = (video.currentTime / video.duration) * 100;
                     if (timeLabel) timeLabel.textContent = `${this.formatTime(video.currentTime)} / ${this.formatTime(video.duration)}`;
                 }
+                this.renderSubtitleCue(video.currentTime);
                 if (!video.duration || video.paused) return;
                 const now = Date.now();
                 if (now - lastTick >= 5000) {
@@ -661,10 +687,26 @@ class BisnorApp {
         });
 
         // Settings Category 3: Themes & Player Choice
-        document.querySelectorAll(".chip-theme").forEach(btn => {
+        document.querySelectorAll("#chip-group-themes .chip-theme").forEach(btn => {
             btn.addEventListener("click", () => {
                 const th = btn.getAttribute("data-theme");
                 this.applyTheme(th);
+            });
+        });
+
+        document.querySelectorAll("#chip-group-sources .chip-theme").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const mode = btn.getAttribute("data-source");
+                if (!window.mediaService.setSourceMode(mode)) return;
+                document.querySelectorAll("#chip-group-sources .chip-theme").forEach(chip => {
+                    chip.classList.toggle("active", chip === btn);
+                });
+                ["row-latest-movies", "row-popular-series", "row-top-imdb", "row-animations", "row-for-you"].forEach(id => {
+                    const row = document.getElementById(id);
+                    if (row) row.replaceChildren();
+                });
+                this.renderHomeTab();
+                if (this.currentTab === "explore") this.renderExploreTab();
             });
         });
 
@@ -864,9 +906,10 @@ class BisnorApp {
 
         // Fetch live data in parallel; empty rows are preferable to false metadata.
         Promise.allSettled([
-            window.mediaService.getLatestMovies().then(latest => {
+            window.mediaService.getLatestMovies().then(async latest => {
                 if (latest && latest.length > 0) {
                     renderRow("row-latest-movies", latest);
+                    await window.mediaService.hydrateMedia(latest[0]);
                     updateHero(latest[0]);
                 }
             }),
@@ -1024,8 +1067,21 @@ class BisnorApp {
 
     // --- Detail Modal with Series Average Size Calculation ---
     openDetailModal(media) {
+        // A hydrated copy can arrive without credits; keep the cast that is already on
+        // screen instead of blanking the row a moment after it appeared.
+        const previousPeople = (this.activeMedia && this.activeMedia !== media && Array.isArray(this.activeMedia.people))
+            ? this.activeMedia.people
+            : [];
+        if (media && (!Array.isArray(media.people) || media.people.length === 0) && previousPeople.length) {
+            media.people = previousPeople;
+        }
         this.activeMedia = media;
         this.rememberMedia(media);
+        if (!media.__hydrated && window.mediaService.hydrateMedia) {
+            window.mediaService.hydrateMedia(media).then(full => {
+                if (full && this.activeMedia === media) this.openDetailModal(full);
+            }).catch(() => {});
+        }
         const modal = document.getElementById("modal-detail");
         if (!modal) return;
 
@@ -1088,7 +1144,7 @@ class BisnorApp {
             if (!media.seasons || media.seasons.length === 0) {
                 this.showSeriesLoadState("در حال دریافت فصل‌ها و قسمت‌ها…");
                 // Fetch real seasons from Iranflix API
-                window.mediaService.getSeriesSeasons(media.id).then(seasons => {
+                window.mediaService.getSeriesSeasons(media).then(seasons => {
                     media.seasons = seasons;
                     this.renderSeriesSeasonsUI(media, avgBox);
                 }).catch(() => {
@@ -1118,12 +1174,13 @@ class BisnorApp {
         const section = document.getElementById("detail-people-section");
         const row = document.getElementById("detail-people-row");
         if (!section || !row) return;
+        const valid = (people || []).filter(person => person && person.name);
         row.replaceChildren();
-        if (!people.length) {
+        if (!valid.length) {
             section.style.display = "none";
             return;
         }
-        people.forEach(person => row.appendChild(this.createPersonCard(person)));
+        valid.forEach(person => row.appendChild(this.createPersonCard(person)));
         section.style.display = "block";
     }
 
@@ -1189,7 +1246,7 @@ class BisnorApp {
         if (avgBox) {
             avgBox.style.display = "block";
             const epCount = media.seasons.reduce((count, season) => count + (season.episodes || []).length, 0);
-            avgBox.textContent = `${media.seasons.length} فصل • ${epCount} قسمت در ایران‌فلیکس`;
+            avgBox.textContent = `${media.seasons.length} فصل • ${epCount} قسمت`;
         }
         this.renderSeasonsAndEpisodes(media.seasons);
     }
@@ -1226,6 +1283,44 @@ class BisnorApp {
         similar.forEach(m => row.appendChild(this.createMediaCard(m)));
     }
 
+    providerLabel(origin) {
+        if (origin === "next") return "نکست‌مووی";
+        if (origin === "iranflix") return "ایران‌فلیکس";
+        return "";
+    }
+
+    /** Small monogram chip so users can tell which provider a stream came from. */
+    sourceBadge(origin) {
+        const label = this.providerLabel(origin);
+        if (!label) return "";
+        const klass = origin === "next" ? "src-next" : "src-iranflix";
+        const initial = origin === "next" ? "N" : "iF";
+        return `<span class="src-badge"><span class="src-logo ${klass}">${initial}</span>${label}</span>`;
+    }
+
+    /** Human-readable, short quality label ("1080p", "480p", "تیزر"). */
+    qualityLabel(source) {
+        const raw = String((source && source.quality) || "");
+        if (/تیزر|trailer/i.test(raw)) return "تیزر";
+        const match = raw.match(/(2160|1440|1080|720|540|480|360|240)/);
+        if (match) return `${match[1]}p`;
+        const clean = raw.replace(/[()].*?[)]/g, "").replace(/\d{2,4}\s*(?:مگابایت|گیگابایت|MB|GB)/gi, "").trim();
+        return clean || "کیفیت اصلی";
+    }
+
+    qualityRank(source) {
+        const match = String((source && source.quality) || "").match(/(2160|1440|1080|720|540|480|360|240)/);
+        return match ? Number(match[1]) : 0;
+    }
+
+    /** Groups the streams of one title by quality, keeping one entry per provider. */
+    playbackChoices(sources) {
+        return (sources || [])
+            .filter(source => source && source.url)
+            .slice()
+            .sort((a, b) => (this.qualityRank(b) - this.qualityRank(a)) || this.scoreSource(b) - this.scoreSource(a));
+    }
+
     renderMovieSources(sources) {
         const container = document.getElementById("detail-sources-list");
         if (!container) return;
@@ -1240,29 +1335,34 @@ class BisnorApp {
             return;
         }
 
-        sources.forEach(src => {
-            const item = document.createElement("div");
-            item.className = "quality-item-row";
-            item.innerHTML = `
-                <div class="quality-info">
-                    <span class="quality-name">${src.quality}</span>
-                    <span class="quality-badge">${src.type || 'MP4'}</span>
-                </div>
-                <div class="quality-actions">
-                    <button class="btn-play-quality btn-primary-gradient">پخش</button>
-                    <button class="btn-dl-quality glass-icon-btn" title="دانلود با IDM">⬇️</button>
-                </div>
-            `;
-            item.querySelector(".btn-play-quality").addEventListener("click", () => {
-                this.nextEpisodeContext = null;
-                this.playStream(src.url, `${this.activeMedia.title} - ${src.quality}`, this.alternativeUrls(sources, src.url));
-            });
-            item.querySelector(".btn-dl-quality").addEventListener("click", () => {
-                this.postNative("downloadWithIDM", { url: src.url });
-                this.addDownloadTask(this.activeMedia, src.quality);
-            });
-            container.appendChild(item);
+        const choices = this.playbackChoices(sources);
+        const best = choices[0];
+        const card = document.createElement("div");
+        card.className = "play-cta-card";
+        card.innerHTML = `
+            <button class="play-cta-main" type="button">
+                <span class="play-cta-icon">▶</span>
+                <span class="play-cta-text">
+                    <strong>پخش فیلم</strong>
+                    <span class="play-cta-meta">
+                        <span>${this.qualityLabel(best)}</span>
+                        ${this.sourceBadge(best.origin)}
+                        <span>${choices.length > 1 ? `${choices.length} نسخه • انتخاب کیفیت در پلیر` : "تک‌نسخه"}</span>
+                    </span>
+                </span>
+            </button>
+            <button class="play-cta-download" type="button" title="دانلود">⬇</button>
+        `;
+        card.querySelector(".play-cta-main").addEventListener("click", () => {
+            this.nextEpisodeContext = null;
+            this.playSources(choices, best, this.activeMedia ? this.activeMedia.title : "");
         });
+        card.querySelector(".play-cta-download").addEventListener("click", () => {
+            if (this.isNativeDesktop) this.postNative("downloadWithIDM", { url: best.url });
+            else window.open(best.url, "_blank", "noopener");
+            this.addDownloadTask(this.activeMedia, this.qualityLabel(best));
+        });
+        container.appendChild(card);
     }
 
     renderSeasonsAndEpisodes(seasons) {
@@ -1343,34 +1443,38 @@ class BisnorApp {
         episodes.forEach((ep, epIndex) => {
             const sources = ep.sources || [];
             const episodeTitle = ep.title && ep.title !== "null" ? ep.title : `قسمت ${epIndex + 1}`;
+            const choices = this.playbackChoices(sources);
+            const best = choices[0];
             const card = document.createElement("article");
             card.className = "episode-card";
+
             const head = document.createElement("div");
             head.className = "episode-card-head";
-            head.innerHTML = `<span class="episode-number">${epIndex + 1}</span><div><strong>${episodeTitle}</strong><span>${sources.length ? `${sources.length} نسخهٔ قابل پخش` : "لینک پخش ثبت نشده"}</span></div>`;
-            const variants = document.createElement("div");
-            variants.className = "episode-variant-list";
-            sources.forEach(source => {
-                const variant = document.createElement("div");
-                variant.className = "episode-variant";
-                const label = document.createElement("span");
-                label.textContent = `${source.quality || "کیفیت اصلی"} • ${(source.type || "پخش").toUpperCase()}`;
-                const download = document.createElement("button");
-                download.className = "episode-download-btn";
-                download.title = "دانلود با IDM";
-                download.textContent = "⬇";
-                download.addEventListener("click", () => {
-                    this.postNative("downloadWithIDM", { url: source.url });
-                    this.addDownloadTask(this.activeMedia, episodeTitle);
-                });
-                const play = document.createElement("button");
-                play.className = "episode-play-btn";
-                play.textContent = "پخش";
-                play.addEventListener("click", () => this.playEpisodeSource(source, episodeTitle, episodes, epIndex));
-                variant.append(label, download, play);
-                variants.appendChild(variant);
-            });
-            card.append(head, variants);
+            const metaParts = [];
+            metaParts.push(best ? this.qualityLabel(best) : "بدون لینک");
+            if (best && best.origin) metaParts.push(this.sourceBadge(best.origin));
+            if (choices.length > 1) metaParts.push(`${choices.length} نسخه`);
+            head.innerHTML = `
+                <div class="episode-head-main">
+                    <span class="episode-number">${epIndex + 1}</span>
+                    <div>
+                        <strong>${episodeTitle}</strong>
+                        <span class="episode-meta">${metaParts.join(" • ")}</span>
+                    </div>
+                </div>
+            `;
+            const play = document.createElement("button");
+            play.className = "episode-action-btn";
+            play.type = "button";
+            play.textContent = "▶ پخش";
+            if (!best) {
+                play.disabled = true;
+                play.textContent = "بدون لینک";
+            } else {
+                play.addEventListener("click", () => this.playEpisodeSource(best, episodeTitle, episodes, epIndex));
+            }
+            head.appendChild(play);
+            card.appendChild(head);
             epsWrap.appendChild(card);
         });
     }
@@ -1378,11 +1482,7 @@ class BisnorApp {
     playEpisodeSource(source, episodeTitle, episodes, episodeIndex) {
         this.nextEpisodeContext = { episodes, episodeIndex, source };
         const episodeSources = episodes?.[episodeIndex]?.sources || [source];
-        this.playStream(
-            source.url,
-            `${this.activeMedia.title} - ${episodeTitle} - ${source.quality || "کیفیت اصلی"}`,
-            this.alternativeUrls(episodeSources, source.url)
-        );
+        this.playSources(this.playbackChoices(episodeSources), source, `${this.activeMedia.title} - ${episodeTitle}`);
     }
 
     playNextWebEpisode() {
@@ -1461,7 +1561,23 @@ class BisnorApp {
             alert("لینکی برای پخش این محتوا موجود نیست.");
             return;
         }
-        this.playStream(candidates[0].url, media.title, candidates.slice(1).map(source => source.url));
+        this.playSources(candidates, candidates[0], media.title);
+    }
+
+    /** Opens the player with the full set of streams of one title/episode. */
+    playSources(sources, source, title) {
+        const choices = this.playbackChoices(sources);
+        if (!choices.length) {
+            alert("لینکی برای پخش این محتوا موجود نیست.");
+            return;
+        }
+        const current = choices.find(item => item.url === (source && source.url)) || choices[0];
+        this.playStream(
+            current.url,
+            title,
+            choices.filter(item => item.url !== current.url).map(item => item.url),
+            { sources: choices, current }
+        );
     }
 
     getStreamUrl(media) {
@@ -1475,7 +1591,7 @@ class BisnorApp {
         return "";
     }
 
-    playStream(url, title, alternatives) {
+    playStream(url, title, alternatives, context) {
         if (!url) {
             alert("لینکی برای پخش این محتوا موجود نیست.");
             return;
@@ -1483,6 +1599,9 @@ class BisnorApp {
         this.currentPlayingUrl = url;
         this.currentPlayingTitle = title;
         this.streamQueue = (alternatives || []).filter(candidate => candidate && candidate !== url);
+        this.playerContext = context
+            ? { sources: context.sources || [], current: context.current || null }
+            : null;
         if (this.activeMedia && this.activeMedia.id) {
             this.currentEpisodeLabel = "";
         }
@@ -1490,7 +1609,7 @@ class BisnorApp {
         const cleanUrl = url.split("?")[0].toLowerCase();
         const isUnsupportedContainer = /\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(cleanUrl);
 
-        if (this.settings.player !== "bisnor") {
+        if (this.isNativeDesktop && this.settings.player !== "bisnor") {
             // Launch the Windows external player configured in Settings.
             this.postNative("launchExternalPlayer", { player: this.settings.player, url, title });
             return;
@@ -1511,6 +1630,10 @@ class BisnorApp {
 
         if (errOverlay) errOverlay.style.display = "none";
         if (titleEl) titleEl.textContent = title;
+        this.updatePlayerQualityChip();
+        this.resetSubtitles();
+        const sourceSubtitles = this.playerContext && this.playerContext.current;
+        if (sourceSubtitles) this.loadSourceSubtitles(sourceSubtitles);
         this.attachStreamSource(video, url);
         this.openOverlay("modal-player");
         if (modal.requestFullscreen) {
@@ -1520,6 +1643,587 @@ class BisnorApp {
             try { video.webkitEnterFullscreen(); } catch (_) {}
         }
         video.play().catch(e => console.log("Auto-play blocked", e));
+    }
+
+    updatePlayerQualityChip() {
+        const label = document.getElementById("player-quality-label");
+        if (!label) return;
+        const current = this.playerContext && this.playerContext.current;
+        if (!current) {
+            label.textContent = "خودکار";
+            return;
+        }
+        label.textContent = this.qualityLabel(current);
+        const button = document.getElementById("btn-player-quality");
+        if (button) {
+            button.title = current.origin
+                ? `${this.qualityLabel(current)} • ${this.providerLabel(current.origin)}`
+                : this.qualityLabel(current);
+        }
+    }
+
+    // --- In-player sheet: quality, subtitles and external playback ---
+    openPlayerSheet(mode) {
+        const sheet = document.getElementById("player-sheet");
+        const body = document.getElementById("player-sheet-body");
+        const heading = document.getElementById("player-sheet-title");
+        if (!sheet || !body || !heading) return;
+        body.innerHTML = "";
+        if (mode === "quality") {
+            heading.textContent = "کیفیت پخش";
+            this.renderQualitySheet(body);
+        } else if (mode === "subtitles") {
+            heading.textContent = "زیرنویس";
+            this.renderSubtitleSheet(body);
+        } else {
+            heading.textContent = "گزینه‌های پخش";
+            this.renderMoreSheet(body);
+        }
+        sheet.style.display = "flex";
+    }
+
+    closePlayerSheet() {
+        const sheet = document.getElementById("player-sheet");
+        if (sheet) sheet.style.display = "none";
+    }
+
+    renderQualitySheet(body) {
+        const context = this.playerContext;
+        const sources = (context && context.sources) || [];
+        if (!sources.length) {
+            body.innerHTML = '<p class="sheet-empty">نسخهٔ دیگری برای این عنوان ثبت نشده است.</p>';
+            return;
+        }
+        const hint = document.createElement("p");
+        hint.className = "sheet-empty";
+        hint.style.padding = "0 2px 10px";
+        hint.textContent = "هر نسخه ممکن است از منبع دیگری باشد؛ منبع هر کیفیت کنار آن آمده است.";
+        body.appendChild(hint);
+
+        sources.forEach(source => {
+            const option = document.createElement("button");
+            option.type = "button";
+            option.className = `quality-option${context.current && context.current.url === source.url ? " active" : ""}`;
+            const type = String(source.type || "").toUpperCase();
+            option.innerHTML = `
+                <span class="quality-option-main">
+                    <span class="quality-option-label">${this.qualityLabel(source)}</span>
+                    <span class="quality-option-meta">
+                        ${this.sourceBadge(source.origin)}
+                        ${type ? `<span>${type}</span>` : ""}
+                    </span>
+                </span>
+                <span class="quality-option-check">${context.current && context.current.url === source.url ? "✓" : ""}</span>
+            `;
+            option.addEventListener("click", () => this.selectPlayerSource(source));
+            body.appendChild(option);
+        });
+    }
+
+    /** Switches quality/source without losing the playback position. */
+    selectPlayerSource(source) {
+        if (!source || !source.url) return;
+        const video = document.getElementById("html-video-player");
+        const context = this.playerContext;
+        if (!context) {
+            this.playSources([source], source, this.currentPlayingTitle || "");
+            this.closePlayerSheet();
+            return;
+        }
+        if (context.current && context.current.url === source.url) {
+            this.closePlayerSheet();
+            return;
+        }
+        const at = video ? video.currentTime : 0;
+        const wasPlaying = video ? !video.paused : true;
+        context.current = source;
+        this.currentPlayingUrl = source.url;
+        this.streamQueue = this.alternativeUrls(context.sources, source.url);
+        this.resetSubtitles();
+        this.loadSourceSubtitles(source);
+        if (video) {
+            this.pendingSeek = at > 1 ? at : 0;
+            this.attachStreamSource(video, source.url);
+            if (wasPlaying) video.play().catch(() => {});
+        }
+        this.updatePlayerQualityChip();
+        this.renderQualitySheet(document.getElementById("player-sheet-body"));
+        this.closePlayerSheet();
+    }
+
+    renderSubtitleSheet(body) {
+        const current = this.playerContext && this.playerContext.current;
+        const tracks = this.subtitleTracksFor(current);
+        const status = document.createElement("p");
+        status.className = "sheet-empty";
+        status.style.padding = "0 2px 10px";
+        status.textContent = this.subtitleCues && this.subtitleCues.length
+            ? `در حال نمایش: ${this.subtitleName || "زیرنویس بارگذاری‌شده"}`
+            : tracks.length
+                ? "این نسخه زیرنویس همراه دارد؛ برای فعال‌سازی انتخاب کنید."
+                : "این نسخه زیرنویس همراه ندارد. می‌توانید فایل SRT یا VTT خودتان را بارگذاری کنید.";
+        body.appendChild(status);
+
+        tracks.forEach(track => {
+            const action = document.createElement("button");
+            action.type = "button";
+            action.className = "sheet-action";
+            action.innerHTML = `<span class="sheet-action-icon">💬</span><span>${track.label || "زیرنویس منبع"}</span>`;
+            action.addEventListener("click", () => this.loadSubtitleTrack(track));
+            body.appendChild(action);
+        });
+
+        if (this.subtitleCues && this.subtitleCues.length) {
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "sheet-action";
+            toggle.innerHTML = `<span class="sheet-action-icon">${this.subtitleVisible ? "👁" : "🚫"}</span><span>${this.subtitleVisible ? "پنهان کردن زیرنویس" : "نمایش زیرنویس"}</span>`;
+            toggle.addEventListener("click", () => {
+                this.subtitleVisible = !this.subtitleVisible;
+                this.renderSubtitleCue(document.getElementById("html-video-player")?.currentTime || 0);
+                this.renderSubtitleSheet(document.getElementById("player-sheet-body"));
+            });
+            body.appendChild(toggle);
+        }
+
+        const upload = document.createElement("button");
+        upload.type = "button";
+        upload.className = "sheet-action";
+        upload.innerHTML = '<span class="sheet-action-icon">📂</span><span>بارگذاری فایل زیرنویس (SRT / VTT)</span>';
+        upload.addEventListener("click", () => document.getElementById("player-subtitle-input")?.click());
+        body.appendChild(upload);
+
+        const styleTitle = document.createElement("div");
+        styleTitle.className = "sheet-section-title";
+        styleTitle.textContent = "ظاهر زیرنویس";
+        body.appendChild(styleTitle);
+
+        const controls = document.createElement("div");
+        controls.className = "sub-style-controls";
+        controls.innerHTML = this.subtitleControlsHTML();
+        body.appendChild(controls);
+        this.applySubtitleStyle();
+    }
+
+    renderMoreSheet(body) {
+        const actions = [
+            { icon: "🚀", label: "پخش در VLC", run: () => this.openInVlc() },
+            { icon: "⬇", label: "دانلود این نسخه", run: () => this.downloadCurrentStream() }
+        ];
+        if (this.isNativeDesktop) {
+            actions.splice(1, 0, {
+                icon: "🎬",
+                label: "پلیر پیش‌فرض ویندوز",
+                run: () => {
+                    const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
+                    this.postNative("launchExternalPlayer", { player: "potplayer", url: this.currentPlayingUrl, title });
+                }
+            });
+        }
+        actions.forEach(action => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "sheet-action";
+            button.innerHTML = `<span class="sheet-action-icon">${action.icon}</span><span>${action.label}</span>`;
+            button.addEventListener("click", action.run);
+            body.appendChild(button);
+        });
+    }
+
+    downloadCurrentStream() {
+        if (!this.currentPlayingUrl) return;
+        if (this.isNativeDesktop) this.postNative("downloadWithIDM", { url: this.currentPlayingUrl });
+        else window.open(this.currentPlayingUrl, "_blank", "noopener");
+        this.addDownloadTask(this.activeMedia, this.qualityLabel(this.playerContext?.current));
+        this.closePlayerSheet();
+    }
+
+    // --- External player (VLC) ---
+    openInVlc() {
+        if (!this.currentPlayingUrl) return;
+        const title = document.getElementById("player-media-title")?.textContent || "Bisnor Media";
+        if (this.isNativeDesktop) {
+            this.postNative("launchExternalPlayer", { player: "vlc", url: this.currentPlayingUrl, title });
+            this.closePlayerSheet();
+            return;
+        }
+        this.launchVlcUrl(this.currentPlayingUrl);
+        this.closePlayerSheet();
+    }
+
+    launchVlcUrl(url) {
+        if (!url) return;
+        this.copyText(url);
+        const target = this.isIOS
+            ? `vlc-x-callback://x-callback-url/stream?url=${encodeURIComponent(url)}`
+            : `vlc://${url}`;
+        try { window.location.href = target; } catch (_) {}
+        this.showPlayerToast("اگر VLC نصب باشد باز می‌شود • لینک در کلیپ‌بورد کپی شد");
+    }
+
+    // --- Social links (social.md, parsed by /api/social) ---
+    workerBaseUrl() {
+        return /^https?:$/.test(location.protocol) && !/^appassets\.bisnor$/i.test(location.hostname)
+            ? location.origin
+            : "https://bisnor-pwa.drive-storage-hnn.workers.dev";
+    }
+
+    socialIconMarkup(platform) {
+        const icons = {
+            instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>',
+            telegram: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 4.2 2.8 11.4c-.9.3-.9 1.2 0 1.5l4.6 1.5 1.8 5.5c.2.6.6.7 1 .3l2.6-2 4.6 3.4c.6.4 1.1.2 1.3-.6l3.1-14.8c.2-.9-.3-1.3-1.2-.9zM8.5 13.9l10-6.3-8.2 7.5-.3 3z"/></svg>',
+            x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h3.1l-6.8 7.8L21.9 21h-6.2l-4.9-6.4L5.2 21H2.1l7.3-8.3L2.1 3H8.5l4.4 5.8L17.5 3zm-1.1 16.1h1.7L7.6 4.8H5.8l10.6 14.3z"/></svg>',
+            youtube: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.5 7.2a2.8 2.8 0 0 0-2-2C18.8 4.8 12 4.8 12 4.8s-6.8 0-8.5.4a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1.1 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.4 8.5.4 8.5.4s6.8 0 8.5-.4a2.8 2.8 0 0 0 2-2 29 29 0 0 0 .4-4.8 29 29 0 0 0-.4-4.8zM10 15.2V8.8l5.5 3.2-5.5 3.2z"/></svg>',
+            facebook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.8l.4-3.2h-3.2V8.7c0-.9.3-1.6 1.7-1.6h1.7V4.2c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4v2.7H7.6V14h2.9v8h3z"/></svg>',
+            email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>',
+            website: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg>'
+        };
+        return icons[platform] || icons.website;
+    }
+
+    async loadSocialLinks() {
+        const group = document.getElementById("settings-social-group");
+        const row = document.getElementById("social-links-row");
+        if (!group || !row || this.socialLoaded) return;
+        this.socialLoaded = true;
+        try {
+            const response = await fetch(`${this.workerBaseUrl()}/api/social`, { headers: { Accept: "application/json" } });
+            if (!response.ok) return;
+            const payload = await response.json();
+            const links = Array.isArray(payload.links) ? payload.links.filter(link => link && link.url) : [];
+            if (!links.length) return;
+            row.replaceChildren(...links.map(link => {
+                const anchor = document.createElement("a");
+                anchor.className = "social-link-btn";
+                anchor.href = link.url;
+                anchor.target = "_blank";
+                anchor.rel = "noopener";
+                anchor.title = link.label || link.platform;
+                anchor.setAttribute("aria-label", anchor.title);
+                anchor.innerHTML = this.socialIconMarkup(link.platform);
+                return anchor;
+            }));
+            group.style.display = "";
+        } catch (_) {
+            this.socialLoaded = false;
+        }
+    }
+
+    // --- Watchlist share / import ---
+    async buildPlaylistLink(name, items) {
+        const compressed = await window.supabaseAuth.compress(JSON.stringify({ name, items }));
+        return `${this.workerBaseUrl()}/import?data=${encodeURIComponent(compressed)}`;
+    }
+
+    async shareFavorites() {
+        const favorites = window.supabaseAuth.getFavorites();
+        if (!favorites.length) {
+            alert("واچ‌لیست خالی است؛ ابتدا چند عنوان را نشان کنید.");
+            return;
+        }
+        let link;
+        try {
+            link = await this.buildPlaylistLink("واچ‌لیست من", favorites);
+        } catch (_) {
+            alert("ساخت لینک اشتراک‌گذاری در این مرورگر ممکن نیست.");
+            return;
+        }
+        const message = `🎬 واچ‌لیست من در بیسنور (${favorites.length} اثر):\n${link}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: "واچ‌لیست بیسنور", text: message });
+                return;
+            } catch (_) { /* user cancelled or share unsupported */ }
+        }
+        await this.copyText(link);
+        alert("لینک اشتراک‌گذاری کپی شد. هرجا آن را بفرستید، با یک کلیک در بیسنور باز می‌شود.");
+    }
+
+    openImportDialog() {
+        if (document.getElementById("import-overlay")) return;
+        const overlay = document.createElement("div");
+        overlay.className = "detail-overlay";
+        overlay.id = "import-overlay";
+        overlay.style.display = "flex";
+        overlay.innerHTML = `
+            <div class="glass-panel" style="position:relative;width:min(92vw,440px);padding:24px;border-radius:22px;">
+                <h2 style="margin:0 0 6px;font-size:17px;">وارد کردن واچ‌لیست</h2>
+                <p style="margin:0 0 14px;font-size:12.5px;opacity:.75;line-height:1.9;">لینک اشتراک‌گذاری (مثل https://…/import?data=…) یا کد دریافتی را اینجا بچسبانید.</p>
+                <textarea id="import-list-input" rows="4" dir="ltr" style="width:100%;padding:12px;border-radius:14px;border:1px solid var(--glass-border);background:rgba(255,255,255,.05);color:var(--on-surface);font-family:inherit;font-size:12px;resize:vertical;"></textarea>
+                <div style="display:flex;gap:10px;margin-top:14px;">
+                    <button id="btn-import-confirm" class="glass-pill-btn" style="flex:1;justify-content:center;">افزودن به واچ‌لیست</button>
+                    <button id="btn-import-cancel" class="glass-pill-btn" style="justify-content:center;">انصراف</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        const close = () => overlay.remove();
+        overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+        overlay.querySelector("#btn-import-cancel").addEventListener("click", close);
+        overlay.querySelector("#btn-import-confirm").addEventListener("click", async () => {
+            const text = overlay.querySelector("#import-list-input").value || "";
+            const result = await this.importWatchlistText(text);
+            alert(result.message);
+            if (result.ok) {
+                close();
+                this.renderFavoritesTab();
+            }
+        });
+        overlay.querySelector("#import-list-input").focus();
+    }
+
+    async importWatchlistText(text) {
+        const value = (text || "").trim();
+        if (!value) return { ok: false, message: "لینک یا کد را وارد کنید." };
+        let code = value;
+        const match = value.match(/[?&]data=([^&\s]+)/);
+        if (match) code = match[1];
+        else if (/^https?:/i.test(value)) return { ok: false, message: "این لینک کد لیست ندارد." };
+        try {
+            const json = await window.supabaseAuth.decompress(decodeURIComponent(code));
+            const payload = JSON.parse(json);
+            const items = Array.isArray(payload?.items) ? payload.items.filter(item => item && item.id != null) : [];
+            if (!items.length) return { ok: false, message: "لیست خالی است یا کد ناقص است." };
+            const favorites = window.supabaseAuth.getFavorites();
+            const known = new Set(favorites.map(item => String(item.id)));
+            const fresh = items.filter(item => !known.has(String(item.id)));
+            window.supabaseAuth.saveFavorites([...fresh, ...favorites]);
+            return { ok: true, message: `${fresh.length} اثر به واچ‌لیست اضافه شد.` };
+        } catch (_) {
+            return { ok: false, message: "کد قابل خواندن نیست؛ مطمئن شوید کامل کپی شده است." };
+        }
+    }
+
+    copyText(value) {
+        if (navigator.clipboard?.writeText) {
+            return navigator.clipboard.writeText(value).catch(() => this.copyTextFallback(value));
+        }
+        return Promise.resolve(this.copyTextFallback(value));
+    }
+
+    copyTextFallback(value) {
+        try {
+            const area = document.createElement("textarea");
+            area.value = value;
+            area.style.position = "fixed";
+            area.style.opacity = "0";
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand("copy");
+            area.remove();
+        } catch (_) {}
+    }
+
+    showPlayerToast(message) {
+        const toast = document.getElementById("player-toast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.style.display = "block";
+        clearTimeout(this.playerToastTimer);
+        this.playerToastTimer = setTimeout(() => { toast.style.display = "none"; }, 4200);
+    }
+
+    // --- Subtitles ---
+    resetSubtitles() {
+        this.subtitleCues = null;
+        this.subtitleName = "";
+        this.subtitleVisible = true;
+        this.subtitleRequestId = (this.subtitleRequestId || 0) + 1;
+        const layer = document.getElementById("player-subtitle-layer");
+        if (layer) layer.replaceChildren();
+    }
+
+    subtitleTracksFor(source) {
+        const raw = source && Array.isArray(source.subtitles) ? source.subtitles : [];
+        return raw
+            .map(track => (typeof track === "string" ? { url: track } : track))
+            .map(track => ({
+                url: track.url || track.link || track.src || "",
+                label: track.label || track.title || track.language || track.lang || "زیرنویس منبع"
+            }))
+            .filter(track => track.url);
+    }
+
+    async loadSourceSubtitles(source) {
+        const track = this.subtitleTracksFor(source)[0];
+        if (track) this.loadSubtitleTrack(track);
+    }
+
+    async loadSubtitleTrack(track) {
+        if (!track || !track.url) return;
+        const requestId = (this.subtitleRequestId || 0) + 1;
+        this.subtitleRequestId = requestId;
+        try {
+            const response = await fetch(track.url);
+            if (!response.ok || this.subtitleRequestId !== requestId) return;
+            const text = await response.text();
+            if (this.subtitleRequestId !== requestId) return;
+            const cues = this.parseSubtitleText(text);
+            if (cues.length) this.setSubtitleCues(cues, track.label || "زیرنویس منبع");
+        } catch (_) {}
+    }
+
+    loadSubtitleFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                let text = new TextDecoder("utf-8").decode(reader.result);
+                if (text.includes("\uFFFD")) {
+                    try { text = new TextDecoder("windows-1256").decode(reader.result); } catch (_) {}
+                }
+                const cues = this.parseSubtitleText(text);
+                if (!cues.length) {
+                    this.showPlayerToast("فایل زیرنویس خوانده نشد؛ SRT یا VTT معتبر انتخاب کنید.");
+                    return;
+                }
+                this.setSubtitleCues(cues, file.name);
+                this.openPlayerSheet("subtitles");
+                this.showPlayerToast(`${cues.length} خط زیرنویس بارگذاری شد`);
+            } catch (_) {
+                this.showPlayerToast("فایل زیرنویس خوانده نشد.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    parseCueTime(value) {
+        const text = String(value || "").trim();
+        let match = text.match(/(\d+):(\d{1,2}):(\d{1,2})[,.](\d{1,3})/);
+        if (match) {
+            return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]) + Number(match[4].padEnd(3, "0")) / 1000;
+        }
+        match = text.match(/(\d{1,2}):(\d{1,2})[,.](\d{1,3})/);
+        if (match) {
+            return Number(match[1]) * 60 + Number(match[2]) + Number(match[3].padEnd(3, "0")) / 1000;
+        }
+        return NaN;
+    }
+
+    parseSubtitleText(raw) {
+        const text = String(raw || "").replace(/\r/g, "").replace(/^\uFEFF/, "");
+        const cues = [];
+        text.split(/\n{2,}/).forEach(block => {
+            const lines = block.split("\n").filter(line => line.trim().length);
+            const timeIndex = lines.findIndex(line => line.includes("-->"));
+            if (timeIndex < 0) return;
+            const [startRaw, endRaw] = lines[timeIndex].split("-->");
+            const start = this.parseCueTime(startRaw);
+            const end = this.parseCueTime((endRaw || "").trim().split(/\s+/)[0]);
+            if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return;
+            const body = lines.slice(timeIndex + 1)
+                .join("\n")
+                .replace(/<[^>]+>/g, "")
+                .replace(/\{\\[^}]*\}/g, "")
+                .trim();
+            if (body) cues.push({ start, end, text: body });
+        });
+        return cues.sort((a, b) => a.start - b.start);
+    }
+
+    setSubtitleCues(cues, name) {
+        this.subtitleCues = cues;
+        this.subtitleName = name || "";
+        this.subtitleVisible = true;
+        const video = document.getElementById("html-video-player");
+        this.renderSubtitleCue(video ? video.currentTime : 0);
+    }
+
+    renderSubtitleCue(time) {
+        const layer = document.getElementById("player-subtitle-layer");
+        if (!layer) return;
+        if (!this.subtitleCues || !this.subtitleCues.length || !this.subtitleVisible) {
+            if (layer.firstChild) layer.replaceChildren();
+            return;
+        }
+        const cue = this.subtitleCues.find(item => time >= item.start - 0.25 && time <= item.end + 0.25);
+        let span = layer.firstElementChild;
+        if (!cue) {
+            if (span) layer.replaceChildren();
+            return;
+        }
+        if (!span) {
+            span = document.createElement("span");
+            layer.appendChild(span);
+        }
+        if (span.textContent !== cue.text) span.textContent = cue.text;
+    }
+
+    subtitleControlsHTML() {
+        const fonts = [
+            ["Vazirmatn", "وزیرمتن"],
+            ["Tahoma", "تاهوما"],
+            ["Arial", "آریال"],
+            ["system-ui", "پیش‌فرض سیستم"]
+        ];
+        return `
+            <div class="sub-style-row">
+                <span>فونت</span>
+                <select data-sub-field="font">
+                    ${fonts.map(([value, label]) => `<option value="${value}"${this.settings.subtitleFont === value ? " selected" : ""}>${label}</option>`).join("")}
+                </select>
+            </div>
+            <div class="sub-style-row">
+                <span>اندازه</span>
+                <input type="range" min="16" max="46" step="1" data-sub-field="size" value="${this.settings.subtitleSize}">
+            </div>
+            <div class="sub-style-row">
+                <span>رنگ متن</span>
+                <input type="color" data-sub-field="color" value="${this.settings.subtitleColor}">
+            </div>
+            <div class="sub-style-row">
+                <span>رنگ پس‌زمینه</span>
+                <input type="color" data-sub-field="bg" value="${this.settings.subtitleBg}">
+            </div>
+            <div class="sub-style-row">
+                <span>شفافیت پس‌زمینه</span>
+                <input type="range" min="0" max="100" step="5" data-sub-field="bgOpacity" value="${this.settings.subtitleBgOpacity}">
+            </div>
+        `;
+    }
+
+    handleSubtitleStyleInput(event) {
+        const field = event.target && event.target.dataset ? event.target.dataset.subField : "";
+        if (!field) return;
+        const value = event.target.value;
+        const storageKeys = {
+            font: ["subtitleFont", "bisnor_sub_font"],
+            size: ["subtitleSize", "bisnor_sub_size"],
+            color: ["subtitleColor", "bisnor_sub_color"],
+            bg: ["subtitleBg", "bisnor_sub_bg"],
+            bgOpacity: ["subtitleBgOpacity", "bisnor_sub_bg_opacity"]
+        };
+        const keys = storageKeys[field];
+        if (!keys) return;
+        const parsed = field === "font" ? value : parseInt(value, 10);
+        this.settings[keys[0]] = Number.isNaN(parsed) ? this.settings[keys[0]] : parsed;
+        localStorage.setItem(keys[1], String(this.settings[keys[0]]));
+        document.querySelectorAll(`[data-sub-field="${field}"]`).forEach(input => {
+            if (input !== event.target && input.value !== String(this.settings[keys[0]])) {
+                input.value = String(this.settings[keys[0]]);
+            }
+        });
+        this.applySubtitleStyle();
+    }
+
+    applySubtitleStyle() {
+        const hexToRgba = (hex, alpha) => {
+            const value = String(hex || "").replace("#", "");
+            const full = value.length === 3 ? value.split("").map(ch => ch + ch).join("") : value;
+            const number = parseInt(full, 16);
+            if (!Number.isFinite(number)) return `rgba(5, 7, 12, ${alpha})`;
+            return `rgba(${(number >> 16) & 255}, ${(number >> 8) & 255}, ${number & 255}, ${alpha})`;
+        };
+        const font = `"${this.settings.subtitleFont}", "Vazirmatn", Tahoma, sans-serif`;
+        const size = `${this.settings.subtitleSize}px`;
+        const color = this.settings.subtitleColor;
+        const background = hexToRgba(this.settings.subtitleBg, Math.max(0, Math.min(100, this.settings.subtitleBgOpacity)) / 100);
+        [document.getElementById("player-subtitle-layer"), document.getElementById("settings-subtitle-preview")]
+            .filter(Boolean)
+            .forEach(element => {
+                element.style.setProperty("--cue-font", font);
+                element.style.setProperty("--cue-size", size);
+                element.style.setProperty("--cue-color", color);
+                element.style.setProperty("--cue-bg", background);
+            });
     }
 
     /** Attaches HLS through hls.js when the browser lacks native HLS support. */
@@ -1605,6 +2309,15 @@ class BisnorApp {
         if (!video) return;
         console.warn("[Player] trying next source after:", detail, next);
         this.currentPlayingUrl = next;
+        const contextSource = this.playerContext && this.playerContext.sources
+            ? this.playerContext.sources.find(item => item.url === next)
+            : null;
+        if (contextSource) {
+            this.playerContext.current = contextSource;
+            this.updatePlayerQualityChip();
+            this.resetSubtitles();
+            this.loadSourceSubtitles(contextSource);
+        }
         this.attachStreamSource(video, next);
         video.play().catch(() => {});
     }
@@ -1614,8 +2327,13 @@ class BisnorApp {
         const desc = document.getElementById("player-error-desc");
         if (desc) {
             desc.textContent = detail
-                ? `پخش‌کننده داخلی این فرمت را پشتیبانی نمی‌کند (${detail}). می‌توانید از پلیر خارجی یا دانلود استفاده کنید.`
-                : "این فرمت توسط پخش‌کننده داخلی پشتیبانی نمی‌شود. می‌توانید از پلیر خارجی یا دانلود استفاده کنید.";
+                ? `این نسخه با پخش‌کنندهٔ مرورگر سازگار نیست (${detail}). کیفیت دیگری را امتحان کنید، با VLC ببینید یا فایل را دانلود کنید.`
+                : "این فرمت توسط پخش‌کنندهٔ مرورگر پشتیبانی نمی‌شود. کیفیت دیگری را امتحان کنید، با VLC ببینید یا فایل را دانلود کنید.";
+        }
+        const qualityButton = document.getElementById("btn-player-err-quality");
+        if (qualityButton) {
+            const count = (this.playerContext && this.playerContext.sources || []).length;
+            qualityButton.style.display = count > 1 ? "" : "none";
         }
         if (overlay) overlay.style.display = "flex";
     }
@@ -1625,6 +2343,9 @@ class BisnorApp {
         this.renderContinueWatching();
         this.streamQueue = [];
         this.clearStreamWatchdog();
+        this.closePlayerSheet();
+        this.resetSubtitles();
+        this.playerContext = null;
         const modal = document.getElementById("modal-player");
         const video = document.getElementById("html-video-player");
         const errOverlay = document.getElementById("player-error-overlay");
@@ -1852,7 +2573,7 @@ class BisnorApp {
         if (profileLogoutDivider) profileLogoutDivider.style.display = isLoggedIn ? "block" : "none";
 
         const version = document.getElementById("profile-version");
-        if (version) version.textContent = "v5.2.0";
+        if (version) version.textContent = "v5.3.0";
 
         this.renderAnalytics();
         this.renderHeatmap();
@@ -2157,8 +2878,12 @@ class BisnorApp {
     // --- Settings Tab ---
     loadSettings() {
         // Theme chips
-        document.querySelectorAll(".chip-theme").forEach(chip => {
+        document.querySelectorAll("#chip-group-themes .chip-theme").forEach(chip => {
             chip.classList.toggle("active", chip.getAttribute("data-theme") === this.settings.theme);
+        });
+
+        document.querySelectorAll("#chip-group-sources .chip-theme").forEach(chip => {
+            chip.classList.toggle("active", chip.getAttribute("data-source") === window.mediaService.sourceMode);
         });
 
         // Switches
@@ -2181,6 +2906,13 @@ class BisnorApp {
 
         // Player label
         this.updatePlayerSettingLabel();
+
+        // Subtitle appearance
+        const subtitleControls = document.getElementById("settings-subtitle-controls");
+        if (subtitleControls && !subtitleControls.childElementCount) {
+            subtitleControls.innerHTML = this.subtitleControlsHTML();
+        }
+        this.applySubtitleStyle();
     }
 
     // --- Auth Modal & Supabase Actions ---

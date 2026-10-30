@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دریافت واچ‌لیست — بیسنور</title>
+<style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+        font-family: Vazirmatn, "Segoe UI", Tahoma, sans-serif;
+        background: radial-gradient(1200px 600px at 50% -10%, #1b2433 0%, #05070c 60%);
+        color: #e8edf5;
+    }
+    .card {
+        width: min(94vw, 430px); background: rgba(18, 24, 35, .92); border: 1px solid rgba(255,255,255,.08);
+        border-radius: 26px; padding: 26px 22px; text-align: center;
+        box-shadow: 0 24px 60px rgba(0,0,0,.45);
+    }
+    .logo { width: 64px; height: 64px; object-fit: contain; margin-bottom: 10px; }
+    h1 { margin: 0 0 6px; font-size: 19px; }
+    .sub { margin: 0 0 18px; font-size: 12.5px; color: #9aa7b8; line-height: 1.9; }
+    .summary {
+        display: none; margin: 0 0 18px; padding: 14px; border-radius: 16px;
+        background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.07); font-size: 13px; line-height: 1.9;
+    }
+    .summary b { color: #ffcf5c; }
+    .btn {
+        display: block; width: 100%; margin-top: 10px; padding: 13px 16px; border-radius: 15px;
+        border: 0; font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+        background: linear-gradient(135deg, #ffcf5c, #ff9b42); color: #1a1206;
+    }
+    .btn.secondary { background: rgba(255,255,255,.08); color: #e8edf5; border: 1px solid rgba(255,255,255,.12); }
+    .btn:disabled { opacity: .55; cursor: default; }
+    .status { margin-top: 14px; font-size: 12.5px; color: #9aa7b8; line-height: 1.9; }
+    .status.ok { color: #6ee7a2; }
+    .status.err { color: #ff8b8b; }
+    a.home { display: inline-block; margin-top: 16px; color: #ffcf5c; font-size: 12.5px; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+    <img class="logo" src="/assets/logo.png" alt="Bisnor">
+    <h1>واچ‌لیست اشتراکی بیسنور</h1>
+    <p class="sub">اگر برنامه‌ی بیسنور نصب است، مستقیماً در آن باز می‌شود. در غیر این صورت می‌توانید لیست را به واچ‌لیست همین مرورگر اضافه کنید.</p>
+    <div id="summary" class="summary"></div>
+    <button id="btn-app" class="btn" type="button">باز کردن در برنامه‌ی بیسنور</button>
+    <button id="btn-web" class="btn secondary" type="button" disabled>افزودن به واچ‌لیست این مرورگر</button>
+    <div id="status" class="status">در حال خواندن لینک…</div>
+    <a class="home" href="/">رفتن به وب‌سایت بیسنور</a>
+</div>
+<script>
+(function () {
+    const params = new URLSearchParams(location.search);
+    const raw = params.get("data") || "";
+    const statusEl = document.getElementById("status");
+    const summaryEl = document.getElementById("summary");
+    const btnApp = document.getElementById("btn-app");
+    const btnWeb = document.getElementById("btn-web");
+    let payload = null;
+
+    function setStatus(text, kind) {
+        statusEl.textContent = text;
+        statusEl.className = "status" + (kind ? " " + kind : "");
+    }
+
+    function appUrl() {
+        return "bisnor://app/playlist?data=" + encodeURIComponent(raw);
+    }
+
+    async function decodePayload(value) {
+        const binary = atob(value);
+        const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+        if ("DecompressionStream" in window) {
+            const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+            return JSON.parse(await new Response(stream).text());
+        }
+        throw new Error("unsupported");
+    }
+
+    btnApp.addEventListener("click", () => { location.href = appUrl(); });
+
+    btnWeb.addEventListener("click", () => {
+        if (!payload || !Array.isArray(payload.items)) return;
+        let existing = [];
+        try { existing = JSON.parse(localStorage.getItem("bisnor_local_favorites") || "[]"); } catch (_) { existing = []; }
+        const known = new Set(existing.map(item => String(item.id)));
+        const added = payload.items.filter(item => item && item.id != null && !known.has(String(item.id)));
+        localStorage.setItem("bisnor_local_favorites", JSON.stringify([...added, ...existing]));
+        btnWeb.disabled = true;
+        btnWeb.textContent = "به واچ‌لیست اضافه شد ✓";
+        setStatus(added.length + " اثر به واچ‌لیست این مرورگر اضافه شد. حالا بیسنور را باز کنید.", "ok");
+    });
+
+    if (!raw) {
+        setStatus("لینک اشتراک‌گذاری ناقص است. از دوستتان بخواهید لینک را دوباره بفرستد.", "err");
+        btnApp.disabled = true;
+        return;
+    }
+
+    if (/android/i.test(navigator.userAgent)) {
+        setTimeout(() => { location.href = appUrl(); }, 500);
+    }
+
+    decodePayload(raw).then(data => {
+        payload = data;
+        const name = (data && data.name) || "واچ‌لیست";
+        const items = (data && Array.isArray(data.items)) ? data.items : [];
+        summaryEl.style.display = "block";
+        summaryEl.innerHTML = "لیست <b>" + String(name).replace(/[<>&]/g, "") + "</b><br>" + items.length + " فیلم و سریال";
+        btnWeb.disabled = items.length === 0;
+        setStatus("اگر دکمه‌ی باز کردن برنامه کار نکرد، یعنی بیسنور نصب نیست؛ می‌توانید لیست را در مرورگر ذخیره کنید.", "");
+    }).catch(() => {
+        setStatus("این لینک قابل خواندن نیست. ممکن است ناقص کپی شده باشد.", "err");
+        btnApp.disabled = true;
+    });
+})();
+</script>
+</body>
+</html>

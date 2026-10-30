@@ -4,6 +4,10 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const repositoryRoot = path.resolve(__dirname, "..", "..");
+const providerLayer = fs.readFileSync(
+    path.join(repositoryRoot, "desktop", "BisnorDesktop", "wwwroot", "js", "providers.js"),
+    "utf8"
+);
 const catalogClient = fs.readFileSync(
     path.join(repositoryRoot, "desktop", "BisnorDesktop", "wwwroot", "js", "data.js"),
     "utf8"
@@ -13,14 +17,21 @@ const desktopController = fs.readFileSync(
     "utf8"
 );
 
+const stored = new Map();
 const context = {
     window: {},
     console,
     AbortSignal,
     setTimeout,
-    clearTimeout
+    clearTimeout,
+    localStorage: {
+        getItem: key => (stored.has(key) ? stored.get(key) : null),
+        setItem: (key, value) => stored.set(key, String(value)),
+        removeItem: key => stored.delete(key)
+    }
 };
 vm.createContext(context);
+vm.runInContext(providerLayer, context);
 vm.runInContext(catalogClient, context);
 
 const service = context.window.mediaService;
@@ -53,6 +64,7 @@ service.getPopularSeries = stub("series");
     assert.equal(calls.length, 10, "the hydrated catalog must not refetch every visit");
 
     let searchPath = "";
+    service.setSourceMode("both");
     service.fetchEndpoint = async (path) => {
         searchPath = path;
         return {

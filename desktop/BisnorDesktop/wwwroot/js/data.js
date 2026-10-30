@@ -15,6 +15,13 @@ class MediaDataService {
         this.endpointCache = new Map();
         this.inFlightRequests = new Map();
         this.seasonsCache = new Map();
+        this.next = new window.NextMovieProvider();
+        this.sourceMode = localStorage.getItem("bisnor_source") || "both";
+        this.nmHomePromise = null;
+        this.nmRows = null;
+        this.nmListCache = new Map();
+        this.nextMatchCache = new Map();
+        this.nextMatchPending = new Map();
         this.initBridgeListener();
         this.loadCatalogCache();
         this.servers = [
@@ -37,6 +44,296 @@ class MediaDataService {
         if (this.adKeywords.some(kw => t.includes(kw) || d.includes(kw))) return true;
         if (u.endsWith(".apk") || u.includes("download_app") || u.includes("telegram") || u.includes("t.me")) return true;
         return false;
+    }
+
+    // ------------------------------------------------------------ source modes
+
+    usesNext() {
+        return this.sourceMode === "next" || this.sourceMode === "both";
+    }
+
+    usesIranflix() {
+        return this.sourceMode === "iranflix" || this.sourceMode === "both";
+    }
+
+    setSourceMode(mode) {
+        const wanted = ["next", "iranflix", "both"].includes(mode) ? mode : "both";
+        if (wanted === this.sourceMode) return false;
+        this.sourceMode = wanted;
+        localStorage.setItem("bisnor_source", wanted);
+        this.catalog = [];
+        this.exploreLoaded = false;
+        this.exploreLoadPromise = null;
+        this.endpointCache.clear();
+        this.seasonsCache.clear();
+        this.nextMatchCache.clear();
+        this.nextMatchPending.clear();
+        this.nmRows = null;
+        this.nmHomePromise = null;
+        this.nmListCache.clear();
+        this.next.memory.clear();
+        return true;
+    }
+
+    async getNextSlides() {
+        if (this.nmRows) return this.nmRows;
+        if (this.nmHomePromise) return this.nmHomePromise;
+        this.nmHomePromise = (async () => {
+            try {
+                const slides = await this.next.home();
+                const rows = (slides.movies || []).map(slide => ({
+                    name: slide.name || "",
+                    type: slide.type,
+                    items: (slide.items || []).map(item => this.next.toMedia(item)).filter(Boolean)
+                })).filter(row => row.items.length);
+                const genres = (slides.genres || []).map(item => ({ id: item.id, title: item.title || "" }));
+                const countries = (slides.countries || []).map(item => ({ id: item.id, title: item.title || "" }));
+                this.nmRows = { rows, genres, countries };
+                return this.nmRows;
+            } catch (_) {
+                return { rows: [], genres: [], countries: [] };
+            } finally {
+                this.nmHomePromise = null;
+            }
+        })();
+        return this.nmHomePromise;
+    }
+
+    pickNextRow(kind) {
+        const rows = (this.nmRows && this.nmRows.rows) || [];
+        const named = (row, words) => words.some(word => row.name.includes(word));
+        let row = null;
+        if (kind === "series") {
+            row = rows.find(item => named(item, ["سریال‌های جدید", "سریال های جدید"]));
+        } else if (kind === "anime") {
+            row = rows.find(item => named(item, ["انیمه"]));
+        } else {
+            row = rows.find(item => named(item, ["فیلم‌های جدید", "فیلم های جدید"]));
+        }
+        const items = row ? row.items.slice() : [];
+        if (kind === "series") return items.filter(item => item.type === "serie");
+        if (kind === "movie") return items.filter(item => item.type === "movie");
+        return items;
+    }
+
+    findNextGenre(words) {
+        const genres = (this.nmRows && this.nmRows.genres) || [];
+        const hit = genres.find(genre => words.some(word => (genre.title || "").includes(word)));
+        return hit ? hit.id : 0;
+    }
+
+    async getNextList(kind) {
+        const cached = this.nmListCache.get(kind);
+        if (cached && Date.now() - cached.at < 5 * 60 * 1000) return cached.data.slice();
+        const items = await this.loadNextList(kind);
+        this.nmListCache.set(kind, { at: Date.now(), data: items });
+        return items.slice();
+    }
+
+    async loadNextList(kind) {
+        await this.getNextSlides();
+        if (kind === "top") {
+            const items = (await this.next.browse({ sortKey: "imdb_rating", page: 1 }))
+                .map(item => this.next.toMedia(item))
+                .filter(Boolean)
+                .filter(item => item.imdb > 0 && item.imdb < 9.9);
+            return items;
+        }
+        if (kind === "anime" || kind === "korean") {
+            const genreId = this.findNextGenre(kind === "anime" ? ["انیمیشن", "انیمه"] : ["کره"]);
+            const base = kind === "anime" ? [] : this.pickNextRow("movie");
+            if (!genreId) return base;
+            const extra = (await this.next.browse({ genreIds: [genreId], page: 1 }))
+                .map(item => this.next.toMedia(item))
+                .filter(Boolean);
+            return [...base, ...extra].filter((item, index, all) => all.findIndex(other => other.id === item.id) === index);
+        }
+        return this.pickNextRow(kind);
+    }
+
+    /** One entry per title: Next items are matched against the IranFlix list. */
+    mergeCollections(iranflixItems, nextItems) {
+        const irItems = (iranflixItems || []).filter(Boolean);
+        const nmItems = (nextItems || []).filter(Boolean);
+        if (!this.usesNext() || nmItems.length === 0) return irItems;
+        if (!irItems.length) return nmItems;
+
+        const index = new window.BisnorMerge.MatchIndex(irItems);
+        const used = new Set();
+        const merged = [];
+        nmItems.forEach(nextItem => {
+            const match = index.find(nextItem);
+            if (match && !used.has(match.id)) {
+                used.add(match.id);
+                merged.push(window.BisnorMerge.mergePair(match, nextItem));
+            } else {
+                merged.push(nextItem);
+            }
+        });
+        irItems.forEach(item => {
+            if (!used.has(item.id)) merged.push(item);
+        });
+        return merged;
+    }
+
+    parseIndex(title, fallback) {
+        const text = window.BisnorMerge.normalizeDigits(title || "");
+        // Quality and language markers are not season/episode numbers.
+        const cleaned = text
+            .replace(/\b(?:2160|1440|1080|720|480|360|4k|8k)\b/gi, " ")
+            .replace(/(?:زیرنویس|چسبیده|دوبله|پارسی|کیفیت|صوت|زبان|فصل|قسمت|season|episode)/gi, " ");
+        const digit = cleaned.match(/(\d+)/);
+        if (digit) return Number(digit[1]);
+        const ordinals = { اول: 1, یکم: 1, دوم: 2, سوم: 3, چهارم: 4, پنجم: 5, ششم: 6, هفتم: 7, هشتم: 8, نهم: 9, دهم: 10 };
+        for (const [word, value] of Object.entries(ordinals)) {
+            if (text.includes(word)) return value;
+        }
+        return fallback;
+    }
+
+    dedupeSources(sources) {
+        const seen = new Set();
+        return (sources || []).filter(source => {
+            if (!source || !source.url) return false;
+            const key = source.url.split("?")[0];
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
+    /**
+     * Finds the Next Movie id of an IranFlix title that the list matching missed.
+     * The catalogue merge only sees the rows that happen to be loaded together, so a
+     * title opened from a watchlist, a stale cache or an unmatched row would otherwise
+     * show IranFlix links only while still being present on Next Movie.
+     */
+    async resolveNextId(media) {
+        if (!media || !this.usesNext() || !media.title) return 0;
+        const ids = media.ids || {};
+        if (ids.next) return Number(ids.next) || 0;
+        const key = `${window.BisnorMerge.normalizeTitle(media.title)}|${media.type === "serie" ? "series" : "movie"}|${media.year || 0}`;
+        if (this.nextMatchCache.has(key)) return this.nextMatchCache.get(key);
+        if (this.nextMatchPending.has(key)) return this.nextMatchPending.get(key);
+
+        const task = (async () => {
+            try {
+                const results = await this.next.search(media.title, media.type === "serie" ? "series" : "movie");
+                const index = new window.BisnorMerge.MatchIndex([media]);
+                for (const raw of results) {
+                    const candidate = this.next.toMedia(raw);
+                    if (!candidate) continue;
+                    if (index.find(candidate)) return Number(candidate.nmId) || 0;
+                }
+            } catch (_) {}
+            return 0;
+        })().finally(() => this.nextMatchPending.delete(key));
+
+        this.nextMatchPending.set(key, task);
+        const id = await task;
+        if (id) this.nextMatchCache.set(key, id);
+        return id;
+    }
+
+    /** Applies a resolved Next id to the media object without touching IranFlix metadata. */
+    applyNextId(media, nextId) {
+        const id = Number(nextId) || 0;
+        if (!media || id <= 0) return media;
+        media.ids = { ...(media.ids || {}), next: id };
+        media.nmId = id;
+        if (media.source !== "next" && media.source !== "both") {
+            media.ids.iranflix = media.ids.iranflix || media.id;
+            media.source = "both";
+        }
+        return media;
+    }
+
+    /** Fills in the fields that list endpoints do not return. */
+    async hydrateMedia(media) {
+        if (!media || media.__hydrated) return media;
+        media.__hydrated = true;
+        if (!this.usesNext()) return media;
+
+        let nextId = Number((media.ids || {}).next) || 0;
+        if (!nextId) {
+            nextId = await this.resolveNextId(media);
+            if (!nextId) return media;
+            this.applyNextId(media, nextId);
+        }
+
+        try {
+            if (media.type === "serie") {
+                const details = await this.next.details(nextId);
+                if (details) this.applyNextDetails(media, details);
+                return media;
+            }
+            const [details, links] = await Promise.all([
+                this.next.details(nextId),
+                this.next.links(nextId)
+            ]);
+            if (details) this.applyNextDetails(media, details);
+            const nextSources = ((links && links.movie_links) || [])
+                .map(link => this.next.toSource(link))
+                .filter(Boolean);
+            media.nmSources = nextSources;
+            media.sources = this.dedupeSources([...(media.sources || []), ...nextSources]);
+        } catch (_) {}
+        return media;
+    }
+
+    applyNextDetails(media, details) {
+        if (!media.description) media.description = details.description || "";
+        if (!media.image) media.image = details.poster || "";
+        if (!media.cover) media.cover = details.poster || "";
+        if (!media.year) media.year = Number(details.year) || 0;
+        if (!media.imdb) media.imdb = Number.parseFloat(details.imdb_rating) || 0;
+        if (!media.duration) media.duration = details.duration || "";
+        if (!media.genres || !media.genres.length) {
+            media.genres = (details.genres || []).map(genre => ({ id: genre.id || 0, title: (genre.title || "").trim() })).filter(genre => genre.title);
+        }
+        if (!media.country || !media.country.length) {
+            media.country = (details.countries || []).map(country => ({ id: country.id || 0, title: (country.title || "").trim() })).filter(country => country.title);
+        }
+    }
+
+    async fetchNextSeasons(nextId) {
+        const links = await this.next.links(nextId);
+        return this.next.toSeasonList(links);
+    }
+
+    mergeSeasons(iranflixSeasons, nextSeasons) {
+        const irSeasons = (iranflixSeasons || []).filter(Boolean);
+        const nmSeasons = (nextSeasons || []).filter(Boolean);
+        if (!nmSeasons.length) return irSeasons;
+        if (!irSeasons.length) return nmSeasons;
+
+        const byNumber = new Map();
+        irSeasons.forEach((season, index) => byNumber.set(Number(season.number) || index + 1, { ...season, episodes: (season.episodes || []).slice() }));
+        nmSeasons.forEach((season, index) => {
+            const number = Number(season.number) || index + 1;
+            const existing = byNumber.get(number);
+            if (!existing) {
+                byNumber.set(number, { ...season, episodes: (season.episodes || []).slice() });
+                return;
+            }
+            existing.episodes = this.mergeEpisodes(existing.episodes || [], season.episodes || []);
+        });
+        return [...byNumber.entries()].sort((a, b) => a[0] - b[0]).map(entry => entry[1]);
+    }
+
+    mergeEpisodes(iranflixEpisodes, nextEpisodes) {
+        const byNumber = new Map();
+        iranflixEpisodes.forEach((episode, index) => byNumber.set(Number(episode.number) || index + 1, { ...episode, sources: (episode.sources || []).slice() }));
+        nextEpisodes.forEach((episode, index) => {
+            const number = Number(episode.number) || index + 1;
+            const existing = byNumber.get(number);
+            if (!existing) {
+                byNumber.set(number, { ...episode, sources: (episode.sources || []).slice() });
+                return;
+            }
+            existing.sources = this.dedupeSources([...(existing.sources || []), ...(episode.sources || [])]);
+        });
+        return [...byNumber.entries()].sort((a, b) => a[0] - b[0]).map(entry => entry[1]);
     }
 
     initBridgeListener() {
@@ -222,7 +519,8 @@ class MediaDataService {
             id: s.id || 0,
             quality: (s.quality || '').replace(/زیرنویس/g, 'فارسی').trim(),
             type: s.type || '',
-            url: s.url
+            url: s.url,
+            origin: "iranflix"
         }));
 
         // Optimize image URLs
@@ -302,7 +600,7 @@ class MediaDataService {
         }
     }
 
-    async getLatestMovies(page = 0) {
+    async getIranflixLatest(page = 0) {
         const raw = await this.fetchEndpoint(`/api/movie/by/filtres/0/created/${page}/{API_KEY}/`);
         if (Array.isArray(raw) && raw.length > 0) {
             const items = raw.map(x => this.cleanMedia(x)).filter(Boolean);
@@ -312,7 +610,7 @@ class MediaDataService {
         return [];
     }
 
-    async getPopularSeries(page = 0) {
+    async getIranflixSeries(page = 0) {
         const raw = await this.fetchEndpoint(`/api/serie/by/filtres/0/created/${page}/{API_KEY}/`);
         if (Array.isArray(raw) && raw.length > 0) {
             const items = raw.map(x => this.cleanMedia(x)).filter(Boolean);
@@ -322,7 +620,7 @@ class MediaDataService {
         return [];
     }
 
-    async getTopImdb(page = 0) {
+    async getIranflixTopImdb(page = 0) {
         const raw = await this.fetchEndpoint(`/api/movie/by/filtres/0/imdb/${page}/{API_KEY}/`);
         if (Array.isArray(raw) && raw.length > 0) {
             const items = raw.map(x => this.cleanMedia(x)).filter(Boolean);
@@ -332,7 +630,7 @@ class MediaDataService {
         return [];
     }
 
-    async getAnimations() {
+    async getIranflixAnimations() {
         const raw = await this.fetchEndpoint("/api/movie/by/filtres/3/created/0/{API_KEY}/");
         if (Array.isArray(raw) && raw.length > 0) {
             const items = raw.map(x => this.cleanMedia(x)).filter(Boolean);
@@ -340,6 +638,39 @@ class MediaDataService {
             return items;
         }
         return [];
+    }
+
+    async combine(kind, page, iranflixFetcher) {
+        if (this.sourceMode === "iranflix") {
+            const items = await iranflixFetcher();
+            this.mergeIntoCatalog(items);
+            return items;
+        }
+        const nextItems = await this.getNextList(kind);
+        if (this.sourceMode === "next") {
+            this.mergeIntoCatalog(nextItems);
+            return nextItems;
+        }
+        const irItems = await iranflixFetcher();
+        const items = this.mergeCollections(irItems, nextItems);
+        this.mergeIntoCatalog(items);
+        return items;
+    }
+
+    async getLatestMovies(page = 0) {
+        return this.combine("movie", page, () => this.getIranflixLatest(page));
+    }
+
+    async getPopularSeries(page = 0) {
+        return this.combine("series", page, () => this.getIranflixSeries(page));
+    }
+
+    async getTopImdb(page = 0) {
+        return this.combine("top", page, () => this.getIranflixTopImdb(page));
+    }
+
+    async getAnimations() {
+        return this.combine("anime", 0, () => this.getIranflixAnimations());
     }
 
     async getExploreCatalog() {
@@ -359,8 +690,10 @@ class MediaDataService {
             this.getLatestMovies(2),
             this.getPopularSeries(0),
             this.getPopularSeries(1),
-            this.getPopularSeries(2)
+            this.getPopularSeries(2),
+            this.getAnimations()
         ];
+        if (this.usesNext()) requests.push(this.getNextList("korean"));
 
         this.exploreLoadPromise = Promise.allSettled(requests).then(() => {
             this.exploreLoaded = true;
@@ -373,33 +706,84 @@ class MediaDataService {
         return this.exploreLoadPromise;
     }
 
-    async search(query) {
-        if (!query || !query.trim()) return this.getExploreCatalog();
+    async searchIranflix(query) {
         // Iranflix expects path-safe percent encoding. A '+' is treated literally by
         // this endpoint, so multi-word titles such as "One Piece" otherwise return 0.
         const encoded = encodeURIComponent(query.trim());
         const raw = await this.fetchEndpoint(`/api/search/${encoded}/{API_KEY}/`);
-        const serverItems = raw && Array.isArray(raw.posters)
+        return raw && Array.isArray(raw.posters)
             ? raw.posters.map(x => this.cleanMedia(x)).filter(Boolean)
             : [];
+    }
+
+    async search(query) {
+        if (!query || !query.trim()) return this.getExploreCatalog();
+        const q = query.trim();
+
+        const irPromise = this.usesIranflix() ? this.searchIranflix(q).catch(() => []) : Promise.resolve([]);
+        const nmPromise = this.usesNext()
+            ? this.next.search(q).then(items => items.map(x => this.next.toMedia(x)).filter(Boolean)).catch(() => [])
+            : Promise.resolve([]);
+        const [irItems, nmItems] = await Promise.all([irPromise, nmPromise]);
+
+        let serverItems = [];
+        if (this.sourceMode === "both") {
+            serverItems = this.mergeCollections(irItems, nmItems);
+        } else if (this.sourceMode === "next") {
+            serverItems = nmItems;
+        } else {
+            serverItems = irItems;
+        }
         this.mergeIntoCatalog(serverItems);
-        await this.getExploreCatalog();
+
         // Always combine the live response with the hydrated catalog. The API may
         // return title matches but omit credits that match a partial person name.
-        const q = query.trim().toLowerCase();
+        const qLower = q.toLocaleLowerCase();
         const localMatches = this.catalog.filter(x => {
-            const title = (x.title || '').toLowerCase();
-            const desc = (x.description || '').toLowerCase();
-            const genres = (x.genres || []).map(g => g.title).join(' ').toLowerCase();
-            const people = (x.people || []).map(person => person.name).join(' ').toLowerCase();
-            return title.includes(q) || desc.includes(q) || genres.includes(q) || people.includes(q);
+            const title = (x.title || '').toLocaleLowerCase();
+            const desc = (x.description || '').toLocaleLowerCase();
+            const genres = (x.genres || []).map(g => g.title).join(' ').toLocaleLowerCase();
+            const people = (x.people || []).map(person => person.name).join(' ').toLocaleLowerCase();
+            return title.includes(qLower) || desc.includes(qLower) || genres.includes(qLower) || people.includes(qLower);
         });
         return [...serverItems, ...localMatches].filter((item, index, all) =>
             all.findIndex(candidate => String(candidate.id) === String(item.id)) === index
         );
     }
 
-    async getSeriesSeasons(seriesId) {
+    async getSeriesSeasons(target) {
+        const media = target && typeof target === "object" ? target : this.catalog.find(item => String(item.id) === String(target));
+        const ids = (media && media.ids) || {};
+        const iranflixId = ids.iranflix || (media
+            ? (typeof media.id === "number" ? media.id : 0)
+            : Number(target) || 0);
+        let nextId = ids.next || 0;
+        if (!nextId && media && this.usesNext()) {
+            nextId = await this.resolveNextId(media);
+            if (nextId) this.applyNextId(media, nextId);
+        }
+        const cacheKey = `merged_${media ? media.id : target}_${this.sourceMode}_${nextId}`;
+        const cached = this.seasonsCache.get(cacheKey);
+        if (cached && Date.now() - cached.at < 10 * 60 * 1000) return cached.data;
+
+        const irTask = this.usesIranflix() && iranflixId
+            ? this.fetchIranflixSeasons(iranflixId).catch(() => [])
+            : Promise.resolve([]);
+        const nmTask = this.usesNext() && nextId
+            ? this.fetchNextSeasons(nextId).catch(() => [])
+            : Promise.resolve([]);
+        const [irSeasons, nmSeasons] = await Promise.all([irTask, nmTask]);
+
+        let seasons;
+        if (this.sourceMode === "next") seasons = nmSeasons;
+        else if (this.sourceMode === "iranflix") seasons = irSeasons;
+        else seasons = this.mergeSeasons(irSeasons, nmSeasons);
+
+        if (seasons.length) this.seasonsCache.set(cacheKey, { at: Date.now(), data: seasons });
+        return seasons;
+    }
+
+    async fetchIranflixSeasons(seriesId) {
         const cacheKey = String(seriesId);
         const cached = this.seasonsCache.get(cacheKey);
         if (cached && Date.now() - cached.at < 10 * 60 * 1000) return cached.data;
@@ -424,7 +808,8 @@ class MediaDataService {
                         id: src.id || 0,
                         quality: (src.quality || '').replace(/زیرنویس/g, 'فارسی').trim(),
                         type: src.type || '',
-                        url: src.url
+                        url: src.url,
+                        origin: "iranflix"
                     }));
 
                     if (cleanSources.length > 0) {
@@ -438,7 +823,7 @@ class MediaDataService {
                 });
 
                 if (episodes.length > 0) {
-                    seasons.push({ id: s.id, title, episodes });
+                    seasons.push({ id: s.id, number: this.parseIndex(title, idx + 1), title, episodes: episodes.map((episode, index) => ({ ...episode, number: this.parseIndex(episode.title, index + 1) })) });
                 }
             });
             this.seasonsCache.set(cacheKey, { at: Date.now(), data: seasons });
@@ -448,10 +833,30 @@ class MediaDataService {
     }
 
     mergeIntoCatalog(items) {
-        items.forEach(item => {
-            if (!this.catalog.some(c => c.id === item.id)) {
-                this.catalog.push(item);
+        const list = (items || []).filter(Boolean);
+        if (!list.length) return;
+        const matching = this.usesIranflix() && list.some(item => item.source === "next");
+        const index = matching
+            ? new window.BisnorMerge.MatchIndex(this.catalog.filter(item => item.source !== "next"))
+            : null;
+
+        list.forEach(item => {
+            const at = this.catalog.findIndex(candidate => candidate.id === item.id);
+            if (at >= 0) {
+                this.catalog[at] = { ...this.catalog[at], ...item, ids: item.ids || this.catalog[at].ids };
+                return;
             }
+            if (index && item.source === "next") {
+                const match = index.find(item);
+                if (match) {
+                    const position = this.catalog.indexOf(match);
+                    const merged = window.BisnorMerge.mergePair(match, item);
+                    merged.__hydrated = match.__hydrated;
+                    this.catalog[position] = merged;
+                    return;
+                }
+            }
+            this.catalog.push(item);
         });
     }
 

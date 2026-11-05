@@ -6,6 +6,8 @@ import com.hnn.bisnor.data.model.RealMedia
 import com.hnn.bisnor.data.model.RealSeason
 import com.hnn.bisnor.data.model.RealSource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -34,6 +36,14 @@ object NextMovieRepository {
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)
+        .build()
+
+    /** Redirect-chain prober: every hop inspected on its own, no automatic following. */
+    private val resolver = client.newBuilder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .connectTimeout(6, TimeUnit.SECONDS)
+        .readTimeout(6, TimeUnit.SECONDS)
         .build()
 
     @Volatile
@@ -131,7 +141,66 @@ object NextMovieRepository {
 
     suspend fun details(id: Int): JSONObject? = cachedObject("details:$id") { request("/movie/$id/details") }
 
-    suspend fun links(id: Int): JSONObject? = cachedObject("links:$id") { request("/movie/$id/links") }
+    suspend fun links(id: Int): JSONObject? = cachedObject("links:$id") {
+        request("/movie/$id/links")?.also { rewriteStreamUrls(it) }
+    }
+
+    /**
+     * Next Movie hands out `s200.cdn123.ir` URLs that redirect to `tca*.pishtazmovie.ir`
+     * edge nodes; part of those nodes answer HTTPS with the DirectAdmin self-signed
+     * certificate, which every certificate-validating player rejects, so playback dies
+     * right after the link resolves. The same files stream fine over port 80.
+     */
+    private suspend fun rewriteStreamUrls(root: JSONObject) {
+        root.optJSONArray("movie_links")?.let { rewriteLinks(it) }
+        val seasons = root.optJSONArray("seasons") ?: return
+        for (i in 0 until seasons.length()) {
+            val episodes = seasons.optJSONObject(i)?.optJSONArray("episodes") ?: continue
+            for (j in 0 until episodes.length()) {
+                episodes.optJSONObject(j)?.optJSONArray("links")?.let { rewriteLinks(it) }
+            }
+        }
+    }
+
+    private suspend fun rewriteLinks(array: JSONArray) = coroutineScope {
+        val pending = (0 until array.length()).mapNotNull { i ->
+            val entry = array.optJSONObject(i) ?: return@mapNotNull null
+            val url = entry.optString("url", "").replace("\\/", "/").trim()
+            if (!url.startsWith("http")) null else async { entry.put("url", resolveStreamUrl(url)) }
+        }
+        pending.forEach { it.await() }
+    }
+
+    /**
+     * Walks the redirect chain of one stream URL and returns the final hop. The CDN's
+     * edge nodes mix valid wildcard certificates with the DirectAdmin self-signed
+     * default, so a hop that rejects TLS is retried once over port 80 (the same file,
+     * identical bytes, and cleartext is already allowed for this app).
+     */
+    private suspend fun resolveStreamUrl(url: String): String = withContext(Dispatchers.IO) {
+        var current = url
+        repeat(6) {
+            val next = try {
+                val request = Request.Builder().url(current).head().build()
+                resolver.newCall(request).execute().use { response ->
+                    if (response.isRedirect) {
+                        response.header("Location")?.let { location ->
+                            runCatching { java.net.URI(current).resolve(location).toString() }.getOrNull()
+                        }
+                    } else {
+                        ""
+                    }
+                }
+            } catch (_: Exception) {
+                if (current.startsWith("https://")) "http://" + current.substring(8)
+                else return@withContext current
+            }
+            if (next.isNullOrEmpty()) return@withContext current
+            current = next
+        }
+        current
+    }
+
 
     /** Id of the first home-slide genre whose title contains one of [words]. */
     suspend fun genreId(vararg words: String): Int {

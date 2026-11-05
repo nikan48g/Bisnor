@@ -2573,7 +2573,7 @@ class BisnorApp {
         if (profileLogoutDivider) profileLogoutDivider.style.display = isLoggedIn ? "block" : "none";
 
         const version = document.getElementById("profile-version");
-        if (version) version.textContent = "v5.3.0";
+        if (version) version.textContent = "v5.3.2";
 
         this.renderAnalytics();
         this.renderHeatmap();
@@ -2883,8 +2883,16 @@ class BisnorApp {
         });
 
         document.querySelectorAll("#chip-group-sources .chip-theme").forEach(chip => {
-            chip.classList.toggle("active", chip.getAttribute("data-source") === window.mediaService.sourceMode);
+            const source = chip.getAttribute("data-source");
+            chip.classList.toggle("active", source === window.mediaService.sourceMode);
+            chip.style.display = window.BISNOR_NEXT_ENABLED === false && source !== "iranflix" ? "none" : "";
         });
+        const sourceNote = document.getElementById("source-note");
+        if (sourceNote) {
+            sourceNote.textContent = window.BISNOR_NEXT_ENABLED === false
+                ? "در این نسخه فقط آرشیو ایران‌فلیکس نمایش داده می‌شود."
+                : "در حالت «هر دو منبع»، هر عنوان یک‌بار نمایش داده می‌شود و لینک‌ها و قسمت‌های هر دو منبع با هم ترکیب می‌شوند.";
+        }
 
         // Switches
         const switchAuto = document.getElementById("switch-auto-next");

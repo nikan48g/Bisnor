@@ -21,6 +21,9 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(fs.readFileSync(path.join(wwwroot, "providers.js"), "utf8"), context);
+// Browser builds ship with Next Movie turned off; this suite covers the merge
+// logic itself, which must still work once the upstream CDN is playable again.
+context.window.BISNOR_NEXT_ENABLED = true;
 vm.runInContext(fs.readFileSync(path.join(wwwroot, "data.js"), "utf8"), context);
 
 const { BisnorMerge } = context.window;
@@ -193,6 +196,27 @@ async function run() {
     assert.equal(hydrated.source, "both");
     assert.equal(hydrated.sources.filter(source => source.origin === "next").length, 1,
         "the detail page now offers the Next Movie links too");
+
+    // ------------------------------------------- shipped browser default (off)
+    const offContext = {
+        window: {},
+        console,
+        AbortSignal,
+        setTimeout,
+        clearTimeout,
+        localStorage: { getItem: () => "both", setItem: () => {}, removeItem: () => {} }
+    };
+    vm.createContext(offContext);
+    vm.runInContext(fs.readFileSync(path.join(wwwroot, "providers.js"), "utf8"), offContext);
+    vm.runInContext(fs.readFileSync(path.join(wwwroot, "data.js"), "utf8"), offContext);
+    const offService = offContext.window.mediaService;
+    assert.equal(offContext.window.BISNOR_NEXT_ENABLED, false, "Next Movie is disabled in the shipped browser build");
+    assert.equal(offService.sourceMode, "iranflix", "even a stored 'both' setting falls back to IranFlix");
+    assert.equal(offService.usesNext(), false);
+    assert.equal(offService.setSourceMode("both"), false, "the source selector cannot re-enable Next Movie");
+    const offMerged = offService.mergeCollections(iranflixList, nextList);
+    assert.equal(offMerged.length, 2, "no Next-only titles leak into the browser catalogue");
+    assert.ok(offMerged.every(item => !String(item.id).startsWith("nm_")));
 
     console.log("Two-source matching, merging, source modes and season/episode merge tests passed.");
 }

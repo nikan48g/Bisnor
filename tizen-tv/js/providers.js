@@ -9,6 +9,12 @@
 (function () {
     "use strict";
 
+    // Browser players cannot open Next Movie streams: its CDN edges answer HTTPS
+    // with a self-signed certificate and mixed-content rules block the port-80
+    // fallback that the Android client uses. Flip this to true once the upstream
+    // certificate is fixed.
+    window.BISNOR_NEXT_ENABLED = false;
+
     const WORKER_ORIGIN = "https://bisnor-pwa.drive-storage-hnn.workers.dev";
     const NM_TOKEN_TTL = 25 * 60 * 1000;
 

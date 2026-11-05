@@ -1217,7 +1217,9 @@ class BisnorApp {
     syncSourceChips() {
         const mode = (window.mediaService && window.mediaService.sourceMode) || "both";
         document.querySelectorAll(".chip-source").forEach(chip => {
-            chip.classList.toggle("active", chip.getAttribute("data-source") === mode);
+            const source = chip.getAttribute("data-source");
+            chip.classList.toggle("active", source === mode);
+            chip.style.display = window.BISNOR_NEXT_ENABLED === false && source !== "iranflix" ? "none" : "";
         });
     }
 

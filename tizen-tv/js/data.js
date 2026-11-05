@@ -20,7 +20,9 @@ class MediaDataService {
         ];
         this.apiKey = "4F5A9C3D9A86FA54EACEDDD635185";
         this.next = new window.NextMovieProvider();
-        this.sourceMode = localStorage.getItem("bisnor_source") || "both";
+        this.sourceMode = window.BISNOR_NEXT_ENABLED === false
+            ? "iranflix"
+            : (localStorage.getItem("bisnor_source") || "both");
         this.nmCache = new Map();
         this.nextMatchCache = new Map();
         this.adKeywords = [
@@ -205,6 +207,7 @@ class MediaDataService {
     // ------------------------------------------------------------ source mode
 
     usesNext() {
+        if (window.BISNOR_NEXT_ENABLED === false) return false;
         return this.sourceMode === "next" || this.sourceMode === "both";
     }
 
@@ -213,6 +216,7 @@ class MediaDataService {
     }
 
     setSourceMode(mode) {
+        if (window.BISNOR_NEXT_ENABLED === false) return;
         const normalized = (mode === "next" || mode === "iranflix" || mode === "both") ? mode : "both";
         if (normalized === this.sourceMode) return;
         this.sourceMode = normalized;

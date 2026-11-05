@@ -1,4 +1,4 @@
-const CACHE = "bisnor-shell-v10";
+const CACHE = "bisnor-shell-v11";
 const SHELL = [
   "./",
   "index.html",

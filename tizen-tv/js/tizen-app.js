@@ -550,7 +550,9 @@
         function syncSourceChips() {
             var mode = (window.mediaService && window.mediaService.sourceMode) || 'both';
             for (var k = 0; k < sourceChips.length; k += 1) {
-                if (sourceChips[k].getAttribute('data-source') === mode) sourceChips[k].classList.add('active');
+                var chipSource = sourceChips[k].getAttribute('data-source');
+                sourceChips[k].style.display = window.BISNOR_NEXT_ENABLED === false && chipSource !== 'iranflix' ? 'none' : '';
+                if (chipSource === mode) sourceChips[k].classList.add('active');
                 else sourceChips[k].classList.remove('active');
             }
         }

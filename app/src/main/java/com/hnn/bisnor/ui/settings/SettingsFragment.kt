@@ -1,26 +1,36 @@
 package com.hnn.bisnor.ui.settings
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.radiobutton.MaterialRadioButton
 import com.hnn.bisnor.R
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
+import com.hnn.bisnor.data.repository.SharedPlaylistImporter
+import com.hnn.bisnor.data.repository.SocialLink
+import com.hnn.bisnor.data.repository.SocialLinksRepository
+import com.hnn.bisnor.data.repository.SourcePreferences
 import com.hnn.bisnor.databinding.FragmentSettingsBinding
 import com.hnn.bisnor.ui.downloads.DownloadsActivity
 import com.hnn.bisnor.util.PlayerLauncherHelper
 import com.hnn.bisnor.util.ThemeHelper
+import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
 
@@ -66,6 +76,24 @@ class SettingsFragment : Fragment() {
             }
         }
 
+        // Content source (Next Movie / IranFlix / both)
+        when (SourcePreferences.mode) {
+            SourcePreferences.IRANFLIX -> binding.chipSourceIranflix.isChecked = true
+            SourcePreferences.BOTH -> binding.chipSourceBoth.isChecked = true
+            else -> binding.chipSourceNext.isChecked = true
+        }
+        binding.chipGroupSources.setOnCheckedStateChangeListener { _, checkedIds ->
+            val newMode = when (checkedIds.firstOrNull()) {
+                R.id.chip_source_iranflix -> SourcePreferences.IRANFLIX
+                R.id.chip_source_both -> SourcePreferences.BOTH
+                else -> SourcePreferences.NEXT
+            }
+            if (newMode != SourcePreferences.mode) {
+                SourcePreferences.setMode(newMode)
+                requireActivity().recreate()
+            }
+        }
+
         // External Player Selector
         updatePlayerLabel()
         binding.btnSettingPlayerChoice.setOnClickListener {
@@ -94,6 +122,84 @@ class SettingsFragment : Fragment() {
             startActivity(Intent(requireContext(), DownloadsActivity::class.java))
         }
 
+        binding.btnSettingImport.setOnClickListener { showImportDialog() }
+
+        lifecycleScope.launch { loadSocialLinks() }
+    }
+
+    private suspend fun loadSocialLinks() {
+        val links = SocialLinksRepository.fetch()
+        if (!isAdded) return
+        if (links.isEmpty()) {
+            binding.settingsSocialSection.visibility = View.GONE
+            return
+        }
+        val row = binding.socialLinksRow
+        row.removeAllViews()
+        for (link in links) row.addView(buildSocialButton(link))
+        binding.settingsSocialSection.visibility = View.VISIBLE
+    }
+
+    private fun buildSocialButton(link: SocialLink): ImageButton {
+        val size = (46 * resources.displayMetrics.density).toInt()
+        val padding = (11 * resources.displayMetrics.density).toInt()
+        return ImageButton(requireContext()).apply {
+            setImageResource(socialIcon(link.platform))
+            imageTintList = android.content.res.ColorStateList.valueOf(
+                resources.getColor(R.color.on_surface, null)
+            )
+            background = resources.getDrawable(R.drawable.bg_social_icon, null)
+            contentDescription = link.label
+            if (android.os.Build.VERSION.SDK_INT >= 26) tooltipText = link.label
+            setPadding(padding, padding, padding, padding)
+            val params = LinearLayout.LayoutParams(size, size)
+            params.marginEnd = (10 * resources.displayMetrics.density).toInt()
+            layoutParams = params
+            setOnClickListener {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
+                runCatching { startActivity(intent) }
+                    .onFailure { Toast.makeText(requireContext(), "برنامه‌ای برای باز کردن این لینک نیست", Toast.LENGTH_SHORT).show() }
+            }
+            isFocusable = true
+        }
+    }
+
+    private fun socialIcon(platform: String): Int = when (platform) {
+        "instagram" -> R.drawable.ic_social_instagram
+        "telegram" -> R.drawable.ic_social_telegram
+        "x" -> R.drawable.ic_social_x
+        "youtube" -> R.drawable.ic_social_youtube
+        "facebook" -> R.drawable.ic_social_facebook
+        "email" -> R.drawable.ic_social_email
+        else -> R.drawable.ic_social_website
+    }
+
+    private fun showImportDialog() {
+        val input = EditText(requireContext()).apply {
+            hint = "https://…/import?data=… یا کد دریافتی"
+            setSingleLine(false)
+            minLines = 2
+            maxLines = 5
+            setTextColor(resources.getColor(R.color.on_surface, null))
+            setHintTextColor(resources.getColor(R.color.outline, null))
+            gravity = Gravity.START or Gravity.TOP
+            setPadding(24, 24, 24, 24)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("وارد کردن واچ‌لیست")
+            .setMessage("لینک اشتراک‌گذاری یا کد را اینجا بچسبانید؛ لیست به‌صورت یک پلی‌لیست جدید ذخیره می‌شود.")
+            .setView(input)
+            .setPositiveButton("افزودن") { _, _ ->
+                val payload = SharedPlaylistImporter.parse(input.text?.toString())
+                if (payload == null) {
+                    Toast.makeText(requireContext(), "کد قابل خواندن نیست یا لیست خالی است", Toast.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+                val saved = SharedPlaylistImporter.save(requireContext(), payload)
+                Toast.makeText(requireContext(), "$saved اثر به پلی‌لیست اضافه شد", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("انصراف", null)
+            .show()
     }
 
     private fun updatePlayerLabel() {

@@ -111,7 +111,7 @@ class SupabaseAuthService {
     }
 
     async syncUp() {
-        if (!this.isLoggedIn() || !("CompressionStream" in window)) return false;
+        if (!this.isLoggedIn()) return false;
         const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/profiles?user_id=eq.${encodeURIComponent(this.getUserId())}`, {
             method: "PATCH", headers: this.headers(true, { "Content-Type": "application/json" }),
             body: JSON.stringify({ avatar_id: this.getAvatarId(), favorites_data: await this.compress(JSON.stringify(this.getFavorites())) })
@@ -119,7 +119,7 @@ class SupabaseAuthService {
         return response.ok;
     }
     async syncDown() {
-        if (!this.isLoggedIn() || !("DecompressionStream" in window)) return false;
+        if (!this.isLoggedIn()) return false;
         const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/profiles?user_id=eq.${encodeURIComponent(this.getUserId())}&select=avatar_id,favorites_data`, { headers: this.headers(true) });
         if (!response.ok) return false;
         const profile = (await response.json())[0];

@@ -28,6 +28,8 @@ public partial class MainWindow : Window
         Timeout = TimeSpan.FromSeconds(15)
     };
 
+    private MediaRelay? _mediaRelay;
+
     public MainWindow()
     {
         var appVersion = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "5.1.1";
@@ -45,6 +47,7 @@ public partial class MainWindow : Window
         catch { }
 
         Loaded += MainWindow_Loaded;
+        Closed += (_, _) => _mediaRelay?.Dispose();
         ContentRendered += (s, e) =>
         {
             Activate();
@@ -72,6 +75,18 @@ public partial class MainWindow : Window
             webView.CoreWebView2.Settings.IsPinchZoomEnabled = false;
 
             webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+
+            try
+            {
+                _mediaRelay = new MediaRelay();
+                _mediaRelay.Start();
+                var relayScript = $"window.BISNOR_MEDIA_BASE={JsonSerializer.Serialize(_mediaRelay.Origin + _mediaRelay.MediaPath)};";
+                await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(relayScript);
+            }
+            catch
+            {
+                _mediaRelay = null;
+            }
 
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var searchPaths = new[]

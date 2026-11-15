@@ -1,0 +1,72 @@
+/* TV-only affordances layered on top of the shared Bisnor shell. */
+
+body.tv-keynav *:focus {
+    outline: 4px solid #ffd166;
+    outline-offset: 4px;
+    border-radius: 14px;
+}
+
+body.tv-keynav .media-card:focus,
+body.tv-keynav .person-card:focus,
+body.tv-keynav .player-option-card:focus,
+body.tv-keynav .avatar-item-choice:focus {
+    transform: scale(1.06);
+    z-index: 2;
+}
+
+body.tv-keynav .media-card,
+body.tv-keynav .person-card,
+body.tv-keynav .player-option-card,
+body.tv-keynav .avatar-item-choice,
+body.tv-keynav .clickable-row {
+    transition: transform 140ms ease, outline-color 140ms ease;
+}
+
+/* The player controls sit on top of AVPlay's hardware plane; keep them
+   comfortably above the safe area used by setDisplayRect. */
+.player-overlay .player-controls {
+    z-index: 10;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.app-container {
+    height: 100vh;
+}
+
+.main-content {
+    height: calc(100vh - 90px);
+    overflow-y: auto;
+}
+
+/* On-screen boot diagnostics: the TV exposes no console. */
+#tv-boot-error {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2147483647;
+    display: block;
+    padding: 10px 18px;
+    background: rgba(150, 12, 12, 0.94);
+    color: #fff;
+    font: 20px/1.45 Menlo, Consolas, monospace;
+    direction: ltr;
+    text-align: left;
+    white-space: pre-wrap;
+    pointer-events: none;
+}
+
+/* AVPlay draws its video plane under the web layer, so an opaque container
+   would hide the picture and leave audio only. */
+#modal-player.tv-avplay .player-container {
+    background: transparent;
+}
+
+#modal-player.tv-avplay #html-video-player {
+    visibility: hidden;
+}

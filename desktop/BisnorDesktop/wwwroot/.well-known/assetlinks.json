@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.hnn.bisnor",
+      "sha256_cert_fingerprints": [
+        "3F:55:B7:B6:99:D4:AC:69:84:0A:EA:8B:7B:9F:D0:6C:35:56:46:C2:50:BB:E8:DE:F6:57:76:DF:38:9A:42:02"
+      ]
+    }
+  }
+]

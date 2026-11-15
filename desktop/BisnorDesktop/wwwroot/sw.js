@@ -1,4 +1,4 @@
-const CACHE = "bisnor-shell-v6";
+const CACHE = "bisnor-shell-v12";
 const SHELL = [
   "./",
   "index.html",
@@ -6,8 +6,10 @@ const SHELL = [
   "css/bisnor-android.css",
   "js/app.js",
   "js/data.js",
+  "js/providers.js",
   "js/supabase.js",
   "js/poster-fallback.js",
+  "js/mkv-player.js",
   "manifest.webmanifest",
   "assets/avatars/avatar_guest.svg"
 ];
@@ -26,7 +28,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
   // Live catalog and auth/profile responses must never be served from the shell cache.
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/sb/")) return;
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/sb/") || url.pathname.startsWith("/nm/")) return;
   event.respondWith(fetch(event.request).then(response => {
     if (response.ok) {
       const copy = response.clone();

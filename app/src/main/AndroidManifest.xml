@@ -4,6 +4,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Phones, tablets and Android TV: the app works with a D-pad and does not need a touchscreen. -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.faketouch" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+
     <!-- Android 11+ package visibility for supported external players. -->
     <queries>
         <package android:name="org.videolan.vlc" />
@@ -16,6 +21,7 @@
     <application
         android:name=".BisnorApp"
         android:allowBackup="false"
+        android:banner="@drawable/tv_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -33,6 +39,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Android TV home screen entry point. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+
             <!-- Deep link for opening shared playlists and friend chat -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -41,6 +53,17 @@
                 <data
                     android:scheme="bisnor"
                     android:host="app" />
+            </intent-filter>
+
+            <!-- Verified App Link: shared watchlists open the app without the browser. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="bisnor-pwa.drive-storage-hnn.workers.dev"
+                    android:pathPrefix="/import" />
             </intent-filter>
 
             <intent-filter>

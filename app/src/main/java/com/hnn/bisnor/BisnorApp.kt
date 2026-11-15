@@ -61,6 +61,7 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks {
         com.hnn.bisnor.util.ThemeHelper.initAppTheme(this)
         registerActivityLifecycleCallbacks(this)
         com.hnn.bisnor.data.repository.SegmentedDownloadManager.init(this)
+        com.hnn.bisnor.data.repository.SourcePreferences.init(this)
         com.hnn.bisnor.data.repository.RealMediaRepository.init(this)
         com.hnn.bisnor.util.PersonPhotoResolver.init(this)
 

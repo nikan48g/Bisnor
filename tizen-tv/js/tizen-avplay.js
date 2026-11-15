@@ -14,6 +14,7 @@
         currentUrl: null,
         duration: 0,
         timer: null,
+        prepareTimer: null,
 
         init: function (containerEl) {
             console.log("[TizenAVPlay] Engine initialized.");
@@ -23,9 +24,10 @@
             }
         },
 
-        play: function (url, title, onProgress, onEnded, onError) {
+        play: function (url, title, onProgress, onEnded, onError, startAt) {
             this.currentUrl = url;
             this.subtitleIndex = -1;
+            this.clearPrepareTimer();
             console.log("[TizenAVPlay] Starting playback for:", title, url);
 
             if (!this.isTizen()) {
@@ -48,9 +50,7 @@
                 // Samsung AVPlay coordinates use the logical 1920x1080 TV plane and
                 // are scaled by the TV. Browser screen dimensions can report 960x540
                 // or 1280x720 and would leave playback covering only part of the panel.
-                // Reserve top/bottom safe areas for the custom TV controls. On
-                // Q-series firmware AVPlay's hardware plane otherwise covers DOM.
-                avplay.setDisplayRect(0, 220, 1920, 640);
+                avplay.setDisplayRect(0, 0, 1920, 1080);
                 avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_AUTO_ASPECT_RATIO');
 
                 var self = this;
@@ -91,21 +91,46 @@
 
                 avplay.setListener(listener);
 
+                // Some MKV/audio combinations leave prepareAsync pending forever on
+                // Tizen 5/6 firmware: there is neither a callback nor an onerror, so
+                // the viewer only sees the spinner. Fail over after a hard deadline.
+                var prepareTimedOut = false;
+                this.prepareTimer = setTimeout(function () {
+                    if (self.playerState === 'PLAYING') return;
+                    prepareTimedOut = true;
+                    console.error("[TizenAVPlay] prepareAsync timed out for", url);
+                    try { avplay.stop(); } catch (ignore) {}
+                    try { avplay.close(); } catch (ignore) {}
+                    self.playerState = 'NONE';
+                    if (typeof onError === 'function') onError('prepare-timeout');
+                }, 20000);
+
                 // Prepare and start
                 avplay.prepareAsync(function () {
+                    self.clearPrepareTimer();
+                    if (prepareTimedOut) return;
                     self.duration = avplay.getDuration();
                     // Reapply after preparation: several Tizen 5 models discard the
                     // display rectangle set while the player is still IDLE.
-                    avplay.setDisplayRect(0, 220, 1920, 640);
+                    avplay.setDisplayRect(0, 0, 1920, 1080);
                     avplay.play();
                     self.playerState = 'PLAYING';
+                    // Resuming after a quality switch: jump back to the spot the
+                    // viewer was watching instead of restarting the title.
+                    if (startAt > 1) {
+                        try { avplay.seekTo(Math.floor(startAt * 1000)); } catch (ignore) {}
+                    }
                     // Prefer the first embedded text track. This is deliberately
                     // best-effort: a source without an embedded subtitle cannot
                     // receive one from AVPlay alone.
                     setTimeout(function () { self.selectSubtitle(0); }, 1000);
                     console.log("[TizenAVPlay] Hardware Playback Started Successfully!");
                 }, function (err) {
+                    self.clearPrepareTimer();
                     console.error("[TizenAVPlay] Prepare error:", err);
+                    try { avplay.stop(); } catch (ignore) {}
+                    try { avplay.close(); } catch (ignore) {}
+                    self.playerState = 'NONE';
                     if (typeof onError === 'function') onError(err);
                 });
 
@@ -163,12 +188,20 @@
         },
 
         stop: function () {
+            this.clearPrepareTimer();
             if (this.isTizen()) {
                 try {
                     window.webapis.avplay.stop();
                     window.webapis.avplay.close();
                 } catch (e) {}
                 this.playerState = 'NONE';
+            }
+        },
+
+        clearPrepareTimer: function () {
+            if (this.prepareTimer) {
+                clearTimeout(this.prepareTimer);
+                this.prepareTimer = null;
             }
         }
     };

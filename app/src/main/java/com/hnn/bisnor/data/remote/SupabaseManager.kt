@@ -177,6 +177,13 @@ class AuthManager(private val context: Context) {
         SupabaseManager.patchProfile(context, payload)
     }
 
+    /** Pull the other device's favorites/playlists on app start and push the union back. */
+    // shortcut: union merge, so an item removed on another device comes back; upgrade with per-item tombstones.
+    suspend fun refreshFromCloud(c: Context) = withContext(Dispatchers.IO) {
+        if (!isLoggedIn) return@withContext
+        SupabaseManager.fetchProfile(c)?.let { mergeCloudIntoLocal(c, it); syncUp(c) }
+    }
+
     suspend fun syncUp(c: Context): Boolean = withContext(Dispatchers.IO) {
         if (!isLoggedIn) return@withContext false
 

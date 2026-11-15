@@ -2,6 +2,8 @@ package com.hnn.bisnor
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -38,6 +40,37 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_LIBRARY = "tab_library"
         private const val TAG_PROFILE = "tab_profile"
         private const val KEY_ACTIVE_TAG = "active_tab_tag"
+    }
+
+    // D-pad: the floating nav bar is not reachable by plain focus search on TV, so route Down/Up to it.
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN && ::binding.isInitialized) {
+            val nav = binding.bottomNavigation
+            val focused = currentFocus
+            if (event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN && focused != null &&
+                !isDescendantOf(focused, nav) &&
+                focused.focusSearch(View.FOCUS_DOWN) == null
+            ) {
+                nav.findViewById<View>(nav.selectedItemId)?.requestFocus()
+                return true
+            }
+            if (event.keyCode == KeyEvent.KEYCODE_DPAD_UP && focused != null && isDescendantOf(focused, nav)) {
+                binding.fragmentContainer.requestFocus(View.FOCUS_DOWN)
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        lifecycleScope.launch { runCatching { com.hnn.bisnor.data.remote.AuthManager(applicationContext).refreshFromCloud(applicationContext) } }
+    }
+
+    private fun isDescendantOf(v: View, root: View): Boolean {
+        var p: android.view.ViewParent? = v.parent
+        while (p != null) { if (p === root) return true; p = p.parent }
+        return false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -224,29 +257,25 @@ class MainActivity : AppCompatActivity() {
             try {
                 val host = uri.host ?: ""
                 val path = uri.path ?: ""
-                if (path.contains("playlist") || host.contains("playlist")) {
-                    val compressedData = uri.getQueryParameter("data")
-                    if (!compressedData.isNullOrEmpty()) {
-                        val decoded = java.net.URLDecoder.decode(compressedData, "UTF-8")
-                        val json = com.hnn.bisnor.data.remote.SupabaseManager.decompressString(decoded)
-                        val payload = com.hnn.bisnor.data.model.SharedPlaylistPayload.fromJson(json)
-                        if (payload != null && payload.items.isNotEmpty()) {
-                            com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                                .setTitle("دریافت لیست «${payload.name}»")
-                                .setMessage("این لیست شامل ${payload.items.size} اثر است. به لیست‌های شما اضافه شود؟")
-                                .setPositiveButton("ذخیره") { _, _ ->
-                                    val playlistsManager =
-                                        com.hnn.bisnor.data.repository.PlaylistsManager(this)
-                                    val newId = playlistsManager.createPlaylist("${payload.name} (اشتراکی)")
-                                    payload.items.forEach { playlistsManager.addToPlaylist(newId, it) }
-                                    android.widget.Toast.makeText(
-                                        this, "لیست ذخیره شد", android.widget.Toast.LENGTH_SHORT
-                                    ).show()
-                                    selectFavoritesTab()
-                                }
-                                .setNegativeButton("انصراف", null)
-                                .show()
-                        }
+                val isPlaylistLink = path.contains("playlist") || host.contains("playlist") ||
+                    path.trimEnd('/') == "/import"
+                if (isPlaylistLink) {
+                    val payload = com.hnn.bisnor.data.repository.SharedPlaylistImporter
+                        .parse(uri.toString())
+                    if (payload != null) {
+                        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                            .setTitle("دریافت لیست «${payload.name}»")
+                            .setMessage("این لیست شامل ${payload.items.size} اثر است. به لیست‌های شما اضافه شود؟")
+                            .setPositiveButton("ذخیره") { _, _ ->
+                                val saved = com.hnn.bisnor.data.repository.SharedPlaylistImporter
+                                    .save(this, payload)
+                                android.widget.Toast.makeText(
+                                    this, "$saved اثر ذخیره شد", android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                                selectFavoritesTab()
+                            }
+                            .setNegativeButton("انصراف", null)
+                            .show()
                     }
                 }
             } catch (_: Exception) {

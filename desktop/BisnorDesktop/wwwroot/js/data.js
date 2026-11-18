@@ -16,7 +16,9 @@ class MediaDataService {
         this.inFlightRequests = new Map();
         this.seasonsCache = new Map();
         this.next = new window.NextMovieProvider();
-        this.sourceMode = localStorage.getItem("bisnor_source") || "both";
+        this.sourceMode = window.BISNOR_NEXT_ENABLED === false
+            ? "iranflix"
+            : (localStorage.getItem("bisnor_source") || "both");
         this.nmHomePromise = null;
         this.nmRows = null;
         this.nmListCache = new Map();
@@ -49,6 +51,7 @@ class MediaDataService {
     // ------------------------------------------------------------ source modes
 
     usesNext() {
+        if (window.BISNOR_NEXT_ENABLED === false) return false;
         return this.sourceMode === "next" || this.sourceMode === "both";
     }
 
@@ -57,6 +60,7 @@ class MediaDataService {
     }
 
     setSourceMode(mode) {
+        if (window.BISNOR_NEXT_ENABLED === false) return false;
         const wanted = ["next", "iranflix", "both"].includes(mode) ? mode : "both";
         if (wanted === this.sourceMode) return false;
         this.sourceMode = wanted;
@@ -369,7 +373,11 @@ class MediaDataService {
             const stored = JSON.parse(localStorage.getItem("bisnor_catalog_cache_v1") || "null");
             if (!stored || !Array.isArray(stored.items)) return;
             if (Date.now() - Number(stored.at || 0) > 24 * 60 * 60 * 1000) return;
-            this.catalog = stored.items;
+            // A cache written while Next Movie was enabled would otherwise keep
+            // listing titles whose links this build cannot play.
+            this.catalog = window.BISNOR_NEXT_ENABLED === false
+                ? stored.items.filter(item => item.source !== "next" && !String(item.id).startsWith("nm_"))
+                : stored.items;
         } catch (_) {}
     }
 

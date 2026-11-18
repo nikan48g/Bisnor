@@ -1,6 +1,7 @@
 package com.hnn.bisnor.ui.settings
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater

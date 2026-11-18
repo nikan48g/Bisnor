@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -20,6 +22,8 @@ import com.hnn.bisnor.data.database.SmartTasteDatabase
 import com.hnn.bisnor.data.remote.AuthManager
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.data.repository.PlaybackProgress
+import com.hnn.bisnor.data.repository.SocialLink
+import com.hnn.bisnor.data.repository.SocialLinksRepository
 import com.hnn.bisnor.databinding.FragmentProfileBinding
 import com.hnn.bisnor.databinding.ItemContinueWatchingBinding
 import com.hnn.bisnor.ui.downloads.DownloadsActivity
@@ -50,6 +54,7 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch { loadSocialLinks() }
         authManager = AuthManager(requireContext())
         historyManager = PlaybackHistoryManager(requireContext())
         tasteDb = SmartTasteDatabase(requireContext())
@@ -301,5 +306,57 @@ class ProfileFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    // ------------------------------------------------------------------ follow us
+
+    private suspend fun loadSocialLinks() {
+        val links = SocialLinksRepository.fetch()
+        if (!isAdded) return
+        if (links.isEmpty()) {
+            binding.settingsSocialSection.visibility = View.GONE
+            return
+        }
+        val row = binding.socialLinksRow
+        row.removeAllViews()
+        for (link in links) row.addView(buildSocialButton(link))
+        binding.settingsSocialSection.visibility = View.VISIBLE
+    }
+
+    private fun buildSocialButton(link: SocialLink): ImageButton {
+        val size = (46 * resources.displayMetrics.density).toInt()
+        val padding = (11 * resources.displayMetrics.density).toInt()
+        return ImageButton(requireContext()).apply {
+            setImageResource(socialIcon(link.platform))
+            imageTintList = android.content.res.ColorStateList.valueOf(
+                resources.getColor(R.color.on_surface, null)
+            )
+            background = resources.getDrawable(R.drawable.bg_social_icon, null)
+            contentDescription = link.label
+            if (android.os.Build.VERSION.SDK_INT >= 26) tooltipText = link.label
+            setPadding(padding, padding, padding, padding)
+            val params = LinearLayout.LayoutParams(size, size)
+            // Equal margins on both sides keep the centred row symmetric.
+            params.marginStart = (6 * resources.displayMetrics.density).toInt()
+            params.marginEnd = params.marginStart
+            layoutParams = params
+            setOnClickListener {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
+                runCatching { startActivity(intent) }
+                    .onFailure { Toast.makeText(requireContext(), "برنامه‌ای برای باز کردن این لینک نیست", Toast.LENGTH_SHORT).show() }
+            }
+            isFocusable = true
+        }
+    }
+
+    private fun socialIcon(platform: String): Int = when (platform) {
+        "instagram" -> R.drawable.ic_social_instagram
+        "telegram" -> R.drawable.ic_social_telegram
+        "x" -> R.drawable.ic_social_x
+        "youtube" -> R.drawable.ic_social_youtube
+        "facebook" -> R.drawable.ic_social_facebook
+        "email" -> R.drawable.ic_social_email
+        "github" -> R.drawable.ic_github
+        else -> R.drawable.ic_social_website
     }
 }

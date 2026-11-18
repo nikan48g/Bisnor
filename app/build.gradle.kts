@@ -23,8 +23,8 @@ android {
         applicationId = "com.hnn.bisnor"
         minSdk = 24
         targetSdk = 35
-        versionCode = 42
-        versionName = "5.3.2"
+        versionCode = 45
+        versionName = "5.3.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

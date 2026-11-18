@@ -8,8 +8,10 @@
     app:cardBackgroundColor="@color/surface_container"
     app:cardCornerRadius="18dp"
     app:cardElevation="0dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/outline_variant">
+    app:strokeWidth="0dp"
+    android:focusable="true"
+    android:foreground="@drawable/fg_focus_ring"
+    android:stateListAnimator="@animator/focus_lift">
 
     <LinearLayout
         android:layout_width="match_parent"

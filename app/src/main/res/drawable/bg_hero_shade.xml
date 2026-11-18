@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Soft dark veil behind the hero text, so white type stays readable in light theme too. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:centerColor="#00000000"
+        android:centerY="0.35"
+        android:endColor="#B3000000"
+        android:startColor="#59000000"
+        android:type="linear" />
+</shape>

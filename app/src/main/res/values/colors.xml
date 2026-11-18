@@ -24,20 +24,20 @@
     <color name="on_tertiary_container">#3B0903</color>
 
     <!-- Surfaces -->
-    <color name="background">#FAF6F1</color>
+    <color name="background">#F2F2F7</color>
     <color name="on_background">#1C1815</color>
     <color name="surface">#FFFFFF</color>
-    <color name="on_surface">#1C1815</color>
-    <color name="surface_variant">#F1E9E1</color>
-    <color name="on_surface_variant">#6B6058</color>
+    <color name="on_surface">#1C1C1E</color>
+    <color name="surface_variant">#E5E5EA</color>
+    <color name="on_surface_variant">#6C6C70</color>
     <color name="surface_container_lowest">#FFFFFF</color>
-    <color name="surface_container_low">#F7F1EB</color>
-    <color name="surface_container">#F1E9E1</color>
-    <color name="surface_container_high">#EADFD4</color>
-    <color name="surface_container_highest">#E2D5C8</color>
+    <color name="surface_container_low">#F7F7FA</color>
+    <color name="surface_container">#FFFFFF</color>
+    <color name="surface_container_high">#E9E9EE</color>
+    <color name="surface_container_highest">#DEDEE3</color>
 
-    <color name="outline">#8A7D72</color>
-    <color name="outline_variant">#DCCFC3</color>
+    <color name="outline">#8E8E93</color>
+    <color name="outline_variant">#1A000000</color>
 
     <!-- Accents & functional -->
     <color name="rating_gold">#B67A00</color>
@@ -69,9 +69,24 @@
     <color name="bisnor_scrim_bottom">#F2000000</color>
 
     <!-- Activity heatmap scale (0 = no activity) -->
-    <color name="heat_0">#EDE4DA</color>
+    <color name="heat_0">#E5E5EA</color>
     <color name="heat_1">#FFD9B0</color>
     <color name="heat_2">#F7AC5C</color>
     <color name="heat_3">#E07A12</color>
     <color name="heat_4">#A94D00</color>
+    <!-- Liquid glass (light): frosted milk over a saturated blur -->
+    <color name="lg_tint">#5CF6F4F2</color>
+    <color name="lg_sheen">#66FFFFFF</color>
+    <color name="lg_rim_top">#E6FFFFFF</color>
+    <color name="lg_rim_bottom">#26FFFFFF</color>
+    <color name="lg_indicator">#40000000</color>
+    <color name="lg_fill_top">#8CFFFFFF</color>
+    <color name="lg_fill_bottom">#59FFFFFF</color>
+    <!-- Primary play pill sits on artwork, so it stays white in both themes -->
+    <color name="pill_bg">#FFFFFFFF</color>
+    <color name="pill_fg">#FF0B0B0C</color>
+    <color name="hero_dot_idle">#66FFFFFF</color>
+    <color name="danger">#FF3B30</color>
+    <!-- Liquid glass specular highlight (follows touch / selected tab) -->
+    <color name="lg_glow">#B3FFFFFF</color>
 </resources>

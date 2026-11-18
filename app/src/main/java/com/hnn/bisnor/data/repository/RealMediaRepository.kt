@@ -410,7 +410,7 @@ object RealMediaRepository {
         val seen = hero.map { it.id }.toMutableSet()
         fun row(title: String, source: List<RealMedia>): HomeRow? {
             val items = source.filter { seen.add(it.id) && (it.image.isNotEmpty() || it.cover.isNotEmpty()) }
-            return if (items.isEmpty()) null else HomeRow(title, items.take(20))
+            return if (items.isEmpty()) null else HomeRow(title, items.take(40))
         }
 
         val rows = listOfNotNull(

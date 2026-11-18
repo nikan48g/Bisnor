@@ -1,14 +1,16 @@
-const CACHE = "bisnor-shell-v11";
+const CACHE = "bisnor-shell-v13";
 const SHELL = [
   "./",
   "index.html",
   "css/app.css",
   "css/bisnor-android.css",
+  "css/apple-tv.css",
   "js/app.js",
   "js/data.js",
   "js/providers.js",
   "js/supabase.js",
   "js/poster-fallback.js",
+  "js/mkv-player.js",
   "manifest.webmanifest",
   "assets/avatars/avatar_guest.svg"
 ];

@@ -1,18 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- One "more" button; share / sort / privacy live in an action sheet. -->
     <item
-        android:id="@+id/action_sort_playlist"
-        android:icon="@drawable/ic_filter"
-        android:title="رتبه‌بندی و مرتب‌سازی"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_toggle_privacy"
-        android:icon="@drawable/ic_bookmark"
-        android:title="عمومی / خصوصی"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_share_playlist"
-        android:icon="@drawable/ic_share"
-        android:title="اشتراک‌گذاری"
+        android:id="@+id/action_more"
+        android:icon="@drawable/ic_more_horiz"
+        android:title="گزینه‌ها"
+        app:iconTint="@color/on_surface"
         app:showAsAction="always" />
 </menu>

@@ -192,14 +192,7 @@ class ExploreFragment : Fragment() {
         }
 
         if (filterCountry != "مهم نیست") {
-            val needle = when {
-                filterCountry.contains("کره") -> "کره"
-                filterCountry.contains("ژاپن") -> "ژاپن"
-                filterCountry.contains("ترکیه") -> "ترکیه"
-                filterCountry.contains("ایران") -> "ایران"
-                filterCountry.contains("آمریکا") -> "آمریکا"
-                else -> ""
-            }
+            val needle = if (filterCountry.contains("کره")) "کره" else filterCountry
             if (needle.isNotEmpty()) {
                 filtered = filtered.filter { item ->
                     item.country.any { it.title.contains(needle) } ||
@@ -362,7 +355,7 @@ class ExploreFragment : Fragment() {
                 .setItems(items) { _, which -> tempContent = items[which]; btnContent.text = tempContent }.show()
         }
         btnCountry.setOnClickListener {
-            val items = arrayOf("مهم نیست", "کره جنوبی", "ژاپن", "ترکیه", "ایران", "آمریکا")
+            val items = (listOf("مهم نیست") + allLoaded.flatMap { it.country }.map { it.title }.filter { it.isNotBlank() }.distinct().sorted()).toTypedArray()
             MaterialAlertDialogBuilder(requireContext()).setTitle("کشور:")
                 .setItems(items) { _, which -> tempCountry = items[which]; btnCountry.text = tempCountry }.show()
         }

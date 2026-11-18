@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.favorites
 
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -48,21 +50,18 @@ class PlaylistDetailActivity : AppCompatActivity() {
         binding.toolbarPlaylistDetail.setNavigationOnClickListener { finish() }
         binding.toolbarPlaylistDetail.inflateMenu(R.menu.menu_playlist_detail)
         binding.toolbarPlaylistDetail.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_share_playlist -> {
-                    sharePlaylistLink()
-                    true
-                }
-                R.id.action_sort_playlist -> {
-                    showSortDialog()
-                    true
-                }
-                R.id.action_toggle_privacy -> {
-                    showPrivacyDialog()
-                    true
-                }
-                else -> false
-            }
+            if (menuItem.itemId != R.id.action_more) return@setOnMenuItemClickListener false
+            com.hnn.bisnor.util.ActionSheet.show(
+                this,
+                title = playlistName,
+                subtitle = "${allPlaylistItems.size} اثر",
+                actions = listOf(
+                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_share, "اشتراک‌گذاری لیست") { sharePlaylistLink() },
+                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_filter, "مرتب‌سازی") { showSortDialog() },
+                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_lock, "عمومی یا خصوصی") { showPrivacyDialog() }
+                )
+            )
+            true
         }
 
         adapter = RealMediaAdapter(emptyList(), onItemClick = { item ->
@@ -195,37 +194,33 @@ class PlaylistDetailActivity : AppCompatActivity() {
 
     private fun showMediaOptionsDialog(item: RealMedia) {
         val existingReview = playlistsManager.getReview(playlistId, item.id)
-        val reviewLabel = if (existingReview != null) "⭐ مشاهده و ویرایش نمره من (${existingReview.userRating}/10)" else "⭐ ثبت نظر و امتیاز به این اثر"
+        val reviewLabel = if (existingReview != null) "نمره من: ${existingReview.userRating} از ۱۰" else "امتیاز و یادداشت"
+        val meta = listOfNotNull(
+            if (item.isSeries) "سریال" else "فیلم",
+            item.year.takeIf { it > 0 }?.toString()
+        ).joinToString(" · ")
 
-        val options = arrayOf(
-            "▶ تماشای فیلم / سریال",
-            reviewLabel,
-            "🗑️ حذف از این واچ‌لیست"
-        )
-
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(item.title)
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> {
-                        val intent = Intent(this, DetailActivity::class.java).apply {
-                            putExtra("real_media", item)
-                        }
-                        startActivity(intent)
+        com.hnn.bisnor.util.ActionSheet.show(
+            this,
+            title = item.title,
+            subtitle = meta,
+            imageUrl = item.image.ifEmpty { item.cover },
+            actions = listOf(
+                com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_play, "تماشا") {
+                    startActivity(Intent(this, DetailActivity::class.java).putExtra("real_media", item))
+                },
+                com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_star, reviewLabel) { showReviewDialog(item) },
+                com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_delete, "حذف از این لیست", destructive = true) {
+                    if (playlistId == "fav") {
+                        favoritesManager.toggleFavorite(item)
+                    } else {
+                        playlistsManager.removeFromPlaylist(playlistId, item.id)
                     }
-                    1 -> showReviewDialog(item)
-                    2 -> {
-                        if (playlistId == "fav") {
-                            favoritesManager.toggleFavorite(item)
-                        } else {
-                            playlistsManager.removeFromPlaylist(playlistId, item.id)
-                        }
-                        loadPlaylistData()
-                        android.widget.Toast.makeText(this, "از لیست حذف شد", android.widget.Toast.LENGTH_SHORT).show()
-                    }
+                    loadPlaylistData()
+                    android.widget.Toast.makeText(this, "از لیست حذف شد", android.widget.Toast.LENGTH_SHORT).show()
                 }
-            }
-            .show()
+            )
+        )
     }
 
     private fun showReviewDialog(item: RealMedia) {
@@ -281,13 +276,9 @@ class PlaylistDetailActivity : AppCompatActivity() {
             name = playlistName,
             items = allPlaylistItems
         )
-        val json = payload.toJson()
-        val compressedBase64 = com.hnn.bisnor.data.remote.SupabaseManager.compressString(json)
-        val urlSafeBase64 = java.net.URLEncoder.encode(compressedBase64, "UTF-8")
-
-        // Messengers only turn https links into tappable text; the custom scheme
-        // stays as a fallback for clients that keep it.
-        val shareLink = "https://bisnor-pwa.drive-storage-hnn.workers.dev/import?data=$urlSafeBase64"
+        lifecycleScope.launch {
+        // Short /s/<code> link when the worker can store the list, long ?data= link otherwise.
+        val shareLink = com.hnn.bisnor.data.repository.SharedPlaylistImporter.shareLink(payload)
         val message = "🎬 واچ‌لیست «$playlistName» در بیسنور شامل ${allPlaylistItems.size} فیلم و سریال:\n$shareLink\n\n(با لمس این لینک، لیست مستقیماً در اپلیکیشن بیسنور باز می‌شود)"
 
         val intent = Intent(Intent.ACTION_SEND).apply {
@@ -296,5 +287,6 @@ class PlaylistDetailActivity : AppCompatActivity() {
             putExtra(Intent.EXTRA_TEXT, message)
         }
         startActivity(Intent.createChooser(intent, "اشتراک‌گذاری لینک واچ‌لیست با دوستان:"))
+        }
     }
 }

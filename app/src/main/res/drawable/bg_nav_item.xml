@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Selected tab: a glass pill wrapping icon and label together (Apple tab bar). -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <inset android:insetBottom="5dp" android:insetLeft="5dp" android:insetRight="5dp" android:insetTop="5dp">
+            <shape android:shape="rectangle">
+                <solid android:color="@color/lg_indicator" />
+                <corners android:radius="27dp" />
+            </shape>
+        </inset>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</selector>

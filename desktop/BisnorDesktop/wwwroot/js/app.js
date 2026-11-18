@@ -37,6 +37,9 @@ class BisnorApp {
         this.activeMedia = null;
         this.hlsInstance = null;
         this.streamWatchdog = null;
+        this.remuxController = null;
+        this.playerStatusTimer = null;
+        this.pendingScrubTime = null;
         this.selectedAvatarForPicker = "avatar_breakingbad";
         this.selectedPlayerChoice = localStorage.getItem("bisnor_player") || "bisnor";
         this.authMode = "login";
@@ -574,10 +577,10 @@ class BisnorApp {
         });
 
         document.getElementById("btn-player-forward")?.addEventListener("click", () => {
-            if (video) video.currentTime = Math.min(video.currentTime + 10, video.duration || 0);
+            if (video) this.seekPlayer(video, video.currentTime + 10);
         });
         document.getElementById("btn-player-rewind")?.addEventListener("click", () => {
-            if (video) video.currentTime = Math.max(video.currentTime - 10, 0);
+            if (video) this.seekPlayer(video, video.currentTime - 10);
         });
         document.getElementById("btn-player-fullscreen")?.addEventListener("click", () => {
             const container = document.querySelector(".player-container");
@@ -592,12 +595,18 @@ class BisnorApp {
             if (video) {
                 video.addEventListener("loadedmetadata", () => {
                     this.clearStreamWatchdog();
+                    // The remux session is already positioned by its own trim start.
+                    if (this.remuxController && this.remuxController.isActive()) {
+                        this.pendingSeek = 0;
+                        return;
+                    }
                     if (this.pendingSeek && video.duration) {
                         video.currentTime = Math.min(this.pendingSeek, Math.max(0, video.duration - 5));
                     }
                     this.pendingSeek = 0;
                 });
                 video.addEventListener("error", () => {
+                    if (this.remuxController && this.remuxController.isActive()) return;
                     this.clearStreamWatchdog();
                     if (this.hlsInstance) return;
                     const error = video.error;
@@ -651,8 +660,24 @@ class BisnorApp {
 
         seekbar?.addEventListener("input", (e) => {
             if (video && video.duration) {
-                video.currentTime = (e.target.value / 100) * video.duration;
+                const target = (e.target.value / 100) * video.duration;
+                if (this.remuxController && this.remuxController.isActive()) {
+                    // Wait for the user to release the handle before restarting
+                    // the remux pipeline; each restart costs a fresh segment.
+                    this.pendingScrubTime = target;
+                    return;
+                }
+                video.currentTime = target;
             }
+        });
+        seekbar?.addEventListener("change", (e) => {
+            if (!video || !video.duration) return;
+            if (!(this.remuxController && this.remuxController.isActive())) return;
+            const target = Number.isFinite(this.pendingScrubTime)
+                ? this.pendingScrubTime
+                : (e.target.value / 100) * video.duration;
+            this.pendingScrubTime = null;
+            this.seekPlayer(video, target);
         });
 
         // Profile shortcuts (Android profile screen)
@@ -1513,15 +1538,42 @@ class BisnorApp {
     }
 
     // --- Player Management ---
+    /**
+     * IranFlix serves every stream over plain http while the PWA and the desktop
+     * shell run on https, where browsers drop the request as mixed content. The
+     * worker relays those bytes back over https and forwards Range.
+     */
+    mediaUrl(url) {
+        if (!url) return url;
+        if (!/^http:\/\//i.test(url)) return url;
+        // The Windows shell injects a loopback relay before any script runs;
+        // loopback counts as trustworthy so the https page may load it.
+        const base = window.BISNOR_MEDIA_BASE || (location.protocol === "https:"
+            ? `${(window.BISNOR_MEDIA_ORIGIN || location.origin).replace(/\/+$/, "")}/media`
+            : "");
+        if (!base) return url;
+        return `${base}?u=${encodeURIComponent(url)}`;
+    }
+
+    seekPlayer(video, time) {
+        if (!video) return;
+        const target = Math.max(0, time);
+        if (this.remuxController && this.remuxController.isActive()) {
+            this.remuxController.seek(target);
+            return;
+        }
+        video.currentTime = Math.min(target, video.duration || target);
+    }
+
     scoreSource(source) {
         const url = String((source && source.url) || "").split("?")[0].toLowerCase();
         const quality = String((source && source.quality) || "");
         let score = 10;
         if (/\.m3u8$/.test(url)) score += 100;
         else if (/\.mp4$/.test(url)) score += 80;
-        // WebView2 hands MKV to the internal Media Foundation player, but browsers
-        // and iOS cannot demux these containers at all, so prefer real alternatives.
-        if (!this.isNativeDesktop && /\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(url)) score -= 500;
+        // MKV and TS files are remuxed to fragmented MP4 in the browser, so they
+        // stay usable but rank below containers the browser can open natively.
+        else if (/\.(mkv|m2ts|mka|ts)$/.test(url)) score += 30;
         // HTTPS pages cannot load insecure media on iOS, so a plain-http source
         // only makes sense after every https candidate has failed.
         if (location.protocol === "https:" && url.startsWith("http://")) score -= 120;
@@ -1607,7 +1659,9 @@ class BisnorApp {
         }
 
         const cleanUrl = url.split("?")[0].toLowerCase();
-        const isUnsupportedContainer = /\.(mkv|avi|wmv|flv|ts|m2ts)$/.test(cleanUrl);
+        // MKV/TS now play through the in-page remuxer, so only containers the
+        // browser pipeline cannot read at all go to the native player.
+        const needsNativePlayer = /\.(avi|wmv|flv)$/.test(cleanUrl);
 
         if (this.isNativeDesktop && this.settings.player !== "bisnor") {
             // Launch the Windows external player configured in Settings.
@@ -1615,7 +1669,7 @@ class BisnorApp {
             return;
         }
 
-        if (this.isNativeDesktop && isUnsupportedContainer) {
+        if (this.isNativeDesktop && needsNativePlayer) {
             // WebView2 cannot demux MKV/AVI; use the built-in Windows Media
             // Foundation player instead of silently falling back to VLC.
             this.postNative("launchInternalPlayer", { url, title });
@@ -1876,6 +1930,7 @@ class BisnorApp {
             youtube: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.5 7.2a2.8 2.8 0 0 0-2-2C18.8 4.8 12 4.8 12 4.8s-6.8 0-8.5.4a2.8 2.8 0 0 0-2 2A29 29 0 0 0 1.1 12a29 29 0 0 0 .4 4.8 2.8 2.8 0 0 0 2 2c1.7.4 8.5.4 8.5.4s6.8 0 8.5-.4a2.8 2.8 0 0 0 2-2 29 29 0 0 0 .4-4.8 29 29 0 0 0-.4-4.8zM10 15.2V8.8l5.5 3.2-5.5 3.2z"/></svg>',
             facebook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.8l.4-3.2h-3.2V8.7c0-.9.3-1.6 1.7-1.6h1.7V4.2c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4v2.7H7.6V14h2.9v8h3z"/></svg>',
             email: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>',
+            github: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>',
             website: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg>'
         };
         return icons[platform] || icons.website;
@@ -1886,12 +1941,27 @@ class BisnorApp {
         const row = document.getElementById("social-links-row");
         if (!group || !row || this.socialLoaded) return;
         this.socialLoaded = true;
+        // Official channels are always listed, even if social.md (or the network) omits them.
+        const defaults = [
+            { platform: "telegram", label: "کانال تلگرام بیسنور", url: "https://t.me/bisnor" },
+            { platform: "github", label: "گیت‌هاب بیسنور", url: "https://github.com/nikan48g/Bisnor" }
+        ];
+        let fetched = [];
         try {
             const response = await fetch(`${this.workerBaseUrl()}/api/social`, { headers: { Accept: "application/json" } });
-            if (!response.ok) return;
-            const payload = await response.json();
-            const links = Array.isArray(payload.links) ? payload.links.filter(link => link && link.url) : [];
-            if (!links.length) return;
+            if (response.ok) {
+                const payload = await response.json();
+                fetched = Array.isArray(payload.links) ? payload.links.filter(link => link && link.url) : [];
+            }
+        } catch (_) { /* offline: defaults below still render */ }
+        const seen = new Set();
+        const links = [...fetched, ...defaults].filter(link => {
+            const key = link.url.replace(/\/+$/, "");
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+        try {
             row.replaceChildren(...links.map(link => {
                 const anchor = document.createElement("a");
                 anchor.className = "social-link-btn";
@@ -1912,6 +1982,18 @@ class BisnorApp {
     // --- Watchlist share / import ---
     async buildPlaylistLink(name, items) {
         const compressed = await window.supabaseAuth.compress(JSON.stringify({ name, items }));
+        // Short /s/<code> link when the worker can store the list; the long ?data= link otherwise.
+        try {
+            const response = await fetch(`${this.workerBaseUrl()}/api/share`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ data: compressed })
+            });
+            if (response.ok) {
+                const { url } = await response.json();
+                if (typeof url === "string" && url.startsWith("https://")) return url;
+            }
+        } catch (_) { /* offline or not deployed yet */ }
         return `${this.workerBaseUrl()}/import?data=${encodeURIComponent(compressed)}`;
     }
 
@@ -2053,7 +2135,7 @@ class BisnorApp {
         const requestId = (this.subtitleRequestId || 0) + 1;
         this.subtitleRequestId = requestId;
         try {
-            const response = await fetch(track.url);
+            const response = await fetch(this.mediaUrl(track.url));
             if (!response.ok || this.subtitleRequestId !== requestId) return;
             const text = await response.text();
             if (this.subtitleRequestId !== requestId) return;
@@ -2232,12 +2314,17 @@ class BisnorApp {
             this.hlsInstance.destroy();
             this.hlsInstance = null;
         }
+        if (this.remuxController) {
+            this.remuxController.destroy();
+            this.remuxController = null;
+        }
         video.removeAttribute("src");
         video.load();
         this.streamNetworkRetries = 0;
         this.streamMediaRecovered = false;
         this.startStreamWatchdog(video, url);
 
+        const playUrl = this.mediaUrl(url);
         const isHls = /\.m3u8(?:$|[?#])/i.test(url);
         const nativeHls = video.canPlayType("application/vnd.apple.mpegurl");
 
@@ -2263,7 +2350,7 @@ class BisnorApp {
                 }
                 this.tryNextStream(data.details || "hls-error");
             });
-            hls.loadSource(url);
+            hls.loadSource(playUrl);
             hls.attachMedia(video);
             return;
         }
@@ -2273,12 +2360,51 @@ class BisnorApp {
             return;
         }
 
-        video.src = url;
+        if (window.BisnorRemux && window.BisnorRemux.canPlay(url)) {
+            const startAt = this.pendingSeek || 0;
+            this.pendingSeek = 0;
+            this.pendingScrubTime = null;
+            // Probing the container and building the first fMP4 segment takes
+            // longer than a plain range request, so allow more time before
+            // falling back to the next source.
+            this.startStreamWatchdog(video, url, 45000);
+            this.setPlayerStatus("در حال آماده‌سازی پخش…");
+            this.remuxController = window.BisnorRemux.create(video, {
+                onStatus: text => this.setPlayerStatus(text),
+                onReady: () => {
+                    this.clearStreamWatchdog();
+                    this.setPlayerStatus("");
+                    video.play().catch(() => {});
+                },
+                onAudioDropped: () => {
+                    this.setPlayerStatus("صدای این نسخه در مرورگر پشتیبانی نمی‌شود؛ تصویر بدون صدا پخش می‌شود.", 6000);
+                },
+                onError: detail => this.tryNextStream(detail)
+            });
+            this.remuxController.start(playUrl, startAt);
+            return;
+        }
+
+        video.src = playUrl;
         video.load();
     }
 
+    setPlayerStatus(text, hideAfterMs) {
+        const element = document.getElementById("player-remux-status");
+        if (!element) return;
+        if (this.playerStatusTimer) {
+            clearTimeout(this.playerStatusTimer);
+            this.playerStatusTimer = null;
+        }
+        element.textContent = text || "";
+        element.style.display = text ? "flex" : "none";
+        if (text && hideAfterMs) {
+            this.playerStatusTimer = setTimeout(() => this.setPlayerStatus(""), hideAfterMs);
+        }
+    }
+
     /** iOS Safari keeps a black 00:00 player when a container is unplayable and fires no error. */
-    startStreamWatchdog(video, url) {
+    startStreamWatchdog(video, url, timeoutMs) {
         this.clearStreamWatchdog();
         this.streamWatchdog = setTimeout(() => {
             this.streamWatchdog = null;
@@ -2287,7 +2413,7 @@ class BisnorApp {
             const modal = document.getElementById("modal-player");
             if (modal && modal.style.display === "none") return;
             this.tryNextStream("no-metadata");
-        }, 12000);
+        }, timeoutMs || 12000);
     }
 
     clearStreamWatchdog() {
@@ -2325,10 +2451,17 @@ class BisnorApp {
     showPlayerCodecError(detail) {
         const overlay = document.getElementById("player-error-overlay");
         const desc = document.getElementById("player-error-desc");
+        const title = document.getElementById("player-error-title");
         if (desc) {
-            desc.textContent = detail
-                ? `این نسخه با پخش‌کنندهٔ مرورگر سازگار نیست (${detail}). کیفیت دیگری را امتحان کنید، با VLC ببینید یا فایل را دانلود کنید.`
-                : "این فرمت توسط پخش‌کنندهٔ مرورگر پشتیبانی نمی‌شود. کیفیت دیگری را امتحان کنید، با VLC ببینید یا فایل را دانلود کنید.";
+            if (detail === "remux-error") {
+                if (title) title.textContent = "دسترسی به فایل این نسخه ممکن نشد";
+                desc.textContent = "سرور فایل را برای نسخهٔ وب مسدود کرده است. نسخهٔ دیگری را امتحان کنید یا همین فیلم را در اپ اندروید/ویندوز تماشا کنید.";
+            } else {
+                if (title) title.textContent = "این فرمت در مرورگر پخش نمی‌شود";
+                desc.textContent = detail
+                    ? `این نسخه با پخش‌کنندهٔ مرورگر سازگار نیست (${detail}). کیفیت دیگری را امتحان کنید، با VLC ببینید یا فایل را دانلود کنید.`
+                    : "این فرمت توسط پخش‌کنندهٔ مرورگر پشتیبانی نمی‌شود. کیفیت دیگری را امتحان کنید، با VLC ببینید یا فایل را دانلود کنید.";
+            }
         }
         const qualityButton = document.getElementById("btn-player-err-quality");
         if (qualityButton) {
@@ -2343,7 +2476,9 @@ class BisnorApp {
         this.renderContinueWatching();
         this.streamQueue = [];
         this.clearStreamWatchdog();
+        this.pendingScrubTime = null;
         this.closePlayerSheet();
+        this.setPlayerStatus("");
         this.resetSubtitles();
         this.playerContext = null;
         const modal = document.getElementById("modal-player");
@@ -2353,6 +2488,10 @@ class BisnorApp {
         if (this.hlsInstance) {
             this.hlsInstance.destroy();
             this.hlsInstance = null;
+        }
+        if (this.remuxController) {
+            this.remuxController.destroy();
+            this.remuxController = null;
         }
         if (video) {
             video.pause();
@@ -2573,7 +2712,7 @@ class BisnorApp {
         if (profileLogoutDivider) profileLogoutDivider.style.display = isLoggedIn ? "block" : "none";
 
         const version = document.getElementById("profile-version");
-        if (version) version.textContent = "v5.3.2";
+        if (version) version.textContent = "v5.4.0";
 
         this.renderAnalytics();
         this.renderHeatmap();

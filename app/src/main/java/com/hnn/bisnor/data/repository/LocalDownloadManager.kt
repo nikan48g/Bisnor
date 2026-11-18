@@ -38,8 +38,8 @@ object LocalDownloadManager {
                 DownloadedFile(
                     id = st.id,
                     title = st.title,
-                    fileUri = "file://${st.filePath}",
-                    filePath = st.filePath,
+                    fileUri = st.savedUri ?: "file://${st.filePath}",
+                    filePath = st.playablePath,
                     totalBytes = st.totalBytes,
                     bytesDownloaded = st.bytesDownloaded.get(),
                     status = st.status,
@@ -132,7 +132,13 @@ object LocalDownloadManager {
             SegmentedDownloadManager.cancelDownload(item.id)
 
             // Remove file if exists
-            if (item.filePath.isNotEmpty()) {
+            if (item.filePath.startsWith("content://")) {
+                runCatching {
+                    android.provider.DocumentsContract.deleteDocument(
+                        context.contentResolver, android.net.Uri.parse(item.filePath)
+                    )
+                }
+            } else if (item.filePath.isNotEmpty()) {
                 val f = File(item.filePath)
                 if (f.exists()) f.delete()
             }

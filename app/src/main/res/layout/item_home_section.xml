@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="24dp"
+    android:layout_marginTop="16dp"
     android:orientation="vertical">
 
     <LinearLayout
@@ -12,12 +12,6 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="18dp">
-
-        <View
-            android:layout_width="3dp"
-            android:layout_height="16dp"
-            android:layout_marginEnd="9dp"
-            android:background="@color/primary" />
 
         <TextView
             android:id="@+id/tv_section_title"
@@ -28,7 +22,7 @@
             android:fontFamily="@font/vazirmatn_bold"
             android:maxLines="1"
             android:textColor="@color/on_surface"
-            android:textSize="16.5sp" />
+            android:textSize="19sp" />
 
         <TextView
             android:id="@+id/tv_section_subtitle"

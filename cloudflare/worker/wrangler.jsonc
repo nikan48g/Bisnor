@@ -5,6 +5,7 @@
   "assets": { "directory": "../../desktop/BisnorDesktop/wwwroot", "binding": "ASSETS", "not_found_handling": "single-page-application" },
   "vars": {
     "IRANFLIX_ORIGINS": "https://server-hi-speed-iran.info,https://hostinnegar.com,https://windowsdiba.info",
-    "SUPABASE_URL": "https://flhchqkuubuubzxyktnp.supabase.co"
+    "SUPABASE_URL": "https://flhchqkuubuubzxyktnp.supabase.co",
+    "MEDIA_HOSTS": "dl150m.info,dl175m.info"
   }
 }

@@ -8,13 +8,13 @@
     <!-- Brand / accent -->
     <color name="primary">#FF891F</color>
     <color name="on_primary">#2A1500</color>
-    <color name="primary_container">#4A2A08</color>
+    <color name="primary_container">#3A2410</color>
     <color name="on_primary_container">#FFDDB8</color>
 
     <!-- Secondary -->
     <color name="secondary">#FFB067</color>
     <color name="on_secondary">#2A1500</color>
-    <color name="secondary_container">#3B2A19</color>
+    <color name="secondary_container">#2C2C2E</color>
     <color name="on_secondary_container">#FFDDB8</color>
 
     <!-- Tertiary -->
@@ -24,20 +24,20 @@
     <color name="on_tertiary_container">#FFDAD4</color>
 
     <!-- Surfaces -->
-    <color name="background">#100E0C</color>
-    <color name="on_background">#F8F5F1</color>
-    <color name="surface">#1C1815</color>
-    <color name="on_surface">#F8F5F1</color>
-    <color name="surface_variant">#27201A</color>
-    <color name="on_surface_variant">#A9A19A</color>
-    <color name="surface_container_lowest">#0A0908</color>
-    <color name="surface_container_low">#161311</color>
-    <color name="surface_container">#1C1815</color>
-    <color name="surface_container_high">#27201A</color>
-    <color name="surface_container_highest">#332A23</color>
+    <color name="background">#000000</color>
+    <color name="on_background">#FFFFFF</color>
+    <color name="surface">#1C1C1E</color>
+    <color name="on_surface">#FFFFFF</color>
+    <color name="surface_variant">#2C2C2E</color>
+    <color name="on_surface_variant">#98989F</color>
+    <color name="surface_container_lowest">#000000</color>
+    <color name="surface_container_low">#121214</color>
+    <color name="surface_container">#1C1C1E</color>
+    <color name="surface_container_high">#2C2C2E</color>
+    <color name="surface_container_highest">#3A3A3C</color>
 
-    <color name="outline">#6E625A</color>
-    <color name="outline_variant">#38302A</color>
+    <color name="outline">#545458</color>
+    <color name="outline_variant">#1FFFFFFF</color>
 
     <!-- Accents & functional -->
     <color name="rating_gold">#FFC24B</color>
@@ -47,12 +47,12 @@
     <color name="white">#FFFFFFFF</color>
     <color name="transparent">#00000000</color>
     <color name="overlay_scrim">#B3000000</color>
-    <color name="shimmer_base">#1C1815</color>
-    <color name="shimmer_highlight">#2B241E</color>
-    <color name="nav_bar_translucent">#F2161311</color>
-    <color name="glass_border">#33FFFFFF</color>
-    <color name="glass_card_bg">#CC161311</color>
-    <color name="glass_elevated_bg">#E61C1815</color>
+    <color name="shimmer_base">#1C1C1E</color>
+    <color name="shimmer_highlight">#2C2C2E</color>
+    <color name="nav_bar_translucent">#F21C1C1E</color>
+    <color name="glass_border">#26FFFFFF</color>
+    <color name="glass_card_bg">#CC1C1C1E</color>
+    <color name="glass_elevated_bg">#E62C2C2E</color>
 
     <!-- Semantic aliases -->
     <color name="bisnor_bg">@color/background</color>
@@ -69,9 +69,24 @@
     <color name="bisnor_scrim_bottom">#F20B0908</color>
 
     <!-- Activity heatmap scale (0 = no activity) -->
-    <color name="heat_0">#241E19</color>
-    <color name="heat_1">#5A3A17</color>
-    <color name="heat_2">#8A5211</color>
-    <color name="heat_3">#C06A0D</color>
+    <color name="heat_0">#2C2C2E</color>
+    <color name="heat_1">#5C3A12</color>
+    <color name="heat_2">#8F5512</color>
+    <color name="heat_3">#C8700F</color>
     <color name="heat_4">#FF891F</color>
+    <!-- Liquid glass (dark): smoked glass over a saturated blur -->
+    <color name="lg_tint">#73141416</color>
+    <color name="lg_sheen">#26FFFFFF</color>
+    <color name="lg_rim_top">#80FFFFFF</color>
+    <color name="lg_rim_bottom">#14FFFFFF</color>
+    <color name="lg_indicator">#2EFFFFFF</color>
+    <color name="lg_fill_top">#2EFFFFFF</color>
+    <color name="lg_fill_bottom">#0FFFFFFF</color>
+    <!-- Primary play pill sits on artwork, so it stays white in both themes -->
+    <color name="pill_bg">#FFFFFFFF</color>
+    <color name="pill_fg">#FF0B0B0C</color>
+    <color name="hero_dot_idle">#66FFFFFF</color>
+    <color name="danger">#FF453A</color>
+    <!-- Liquid glass specular highlight (follows touch / selected tab) -->
+    <color name="lg_glow">#4DFFFFFF</color>
 </resources>

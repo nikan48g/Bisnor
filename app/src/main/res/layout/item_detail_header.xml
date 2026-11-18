@@ -5,10 +5,11 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <!-- ================= Immersive artwork ================= -->
+    <!-- ================= Immersive artwork (Apple TV style) ================= -->
     <FrameLayout
+        android:id="@+id/header_artwork"
         android:layout_width="match_parent"
-        android:layout_height="430dp">
+        android:layout_height="480dp">
 
         <ImageView
             android:id="@+id/img_header_backdrop"
@@ -19,141 +20,107 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/bg_detail_header_gradient" />
+            android:background="@drawable/bg_hero_shade" />
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="130dp"
-            android:background="@drawable/scrim_top_gradient" />
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_hero_fade" />
+
+        <!-- Kept for binding/sharing; Apple-style header shows the artwork only. -->
+        <ImageView
+            android:id="@+id/img_header_poster"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:gravity="bottom"
-            android:orientation="horizontal"
-            android:paddingHorizontal="18dp"
-            android:paddingBottom="18dp">
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingBottom="8dp">
 
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="112dp"
-                android:layout_height="160dp"
-                app:cardBackgroundColor="@color/surface_container"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
-                app:strokeColor="#33FFFFFF"
-                app:strokeWidth="1dp">
+            <TextView
+                android:id="@+id/tv_header_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/vazirmatn_bold"
+                android:gravity="center"
+                android:maxLines="3"
+                android:shadowColor="#99000000"
+                android:shadowDy="2"
+                android:shadowRadius="14"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
 
-                <ImageView
-                    android:id="@+id/img_header_poster"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop" />
-            </com.google.android.material.card.MaterialCardView>
+            <TextView
+                android:id="@+id/tv_header_original_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/vazirmatn_regular"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_header_genres"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/vazirmatn_medium"
+                android:gravity="center"
+                android:maxLines="1"
+                android:shadowColor="#99000000"
+                android:shadowRadius="8"
+                android:textColor="#E6FFFFFF"
+                android:textSize="12.5sp" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:paddingBottom="4dp">
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/tv_header_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:maxLines="3"
-                    android:shadowColor="#99000000"
-                    android:shadowDx="0"
-                    android:shadowDy="2"
-                    android:shadowRadius="8"
-                    android:textColor="@color/white"
-                    android:textSize="25sp" />
+                    android:id="@+id/tv_header_type"
+                    style="@style/TextAppearance.Bisnor.MetaChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
                 <TextView
-                    android:id="@+id/tv_header_original_title"
-                    android:layout_width="match_parent"
+                    android:id="@+id/tv_header_year"
+                    style="@style/TextAppearance.Bisnor.MetaChip"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/vazirmatn_regular"
-                    android:maxLines="1"
-                    android:textColor="#CCF8F5F1"
-                    android:textSize="11.5sp"
+                    android:layout_marginStart="6dp" />
+
+                <TextView
+                    android:id="@+id/tv_header_rating"
+                    style="@style/TextAppearance.Bisnor.MetaChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:drawableStart="@drawable/ic_star"
+                    android:drawablePadding="3dp"
+                    android:drawableTint="@color/rating_gold" />
+
+                <TextView
+                    android:id="@+id/tv_header_age_rating"
+                    style="@style/TextAppearance.Bisnor.MetaChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
                     android:visibility="gone" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tv_header_rating"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_soft_pill"
-                        android:drawableStart="@drawable/ic_star"
-                        android:drawablePadding="4dp"
-                        android:drawableTint="@color/rating_gold"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/tv_header_year"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_soft_pill"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:id="@+id/tv_header_type"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:background="@drawable/bg_soft_pill"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:textColor="@color/white"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tv_header_age_rating"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/badge_background"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:textColor="@color/tertiary"
-                        android:textSize="10.5sp"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/tv_header_genres"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:maxLines="1"
-                        android:textColor="#CCF8F5F1"
-                        android:textSize="11sp" />
-                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>
@@ -169,9 +136,11 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_header_play"
-            style="@style/Widget.Bisnor.Button"
+            style="@style/Widget.Bisnor.Button.Pill"
             android:layout_width="0dp"
-            android:layout_height="54dp"
+            android:layout_height="52dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
@@ -181,42 +150,42 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_header_add_playlist"
             style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="54dp"
-            android:layout_height="54dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:layout_marginStart="9dp"
-            android:backgroundTint="@color/surface_container_high"
-            app:cornerRadius="18dp"
+            android:background="@drawable/bg_liquid_glass_button"
+            app:backgroundTint="@null"
+            app:cornerRadius="26dp"
             app:icon="@drawable/ic_bookmark"
             app:iconTint="@color/on_surface"
-            app:strokeColor="@color/outline_variant"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="0dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_header_share_chat"
             style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="54dp"
-            android:layout_height="54dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:layout_marginStart="9dp"
-            android:backgroundTint="@color/surface_container_high"
-            app:cornerRadius="18dp"
+            android:background="@drawable/bg_liquid_glass_button"
+            app:backgroundTint="@null"
+            app:cornerRadius="26dp"
             app:icon="@drawable/ic_share"
             app:iconTint="@color/on_surface"
-            app:strokeColor="@color/outline_variant"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="0dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_header_trailer"
             style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="54dp"
-            android:layout_height="54dp"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
             android:layout_marginStart="9dp"
-            android:backgroundTint="@color/surface_container_high"
+            android:background="@drawable/bg_liquid_glass_button"
+            app:backgroundTint="@null"
             android:visibility="gone"
-            app:cornerRadius="18dp"
+            app:cornerRadius="26dp"
             app:icon="@drawable/ic_videoplayer"
             app:iconTint="@color/on_surface"
-            app:strokeColor="@color/outline_variant"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="0dp" />
     </LinearLayout>
 
     <!-- ================= API metadata badges ================= -->

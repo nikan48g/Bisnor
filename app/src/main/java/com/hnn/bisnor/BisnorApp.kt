@@ -14,7 +14,12 @@ import com.hnn.bisnor.ui.downloads.DownloadsActivity
 import com.hnn.bisnor.util.InAppNotificationHelper
 import java.lang.ref.WeakReference
 
-class BisnorApp : Application(), Application.ActivityLifecycleCallbacks {
+class BisnorApp : Application(), Application.ActivityLifecycleCallbacks, coil.ImageLoaderFactory {
+
+    // Software bitmaps: GlassView samples the window on a software canvas, which can't draw
+    // hardware bitmaps (they'd throw and the glass would go blank).
+    override fun newImageLoader(): coil.ImageLoader =
+        coil.ImageLoader.Builder(this).allowHardware(false).crossfade(true).build()
 
     companion object {
         private var currentActivityRef: WeakReference<Activity>? = null

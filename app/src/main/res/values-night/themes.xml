@@ -29,6 +29,9 @@
         <item name="colorSurfaceContainer">@color/surface_container</item>
         <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
         <item name="colorSurfaceContainerHighest">@color/surface_container_highest</item>
+        <!-- Apple greys stay neutral: no orange elevation tint on dialogs/sheets. -->
+        <item name="elevationOverlayColor">@color/transparent</item>
+        <item name="elevationOverlayEnabled">false</item>
         <item name="colorOutline">@color/outline</item>
         <item name="colorOutlineVariant">@color/outline_variant</item>
 

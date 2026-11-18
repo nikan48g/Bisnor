@@ -23,6 +23,12 @@ object SocialLinksRepository {
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
+    /** Shown when social.md can't be reached, so the section never disappears offline. */
+    private val DEFAULTS = listOf(
+        SocialLink("telegram", "کانال تلگرام بیسنور", "https://t.me/bisnor"),
+        SocialLink("github", "گیت‌هاب بیسنور", "https://github.com/nikan48g/Bisnor")
+    )
+
     @Volatile private var cached: List<SocialLink>? = null
     @Volatile private var cachedAt: Long = 0L
 
@@ -58,8 +64,10 @@ object SocialLinksRepository {
         } catch (_: Exception) {
             fresh ?: emptyList()
         }
-        cached = links
+        // Official channels are always listed, even if social.md (or the network) omits them.
+        val merged = (links + DEFAULTS).distinctBy { it.url.trimEnd('/') }
+        cached = merged
         cachedAt = System.currentTimeMillis()
-        links
+        merged
     }
 }

@@ -12,6 +12,7 @@
     <link rel="apple-touch-icon" href="assets/logo.png">
     <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="css/bisnor-android.css">
+    <link rel="stylesheet" href="css/apple-tv.css">
 </head>
 <body class="theme-dark">
     <div id="app" class="app-container">
@@ -301,6 +302,12 @@
                         </div>
                     </div>
                 </div>
+                <!-- Follow us (social.md) — bottom of the profile tab -->
+                <div class="settings-group glass-panel" id="settings-social-group" style="display:none;">
+                    <span class="group-inner-title">ما را در اینترنت دنبال کنید</span>
+                    <span class="setting-desc" style="display:block;margin:0 0 12px;">خبرهای بیسنور و لینک‌های رسمی ما</span>
+                    <div id="social-links-row" class="social-links-row"></div>
+                </div>
             </section>
 
             <!-- SETTINGS SCREEN (matches Android fragment_settings.xml) -->
@@ -428,13 +435,6 @@
                     </div>
                 </div>
 
-                <!-- Social links (filled from social.md) -->
-                <div class="settings-category-title">ما را در اینترنت دنبال کنید</div>
-                <div class="settings-group glass-panel" id="settings-social-group" style="display:none;">
-                    <span class="group-inner-title">در اینترنت مارو دنبال کن!</span>
-                    <span class="setting-desc" style="display:block;margin:0 0 12px;">خبرهای بیسنور و لینک‌های رسمی ما در این شبکه‌ها منتشر می‌شود.</span>
-                    <div id="social-links-row" class="social-links-row"></div>
-                </div>
 
                 <!-- Subtitle appearance -->
                 <div class="settings-category-title">ظاهر زیرنویس</div>
@@ -581,6 +581,8 @@
         <div id="modal-player" class="player-overlay" style="display: none;">
             <div class="player-container">
                 <video id="html-video-player" playsinline preload="auto"></video>
+
+                <div id="player-remux-status" class="player-remux-status" style="display: none;"></div>
                 
                 <!-- Player Error Overlay (for MKV / Codec errors) -->
                 <div id="player-error-overlay" class="player-error-overlay" style="display: none;">
@@ -816,6 +818,7 @@
     <script src="js/providers.js"></script>
     <script src="js/data.js"></script>
     <script src="js/supabase.js"></script>
+    <script src="js/mkv-player.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

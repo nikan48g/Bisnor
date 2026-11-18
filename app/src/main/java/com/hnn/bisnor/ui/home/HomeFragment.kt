@@ -51,6 +51,7 @@ class HomeFragment : Fragment() {
     private var loadJob: Job? = null
     private var autoScrollJob: Job? = null
     private var heroCount = 0
+    private var firstRenderDone = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -71,18 +72,34 @@ class HomeFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener { loadData(userInitiated = true) }
         binding.btnHomeSearch.setOnClickListener { openExplore() }
-        binding.cardHomeSearch.setOnClickListener { openExplore() }
         binding.btnHomeAvatar.setOnClickListener { openProfile() }
         binding.btnHomeRetry.setOnClickListener { loadData(userInitiated = true) }
         binding.btnContinueAll.setOnClickListener {
             (activity as? MainActivity)?.selectLibraryTab()
         }
 
+        sizeHero()
         bindGreeting()
         loadData(userInitiated = false)
     }
 
     // ------------------------------------------------------------------ header
+
+    /** Hero takes most of the first screen (more on TV) and sits under the status bar. */
+    private fun sizeHero() {
+        val screenH = resources.displayMetrics.heightPixels
+        val landscape = resources.displayMetrics.widthPixels > screenH
+        binding.heroFrame.layoutParams.height = (screenH * if (landscape) 0.82f else 0.64f).toInt()
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.homeHeader) { v, insets ->
+            val top = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars()).top
+            // On tablets/TV the tab bar floats at the top; keep the greeting row below it.
+            val navSpace = (activity as? com.hnn.bisnor.MainActivity)?.topNavSpace ?: 0
+            v.setPadding(v.paddingLeft, top + navSpace + (10 * resources.displayMetrics.density).toInt(), v.paddingRight, v.paddingBottom)
+            insets
+        }
+        // Pull-to-refresh spinner must clear the status bar now that the hero is under it.
+        binding.swipeRefresh.setProgressViewOffset(false, 0, (110 * resources.displayMetrics.density).toInt())
+    }
 
     private fun bindGreeting() {
         if (authManager.isLoggedIn && authManager.currentUsername.isNotEmpty()) {
@@ -100,6 +117,7 @@ class HomeFragment : Fragment() {
             avatarUrl.isNotEmpty() -> {
                 binding.imgHomeAvatar.visibility = View.VISIBLE
                 binding.tvHomeAvatarInitial.visibility = View.GONE
+                binding.imgHomeAvatar.imageTintList = null
                 binding.imgHomeAvatar.load(avatarUrl) {
                     crossfade(true)
                     placeholder(R.drawable.ic_account_circle)
@@ -115,6 +133,8 @@ class HomeFragment : Fragment() {
                 binding.imgHomeAvatar.visibility = View.VISIBLE
                 binding.tvHomeAvatarInitial.visibility = View.GONE
                 binding.imgHomeAvatar.setImageResource(R.drawable.ic_account_circle)
+                binding.imgHomeAvatar.imageTintList =
+                    android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
             }
         }
     }
@@ -181,6 +201,11 @@ class HomeFragment : Fragment() {
     private fun renderCatalog(catalog: RealMediaRepository.HomeCatalog, userInitiated: Boolean) {
         binding.layoutHomeError.visibility = View.GONE
         binding.homeContent.visibility = View.VISIBLE
+        // Rows laid out late pull the scroll view down to them; the first paint must start at the hero.
+        if (!firstRenderDone) {
+            firstRenderDone = true
+            binding.homeScroll.post { _binding?.homeScroll?.scrollTo(0, 0) }
+        }
 
         allFetchedMedia = (catalog.hero + catalog.rows.flatMap { it.items }).distinctBy { it.id }
         bindHero(catalog.hero)
@@ -249,7 +274,7 @@ class HomeFragment : Fragment() {
                 setColor(
                     ContextCompat.getColor(
                         requireContext(),
-                        if (i == selected) R.color.primary else R.color.surface_container_highest
+                        if (i == selected) R.color.white else R.color.hero_dot_idle
                     )
                 )
             }

@@ -327,13 +327,8 @@ class PlayerActivity : AppCompatActivity() {
             val timeBar = binding.playerView.findViewById<DefaultTimeBar>(androidx.media3.ui.R.id.exo_progress) ?: return@post
             // Media3 exposes colour and key-step setters publicly; thickness is increased
             // visually without replacing the controller or touching seeking logic.
-            timeBar.setPlayedColor(getColor(R.color.primary))
-            timeBar.setScrubberColor(getColor(R.color.primary))
-            timeBar.setBufferedColor(getColor(R.color.on_surface_variant))
-            timeBar.setUnplayedColor(getColor(R.color.surface_container_highest))
+            // Colours and thickness now come from the Apple-style exo_player_control_view layout.
             timeBar.setKeyTimeIncrement(5000L)
-            timeBar.scaleY = 1.45f
-            timeBar.scaleX = 1.02f
         }
     }
 
@@ -802,6 +797,9 @@ class PlayerActivity : AppCompatActivity() {
                 .setTrackSelector(trackSelector)
                 .setMediaSourceFactory(mediaSourceFactory)
                 .setLoadControl(loadControl)
+                // Matches the ±10s buttons in exo_player_control_view.
+                .setSeekBackIncrementMs(10_000)
+                .setSeekForwardIncrementMs(10_000)
                 .build().apply {
                     binding.playerView.player = this
                     val mediaItem = MediaItem.fromUri(Uri.parse(cleanUrl))

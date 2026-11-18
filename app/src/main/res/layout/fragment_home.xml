@@ -7,6 +7,7 @@
     android:background="@color/background">
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/home_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
@@ -15,124 +16,120 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:descendantFocusability="beforeDescendants"
+            android:focusableInTouchMode="true"
             android:orientation="vertical"
             android:paddingBottom="112dp">
 
-            <!-- ================= Header ================= -->
-            <LinearLayout
+            <!-- ================= Hero (edge-to-edge, Apple TV style) ================= -->
+            <FrameLayout
+                android:id="@+id/hero_frame"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="18dp"
-                android:paddingTop="14dp">
+                android:layout_height="@dimen/hero_banner_height"
+                android:background="@color/surface_container">
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/view_pager_hero"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:id="@+id/layout_hero_indicator"
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="6dp"
+                    android:gravity="center"
+                    android:orientation="horizontal" />
+
+                <!-- Floating glass header over the artwork -->
+                <LinearLayout
+                    android:id="@+id/home_header"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="10dp">
 
-                    <TextView
-                        android:id="@+id/tv_home_greeting"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:maxLines="1"
-                        android:text="سلام"
-                        android:textColor="@color/on_surface"
-                        android:textSize="21sp" />
+                    <com.hnn.bisnor.ui.widget.GlassView
+                        android:id="@+id/btn_home_avatar"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:clickable="true"
+                        android:contentDescription="پروفایل"
+                        android:focusable="true"
+                        app:glassCornerRadius="23dp">
 
-                    <TextView
-                        android:id="@+id/tv_home_greeting_sub"
-                        android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/tv_home_avatar_initial"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:fontFamily="@font/vazirmatn_bold"
+                            android:gravity="center"
+                            android:textColor="@color/white"
+                            android:textSize="17sp"
+                            android:visibility="gone" />
+
+                        <ImageView
+                            android:id="@+id/img_home_avatar"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="3dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/ic_account_circle" />
+                    </com.hnn.bisnor.ui.widget.GlassView>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="امشب چه چیزی ببینیم؟"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="12.5sp" />
+                        android:layout_marginHorizontal="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_home_greeting"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/vazirmatn_bold"
+                            android:maxLines="1"
+                            android:shadowColor="#80000000"
+                            android:shadowRadius="10"
+                            android:text="سلام"
+                            android:textColor="@color/white"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/tv_home_greeting_sub"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/vazirmatn_regular"
+                            android:shadowColor="#80000000"
+                            android:shadowRadius="10"
+                            android:text="امشب چه چیزی ببینیم؟"
+                            android:textColor="#D9FFFFFF"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <com.hnn.bisnor.ui.widget.GlassView
+                        android:id="@+id/btn_home_search"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:clickable="true"
+                        android:contentDescription="جستجو"
+                        android:focusable="true"
+                        app:glassCornerRadius="23dp">
+
+                        <ImageView
+                            android:layout_width="21dp"
+                            android:layout_height="21dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_search"
+                            app:tint="@color/white" />
+                    </com.hnn.bisnor.ui.widget.GlassView>
                 </LinearLayout>
-
-                <FrameLayout
-                    android:id="@+id/btn_home_search"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/bg_icon_chip"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="جستجو">
-
-                    <ImageView
-                        android:layout_width="21dp"
-                        android:layout_height="21dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_search"
-                        app:tint="@color/on_surface" />
-                </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/btn_home_avatar"
-                    android:layout_width="46dp"
-                    android:layout_height="46dp"
-                    android:background="@drawable/bg_avatar_ring"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="پروفایل">
-
-                    <TextView
-                        android:id="@+id/tv_home_avatar_initial"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:gravity="center"
-                        android:textColor="@color/primary"
-                        android:textSize="17sp"
-                        android:visibility="gone" />
-
-                    <ImageView
-                        android:id="@+id/img_home_avatar"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="3dp"
-                        android:background="@drawable/bg_skeleton"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/ic_account_circle" />
-                </FrameLayout>
-            </LinearLayout>
-
-            <!-- ================= Search entry ================= -->
-            <LinearLayout
-                android:id="@+id/card_home_search"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginHorizontal="18dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_search_pill"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
-
-                <ImageView
-                    android:layout_width="19dp"
-                    android:layout_height="19dp"
-                    android:src="@drawable/ic_search"
-                    app:tint="@color/on_surface_variant" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_regular"
-                    android:text="جستجوی فیلم، سریال یا بازیگر..."
-                    android:textColor="@color/on_surface_variant"
-                    android:textSize="13sp" />
-            </LinearLayout>
+            </FrameLayout>
 
             <!-- ================= Loading skeleton ================= -->
             <com.facebook.shimmer.ShimmerFrameLayout
@@ -149,14 +146,8 @@
                     android:paddingHorizontal="18dp">
 
                     <View
-                        android:layout_width="match_parent"
-                        android:layout_height="400dp"
-                        android:background="@drawable/bg_skeleton" />
-
-                    <View
                         android:layout_width="150dp"
                         android:layout_height="18dp"
-                        android:layout_marginTop="24dp"
                         android:background="@drawable/bg_skeleton" />
 
                     <LinearLayout
@@ -192,23 +183,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:visibility="gone">
-
-                <androidx.viewpager2.widget.ViewPager2
-                    android:id="@+id/view_pager_hero"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/hero_banner_height"
-                    android:layout_marginTop="18dp"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:paddingHorizontal="18dp" />
-
-                <LinearLayout
-                    android:id="@+id/layout_hero_indicator"
-                    android:layout_width="match_parent"
-                    android:layout_height="20dp"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center"
-                    android:orientation="horizontal" />
 
                 <!-- Continue watching -->
                 <LinearLayout

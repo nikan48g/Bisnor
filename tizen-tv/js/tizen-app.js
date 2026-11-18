@@ -203,7 +203,11 @@
         text(byId('player-quality-label'), qualityOf(source));
         document.body.classList.add('avplay-active');
         show(byId('player-error-overlay'), 'none');
-        text(byId('player-loading-spinner'), 'در حال آماده‌سازی پخش…');
+        var spinner = byId('player-loading-spinner');
+        if (spinner) {
+            spinner.textContent = 'در حال آماده‌سازی پخش ' + qualityOf(source) + '…';
+            spinner.style.display = 'block';
+        }
 
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.isTizen()) {
             window.TizenAVPlayEngine.play(source.url, activePlayTitle, onPlayerProgress, function () { closePlayer(); }, function () {
@@ -274,6 +278,7 @@
     function playWithHtml5(source, title, startAt) {
         if (!source || !source.url) {
             document.body.classList.remove('avplay-active');
+            show(byId('player-loading-spinner'), 'none');
             show(byId('player-error-overlay'), 'flex');
             text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
             text(byId('player-error-desc'), 'لینک پخش قابل استفاده‌ای برای این اثر پیدا نشد.');
@@ -284,8 +289,13 @@
         var video = byId('html-video-player');
         if (!video) return;
         show(byId('player-error-overlay'), 'none');
+        text(byId('player-loading-spinner'), 'در حال پخش با پخش‌کنندهٔ داخلی تلویزیون…');
         video.src = source.url;
         video.load();
+        video.addEventListener('playing', function hideOnce() {
+            video.removeEventListener('playing', hideOnce);
+            show(byId('player-loading-spinner'), 'none');
+        });
         if (startAt > 1) {
             video.addEventListener('loadedmetadata', function seekOnce() {
                 video.removeEventListener('loadedmetadata', seekOnce);
@@ -293,6 +303,7 @@
             });
         }
         video.play().catch(function () {
+            show(byId('player-loading-spinner'), 'none');
             show(byId('player-error-overlay'), 'flex');
             text(byId('player-error-title'), 'پخش این فایل روی تلویزیون ممکن نشد');
             text(byId('player-error-desc'), 'کدک این نسخه توسط تلویزیون پشتیبانی نمی‌شود. نسخه دیگری از فایل را امتحان کنید.');
@@ -306,6 +317,7 @@
         if (window.TizenAVPlayEngine && window.TizenAVPlayEngine.stop) window.TizenAVPlayEngine.stop();
         var video = byId('html-video-player'); if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
         show(byId('modal-player'), 'none');
+        show(byId('player-loading-spinner'), 'none');
         show(byId('player-error-overlay'), 'none');
         document.body.classList.remove('avplay-active');
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();

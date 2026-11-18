@@ -16,6 +16,10 @@
     window.BISNOR_NEXT_ENABLED = false;
 
     const WORKER_ORIGIN = "https://bisnor-pwa.drive-storage-hnn.workers.dev";
+    // Media files live on plain-http CDNs. When the shell itself runs on https
+    // (PWA, Windows WebView, Android WebView) the browser refuses those requests,
+    // so playback is relayed through the worker's /media range proxy.
+    window.BISNOR_MEDIA_ORIGIN = WORKER_ORIGIN;
     const NM_TOKEN_TTL = 25 * 60 * 1000;
 
     const JUNK_TITLE = [

@@ -11,7 +11,7 @@
     <string name="nav_downloads">دانلودها</string>
     <string name="nav_settings">تنظیمات</string>
 
-    <string name="search_hint">جستجوی فیلم، سریال یا بازیگر…</string>
+    <string name="search_hint">فیلم، سریال یا بازیگر</string>
     <string name="section_latest_movies">تازه اضافه‌شده‌ها</string>
     <string name="section_popular_series">سریال‌های تازه</string>
     <string name="section_top_rated">برترین‌های IMDb</string>

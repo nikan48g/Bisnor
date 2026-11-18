@@ -12,14 +12,23 @@
         android:clipToPadding="false"
         android:paddingBottom="28dp" />
 
-    <!-- Transparent overlay toolbar: back navigation stays reachable over artwork. -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar_detail"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/transparent"
-        android:elevation="0dp"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="@color/white"
-        app:title="" />
+    <!-- Floating liquid-glass back button over the artwork. -->
+    <com.hnn.bisnor.ui.widget.GlassView
+        android:id="@+id/btn_detail_back"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="14dp"
+        android:clickable="true"
+        android:contentDescription="بازگشت"
+        android:focusable="true"
+        app:glassCornerRadius="22dp">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white" />
+    </com.hnn.bisnor.ui.widget.GlassView>
 </FrameLayout>

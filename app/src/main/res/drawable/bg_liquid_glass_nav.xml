@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Liquid glass: gradient rim (outer) + translucent body (inset 1dp) + top specular sheen. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient android:angle="270" android:startColor="@color/lg_rim_bottom" android:endColor="@color/lg_rim_top" />
+            <corners android:radius="32dp" />
+        </shape>
+    </item>
+    <item android:bottom="1dp" android:left="1dp" android:right="1dp" android:top="1dp">
+        <shape android:shape="rectangle">
+            <gradient android:angle="270" android:startColor="@color/lg_fill_bottom" android:endColor="@color/lg_fill_top" />
+            <corners android:radius="31dp" />
+        </shape>
+    </item>
+</layer-list>

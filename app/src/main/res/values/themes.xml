@@ -1,4 +1,4 @@
-﻿<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ============================================================
          Base theme (LIGHT). Dark values live in values-night/themes.xml.
@@ -30,6 +30,9 @@
         <item name="colorSurfaceContainer">@color/surface_container</item>
         <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
         <item name="colorSurfaceContainerHighest">@color/surface_container_highest</item>
+        <!-- Apple greys stay neutral: no orange elevation tint on dialogs/sheets. -->
+        <item name="elevationOverlayColor">@color/transparent</item>
+        <item name="elevationOverlayEnabled">false</item>
         <item name="colorOutline">@color/outline</item>
         <item name="colorOutlineVariant">@color/outline_variant</item>
 
@@ -131,8 +134,16 @@
     <style name="TextAppearance.Bisnor.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
         <item name="fontFamily">@font/vazirmatn_bold</item>
         <item name="android:fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:textSize">11.5sp</item>
+        <item name="android:textSize">11sp</item>
         <item name="android:textColor">@color/primary</item>
+    </style>
+
+    <style name="TextAppearance.Bisnor.BottomNav.Large" parent="TextAppearance.Bisnor.BottomNav.Inactive">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.Bisnor.BottomNav.Large.Active" parent="TextAppearance.Bisnor.BottomNav.Active">
+        <item name="android:textSize">14sp</item>
     </style>
 
     <style name="TextAppearance.Bisnor.BottomNav.Inactive" parent="TextAppearance.Material3.LabelSmall">
@@ -145,6 +156,11 @@
     <!-- ============================================================
          Shapes
          ============================================================ -->
+    <style name="ShapeAppearance.Bisnor.Pill" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
     <style name="ShapeAppearance.Bisnor.Small" parent="ShapeAppearance.Material3.Corner.Small">
         <item name="cornerSize">10dp</item>
     </style>
@@ -178,12 +194,38 @@
         <item name="android:fontFamily">@font/vazirmatn_bold</item>
         <item name="android:textSize">14sp</item>
         <item name="android:minHeight">52dp</item>
-        <item name="cornerRadius">18dp</item>
+        <item name="cornerRadius">100dp</item>
         <item name="iconTint">@color/on_primary</item>
         <item name="iconPadding">8dp</item>
         <item name="iconGravity">textStart</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- Apple-style primary action: a solid inverted pill (white on dark, black on light). -->
+    <!-- Thin outlined chip like Apple's "TV-PG / 4K" badges. -->
+    <style name="TextAppearance.Bisnor.MetaChip">
+        <item name="android:background">@drawable/bg_rating_chip</item>
+        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:paddingStart">7dp</item>
+        <item name="android:paddingEnd">7dp</item>
+        <item name="android:paddingBottom">1dp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minHeight">24dp</item>
+        <item name="android:paddingTop">3dp</item>
+    </style>
+
+    <style name="Widget.Bisnor.Button.Pill" parent="Widget.Bisnor.Button">
+        <item name="backgroundTint">@color/pill_bg</item>
+        <item name="android:textColor">@color/pill_fg</item>
+        <item name="iconTint">@color/pill_fg</item>
+        <item name="cornerRadius">100dp</item>
+        <item name="android:paddingStart">26dp</item>
+        <item name="android:paddingEnd">26dp</item>
+        <item name="android:textSize">15sp</item>
     </style>
 
     <style name="Widget.Bisnor.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
@@ -192,7 +234,7 @@
         <item name="android:fontFamily">@font/vazirmatn_medium</item>
         <item name="android:textSize">13sp</item>
         <item name="android:minHeight">48dp</item>
-        <item name="cornerRadius">16dp</item>
+        <item name="cornerRadius">100dp</item>
         <item name="iconTint">@color/primary</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
@@ -214,12 +256,19 @@
         <item name="android:textSize">12.5sp</item>
         <item name="chipBackgroundColor">@color/chip_background_selector</item>
         <item name="android:textColor">@color/chip_text_selector</item>
-        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStrokeWidth">0dp</item>
         <item name="chipStrokeColor">@color/chip_stroke_selector</item>
         <item name="chipCornerRadius">18dp</item>
         <item name="checkedIconVisible">false</item>
         <item name="ensureMinTouchTargetSize">false</item>
         <item name="chipMinHeight">38dp</item>
+    </style>
+
+    <!-- iOS-like switch: white thumb on an accent / grey track, no outline or icon. -->
+    <style name="Widget.Bisnor.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="thumbTint">@color/white</item>
+        <item name="trackTint">@color/switch_track</item>
+        <item name="trackDecorationTint">@color/transparent</item>
     </style>
 
     <style name="Widget.Bisnor.SettingRow" parent="">
@@ -246,12 +295,15 @@
 
     <style name="Widget.Bisnor.BottomNav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:color">@color/transparent</item>
-        <item name="android:width">0dp</item>
-        <item name="android:height">0dp</item>
+        <item name="android:width">72dp</item>
+        <item name="android:height">50dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Bisnor.Pill</item>
     </style>
 
     <style name="ThemeOverlay.Bisnor.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.Bisnor.BottomSheet</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="elevationOverlayColor">@color/transparent</item>
         <item name="android:windowBackground">@color/transparent</item>
     </style>
 
@@ -272,6 +324,8 @@
     <style name="ThemeOverlay.Bisnor.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="alertDialogStyle">@style/MaterialAlertDialog.Bisnor</item>
         <item name="materialAlertDialogTitleTextStyle">@style/MaterialAlertDialog.Bisnor.Title.Text</item>
+        <item name="elevationOverlayEnabled">false</item>
+        <item name="elevationOverlayColor">@color/transparent</item>
     </style>
 
     <!-- Dialog titles need a view style (layout params) as well as typography, so

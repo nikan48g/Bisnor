@@ -64,6 +64,10 @@
                     android:scheme="https"
                     android:host="bisnor-pwa.drive-storage-hnn.workers.dev"
                     android:pathPrefix="/import" />
+                <data
+                    android:scheme="https"
+                    android:host="bisnor-pwa.drive-storage-hnn.workers.dev"
+                    android:pathPrefix="/s/" />
             </intent-filter>
 
             <intent-filter>

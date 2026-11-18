@@ -1,5 +1,6 @@
 package com.hnn.bisnor.ui.detail
 
+import androidx.activity.enableEdgeToEdge
 import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
@@ -80,11 +81,38 @@ class DetailActivity : AppCompatActivity() {
         val isWatched: Boolean get() = progress?.isFinished == true
     }
 
+    private var pendingDownload: Pair<String, String>? = null
+
+    private val pickDownloadFolder =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()) { tree ->
+            val (title, url) = pendingDownload ?: return@registerForActivityResult
+            pendingDownload = null
+            if (tree == null) return@registerForActivityResult
+            // Keep write access across restarts so later downloads can use the same folder.
+            contentResolver.takePersistableUriPermission(
+                tree,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            DownloadHelper.rememberFolder(this, tree)
+            DownloadHelper.downloadVideo(this, title, url, tree.toString())
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // Artwork runs under the status bar; only the floating back button and list end move.
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            val d = resources.displayMetrics.density
+            (binding.btnDetailBack.layoutParams as android.view.ViewGroup.MarginLayoutParams).topMargin =
+                bars.top + (10 * d).toInt()
+            binding.btnDetailBack.requestLayout()
+            binding.recyclerDetailContent.setPadding(0, 0, 0, bars.bottom + (28 * d).toInt())
+            insets
+        }
 
         favoritesManager = FavoritesManager(this)
         playlistsManager = PlaylistsManager(this)
@@ -96,7 +124,7 @@ class DetailActivity : AppCompatActivity() {
             return
         }
 
-        binding.toolbarDetail.setNavigationOnClickListener { finish() }
+        binding.btnDetailBack.setOnClickListener { finish() }
         // The immersive header carries the title; the toolbar stays a clean back affordance.
 
         people = buildPeople(mediaItem!!)
@@ -429,10 +457,15 @@ class DetailActivity : AppCompatActivity() {
             fun bind() {
                 val item = mediaItem ?: return
                 val backdrop = item.cover.ifEmpty { item.image }
-                // On TV a fixed 430dp backdrop looks cramped; size it to the screen instead.
-                val ui = getSystemService(android.content.Context.UI_MODE_SERVICE) as android.app.UiModeManager
-                if (ui.currentModeType == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION) {
-                    b.headerArtwork.layoutParams.height = (resources.displayMetrics.heightPixels * 0.6f).toInt()
+                // Artwork fills most of the first screen on phones and TVs alike.
+                b.headerArtwork.layoutParams.height = (resources.displayMetrics.heightPixels * 0.62f).toInt()
+                // Wide screens (tablet / TV): a compact play pill, not one stretched edge to edge.
+                if (resources.configuration.screenWidthDp >= 720) {
+                    (b.btnHeaderPlay.layoutParams as android.widget.LinearLayout.LayoutParams).apply {
+                        width = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                        weight = 0f
+                    }
+                    b.btnHeaderPlay.minWidth = (240 * resources.displayMetrics.density).toInt()
                 }
                 b.imgHeaderBackdrop.load(ImageUrlHelper.getOptimizedImageUrl(backdrop)) { crossfade(true) }
                 b.imgHeaderPoster.load(ImageUrlHelper.getOptimizedImageUrl(item.image)) {
@@ -647,7 +680,16 @@ class DetailActivity : AppCompatActivity() {
                 b.btnLinkDownload.setOnLongClickListener(copyLink)
                 b.btnLinkDownload.setOnClickListener {
                     val title = "${mediaItem?.title ?: "Bisnor"} - ${row.title}"
-                    DownloadHelper.downloadVideo(this@DetailActivity, title, row.source.url)
+                    DownloadHelper.chooseAndDownload(this@DetailActivity, title, row.source.url) {
+                        pendingDownload = title to row.source.url
+                        try {
+                            pickDownloadFolder.launch(DownloadHelper.lastFolder(this@DetailActivity)?.let { android.net.Uri.parse(it) })
+                        } catch (_: android.content.ActivityNotFoundException) {
+                            // Some TVs ship without the system folder picker.
+                            pendingDownload = null
+                            DownloadHelper.downloadVideo(this@DetailActivity, title, row.source.url)
+                        }
+                    }
                 }
             }
         }

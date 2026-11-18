@@ -17,3 +17,5 @@
 # mailto:you@example.com
 
 [وب‌سایت بیسنور](https://bisnor-pwa.drive-storage-hnn.workers.dev/)
+[کانال تلگرام بیسنور](https://t.me/bisnor)
+[گیت‌هاب بیسنور](https://github.com/nikan48g/Bisnor)

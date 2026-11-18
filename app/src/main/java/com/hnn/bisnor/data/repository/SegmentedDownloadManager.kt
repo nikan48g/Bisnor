@@ -31,8 +31,15 @@ data class SegmentedTask(
     var speedBytesPerSec: Long = 0L,
     var lastBytes: Long = 0L,
     var lastSpeedCheckTime: Long = System.currentTimeMillis(),
+    // Folder the user picked (SAF tree uri); the finished file is moved there.
+    var destTreeUri: String? = null,
+    // content:// uri of the moved file; null while it still lives in filePath.
+    var savedUri: String? = null,
     @Transient var job: Job? = null
 ) {
+    /** Where the finished video can be read from. */
+    val playablePath: String get() = savedUri ?: filePath
+
     companion object {
         const val STATUS_RUNNING = 1
         const val STATUS_SUCCESS = 2
@@ -79,7 +86,7 @@ object SegmentedDownloadManager {
         return dir
     }
 
-    fun startDownload(context: Context, title: String, url: String): Long {
+    fun startDownload(context: Context, title: String, url: String, destTreeUri: String? = null): Long {
         val cleanUrl = url.trim().replace(" ", "%20")
         val cleanTitle = title.replace("[^a-zA-Z0-9آ-ی\\s._-]".toRegex(), "").trim()
         val fileName = "$cleanTitle.mkv"
@@ -93,7 +100,8 @@ object SegmentedDownloadManager {
             title = title,
             url = cleanUrl,
             filePath = targetFile.absolutePath,
-            status = SegmentedTask.STATUS_RUNNING
+            status = SegmentedTask.STATUS_RUNNING,
+            destTreeUri = destTreeUri
         )
         tasks[id] = task
         saveTasks(context)
@@ -245,8 +253,12 @@ object SegmentedDownloadManager {
                 }
                 task.bytesDownloaded.set(finalSize)
                 task.speedBytesPerSec = 0L
+                // Segments need a seekable local file; only the finished video moves to the chosen folder.
+                task.destTreeUri?.let { tree -> task.savedUri = moveToTree(context, targetFile, tree) }
                 saveTasks(context)
-                MediaScannerConnection.scanFile(context, arrayOf(targetFile.absolutePath), null, null)
+                if (task.savedUri == null) {
+                    MediaScannerConnection.scanFile(context, arrayOf(targetFile.absolutePath), null, null)
+                }
 
                 try {
                     com.hnn.bisnor.data.database.SmartTasteDatabase(context).recordDataUsage(finalSize)
@@ -265,6 +277,26 @@ object SegmentedDownloadManager {
                 saveTasks(context)
             }
         }
+    }
+
+    /** Copies [file] into the SAF folder [tree] and deletes the local copy; null if that fails. */
+    private fun moveToTree(context: Context, file: File, tree: String): String? = try {
+        val treeUri = android.net.Uri.parse(tree)
+        val parent = android.provider.DocumentsContract.buildDocumentUriUsingTree(
+            treeUri, android.provider.DocumentsContract.getTreeDocumentId(treeUri)
+        )
+        val doc = android.provider.DocumentsContract.createDocument(
+            context.contentResolver, parent, "video/x-matroska", file.name
+        )
+        if (doc == null) null else {
+            context.contentResolver.openOutputStream(doc)!!.use { out ->
+                file.inputStream().use { it.copyTo(out, 1 shl 16) }
+            }
+            file.delete()
+            doc.toString()
+        }
+    } catch (_: Exception) {
+        null // keep the local copy; it still plays from the app folder
     }
 
     fun updateSpeeds() {
@@ -335,6 +367,8 @@ object SegmentedDownloadManager {
                     put("isSegmented", t.isSegmented)
                     put("partsCount", t.partsCount)
                     put("status", t.status)
+                    put("destTreeUri", t.destTreeUri ?: "")
+                    put("savedUri", t.savedUri ?: "")
                 }
                 array.put(obj)
             }
@@ -355,8 +389,9 @@ object SegmentedDownloadManager {
                 val status = obj.getInt("status")
                 val filePath = obj.getString("filePath")
                 val file = File(filePath)
+                val savedUri = obj.optString("savedUri").ifEmpty { null }
 
-                if (!file.exists() && status == SegmentedTask.STATUS_SUCCESS) continue
+                if (savedUri == null && !file.exists() && status == SegmentedTask.STATUS_SUCCESS) continue
 
                 val task = SegmentedTask(
                     id = id,
@@ -366,7 +401,9 @@ object SegmentedDownloadManager {
                     totalBytes = obj.optLong("totalBytes", 0L),
                     isSegmented = obj.optBoolean("isSegmented", true),
                     partsCount = obj.optInt("partsCount", 8),
-                    status = if (status == SegmentedTask.STATUS_RUNNING) SegmentedTask.STATUS_FAILED else status
+                    status = if (status == SegmentedTask.STATUS_RUNNING) SegmentedTask.STATUS_FAILED else status,
+                    destTreeUri = obj.optString("destTreeUri").ifEmpty { null },
+                    savedUri = savedUri
                 )
                 task.bytesDownloaded.set(obj.optLong("bytesDownloaded", file.length()))
                 tasks[id] = task

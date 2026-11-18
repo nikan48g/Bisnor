@@ -148,56 +148,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Social links (social.md) -->
-        <LinearLayout
-            android:id="@+id/settings_social_section"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                style="@style/TextAppearance.Bisnor.Label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:layout_marginBottom="8dp"
-                android:text="ما را در اینترنت دنبال کنید"
-                android:textColor="@color/primary" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card_surface"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="در اینترنت مارو دنبال کن!"
-                    android:textColor="@color/on_surface"
-                    android:textSize="13.5sp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:fontFamily="@font/vazirmatn_regular"
-                    android:text="خبرهای بیسنور و لینک‌های رسمی ما در این شبکه‌ها منتشر می‌شود."
-                    android:textColor="@color/on_surface_variant"
-                    android:textSize="11.5sp" />
-
-                <LinearLayout
-                    android:id="@+id/social_links_row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:orientation="horizontal" />
-            </LinearLayout>
-        </LinearLayout>
-
         <!-- Appearance -->
         <TextView
             style="@style/TextAppearance.Bisnor.Label"
@@ -365,6 +315,7 @@
                 </LinearLayout>
 
                 <com.google.android.material.materialswitch.MaterialSwitch
+                    style="@style/Widget.Bisnor.Switch"
                     android:id="@+id/switch_auto_next"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -471,10 +422,119 @@
                 </LinearLayout>
 
                 <com.google.android.material.materialswitch.MaterialSwitch
+                    style="@style/Widget.Bisnor.Switch"
                     android:id="@+id/switch_content_warning"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Other -->
+        <TextView
+            style="@style/TextAppearance.Bisnor.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:layout_marginBottom="8dp"
+            android:text="سایر"
+            android:textColor="@color/primary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/btn_setting_check_update"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginEnd="14dp"
+                    android:src="@drawable/ic_refresh"
+                    app:tint="@color/primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:text="بررسی به‌روزرسانی"
+                        android:textColor="@color/on_surface"
+                        android:textSize="13.5sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:id="@+id/tv_setting_version"
+                        android:text=""
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_left"
+                    app:tint="@color/on_surface_variant" />
+            </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
+                android:id="@+id/btn_setting_clear_cache"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginEnd="14dp"
+                    android:src="@drawable/ic_delete"
+                    app:tint="@color/primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/vazirmatn_medium"
+                        android:text="پاک‌سازی حافظه موقت تصاویر"
+                        android:textColor="@color/on_surface"
+                        android:textSize="13.5sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/vazirmatn_regular"
+                        android:text="اگر پوسترها درست نمایش داده نمی‌شوند"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_left"
+                    app:tint="@color/on_surface_variant" />
             </LinearLayout>
         </LinearLayout>
 

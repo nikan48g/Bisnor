@@ -33,6 +33,61 @@ class MainActivity : AppCompatActivity() {
     private var profileFragment: ProfileFragment? = null
 
     private var activeTag: String = TAG_HOME
+    private var topInset = 0
+
+    private val isTv: Boolean by lazy {
+        val ui = getSystemService(UI_MODE_SERVICE) as android.app.UiModeManager
+        ui.currentModeType == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION
+    }
+
+    /** Tablets and TVs get an Apple TV style tab bar floating at the top-left. */
+    private val navOnTop: Boolean by lazy { isTv || resources.configuration.smallestScreenWidthDp >= 600 }
+
+    /**
+     * tvOS behaviour: the tab bar is shown while it has focus and slides away once the
+     * D-pad moves into the content, so a focused card is never hidden underneath it.
+     */
+    private fun setupTvTabBar() {
+        binding.root.viewTreeObserver.addOnGlobalFocusChangeListener { _, newFocus ->
+            val inNav = newFocus != null && isDescendantOf(newFocus, binding.navGlass)
+            binding.navGlass.animate()
+                .alpha(if (inNav) 1f else 0f)
+                .translationY(if (inNav) 0f else -binding.navGlass.height * 0.7f)
+                .setDuration(220)
+                .start()
+        }
+        // Start on the tab bar, like Apple TV, instead of a random card.
+        binding.bottomNavigation.post {
+            binding.bottomNavigation.findViewById<View>(binding.bottomNavigation.selectedItemId)?.requestFocus()
+        }
+    }
+
+    /** Space a screen must leave at its top for the floating tab bar (0 on phones). */
+    val topNavSpace: Int
+        get() = if (navOnTop) binding.navGlass.layoutParams.height + (28 * resources.displayMetrics.density).toInt() else 0
+
+    /** Home draws its hero edge-to-edge under the status bar; other tabs start below it (and the top bar). */
+    private fun applyTopInset() {
+        binding.fragmentContainer.updatePadding(top = if (activeTag == TAG_HOME) 0 else topInset + topNavSpace)
+    }
+
+    private fun placeNavOnTop() {
+        val d = resources.displayMetrics.density
+        binding.navGlass.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
+            bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+            startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+            endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.UNSET
+            topToTop = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            leftToLeft = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            width = (560 * d).toInt()
+            height = (76 * d).toInt()
+            leftMargin = (28 * d).toInt()
+        }
+        binding.navGlass.cornerRadius = 38 * d
+        binding.bottomNavigation.itemIconSize = (28 * d).toInt()
+        binding.bottomNavigation.setItemTextAppearanceActive(R.style.TextAppearance_Bisnor_BottomNav_Large_Active)
+        binding.bottomNavigation.setItemTextAppearanceInactive(R.style.TextAppearance_Bisnor_BottomNav_Large)
+    }
 
     companion object {
         private const val TAG_HOME = "tab_home"
@@ -47,15 +102,24 @@ class MainActivity : AppCompatActivity() {
         if (event.action == KeyEvent.ACTION_DOWN && ::binding.isInitialized) {
             val nav = binding.bottomNavigation
             val focused = currentFocus
-            if (event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN && focused != null &&
+            val toNav = if (navOnTop) KeyEvent.KEYCODE_DPAD_UP else KeyEvent.KEYCODE_DPAD_DOWN
+            val fromNav = if (navOnTop) KeyEvent.KEYCODE_DPAD_DOWN else KeyEvent.KEYCODE_DPAD_UP
+            val dir = if (navOnTop) View.FOCUS_UP else View.FOCUS_DOWN
+            if (event.keyCode == toNav && focused != null &&
                 !isDescendantOf(focused, nav) &&
-                focused.focusSearch(View.FOCUS_DOWN) == null
+                focused.focusSearch(dir) == null
             ) {
                 nav.findViewById<View>(nav.selectedItemId)?.requestFocus()
                 return true
             }
-            if (event.keyCode == KeyEvent.KEYCODE_DPAD_UP && focused != null && isDescendantOf(focused, nav)) {
-                binding.fragmentContainer.requestFocus(View.FOCUS_DOWN)
+            if (event.keyCode == fromNav && focused != null && isDescendantOf(focused, nav)) {
+                // Nearest view in that direction (e.g. the header right under the bar),
+                // not whatever the container happens to list first.
+                val dirOut = if (navOnTop) View.FOCUS_DOWN else View.FOCUS_UP
+                val next = android.view.FocusFinder.getInstance()
+                    .findNextFocus(binding.root as ViewGroup, focused, dirOut)
+                    ?.takeIf { !isDescendantOf(it, nav) }
+                (next ?: binding.fragmentContainer).requestFocus(dirOut)
                 return true
             }
         }
@@ -65,6 +129,14 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         lifecycleScope.launch { runCatching { com.hnn.bisnor.data.remote.AuthManager(applicationContext).refreshFromCloud(applicationContext) } }
+    }
+
+    /** Slides the glass highlight over the selected tab, like light catching a lens. */
+    private fun glideNavLight(itemId: Int, animate: Boolean = true) {
+        binding.bottomNavigation.post {
+            val item = binding.bottomNavigation.findViewById<View>(itemId) ?: return@post
+            binding.navGlass.moveLightTo(item.x + item.width / 2f, animate)
+        }
     }
 
     private fun isDescendantOf(v: View, root: View): Boolean {
@@ -82,10 +154,11 @@ class MainActivity : AppCompatActivity() {
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.fragmentContainer.updatePadding(top = bars.top)
+            topInset = bars.top
+            applyTopInset()
             val baseMargin = (14 * resources.displayMetrics.density).toInt()
-            binding.bottomNavigation.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = baseMargin + bars.bottom
+            binding.navGlass.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                if (navOnTop) topMargin = baseMargin + bars.top else bottomMargin = baseMargin + bars.bottom
             }
             insets
         }
@@ -94,9 +167,15 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // Material paints its own surface behind the items; the glass must show through.
+        binding.bottomNavigation.background = null
+        if (navOnTop) placeNavOnTop()
+        if (isTv) setupTvTabBar()
         restoreFragments(savedInstanceState)
+        glideNavLight(binding.bottomNavigation.selectedItemId, animate = false)
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
+            glideNavLight(item.itemId)
             when (item.itemId) {
                 R.id.nav_home -> showTab(TAG_HOME)
                 R.id.nav_explore -> showTab(TAG_EXPLORE)
@@ -214,6 +293,7 @@ class MainActivity : AppCompatActivity() {
             }
         }.commit()
         activeTag = tag
+        applyTopInset()
         return true
     }
 
@@ -258,24 +338,17 @@ class MainActivity : AppCompatActivity() {
                 val host = uri.host ?: ""
                 val path = uri.path ?: ""
                 val isPlaylistLink = path.contains("playlist") || host.contains("playlist") ||
-                    path.trimEnd('/') == "/import"
+                    path.trimEnd('/') == "/import" || path.startsWith("/s/")
                 if (isPlaylistLink) {
-                    val payload = com.hnn.bisnor.data.repository.SharedPlaylistImporter
-                        .parse(uri.toString())
-                    if (payload != null) {
-                        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                            .setTitle("دریافت لیست «${payload.name}»")
-                            .setMessage("این لیست شامل ${payload.items.size} اثر است. به لیست‌های شما اضافه شود؟")
-                            .setPositiveButton("ذخیره") { _, _ ->
-                                val saved = com.hnn.bisnor.data.repository.SharedPlaylistImporter
-                                    .save(this, payload)
-                                android.widget.Toast.makeText(
-                                    this, "$saved اثر ذخیره شد", android.widget.Toast.LENGTH_SHORT
-                                ).show()
-                                selectFavoritesTab()
-                            }
-                            .setNegativeButton("انصراف", null)
-                            .show()
+                    lifecycleScope.launch {
+                        val payload = com.hnn.bisnor.data.repository.SharedPlaylistImporter.resolve(uri.toString())
+                        if (payload == null) {
+                            android.widget.Toast.makeText(
+                                this@MainActivity, "لیست اشتراکی پیدا نشد", android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        } else if (!isFinishing && !isDestroyed) {
+                            com.hnn.bisnor.util.ImportListDialog.show(this@MainActivity, payload) { selectFavoritesTab() }
+                        }
                     }
                 }
             } catch (_: Exception) {

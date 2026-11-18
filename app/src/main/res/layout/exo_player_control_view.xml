@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Apple TV style player controls: big centred play/pause flanked by ±10s glass buttons,
+     thin white scrubber at the bottom. Overrides media3's default controller layout;
+     ids are media3's own so PlayerControlView wires them up. Media controls stay LTR. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layoutDirection="ltr">
+
+    <View
+        android:id="@id/exo_controls_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#59000000" />
+
+    <LinearLayout
+        android:id="@id/exo_center_controls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@id/exo_rew"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
+            android:background="@drawable/bg_player_glass_circle"
+            android:contentDescription="ده ثانیه عقب"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_replay_10"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@id/exo_play_pause"
+            android:layout_width="84dp"
+            android:layout_height="84dp"
+            android:layout_marginHorizontal="34dp"
+            android:background="@drawable/bg_player_glass_circle"
+            android:contentDescription="پخش / توقف"
+            android:padding="20dp"
+            android:scaleType="fitCenter"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@id/exo_ffwd"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
+            android:background="@drawable/bg_player_glass_circle"
+            android:contentDescription="ده ثانیه جلو"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_forward_10"
+            app:tint="@color/white" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@id/exo_bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/scrim_bottom_gradient"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="22dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="22dp">
+
+        <TextView
+            android:id="@id/exo_position"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:includeFontPadding="false"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+
+        <androidx.media3.ui.DefaultTimeBar
+            android:id="@id/exo_progress"
+            android:layout_width="0dp"
+            android:layout_height="26dp"
+            android:layout_marginHorizontal="12dp"
+            android:layout_weight="1"
+            app:bar_height="4dp"
+            app:buffered_color="#66FFFFFF"
+            app:played_color="@color/white"
+            app:scrubber_color="@color/white"
+            app:scrubber_dragged_size="18dp"
+            app:scrubber_enabled_size="12dp"
+            app:unplayed_color="#33FFFFFF" />
+
+        <TextView
+            android:id="@id/exo_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/vazirmatn_medium"
+            android:includeFontPadding="false"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+</FrameLayout>

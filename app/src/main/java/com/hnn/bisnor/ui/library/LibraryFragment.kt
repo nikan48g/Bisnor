@@ -180,7 +180,8 @@ class LibraryFragment : Fragment() {
             val isEmpty = !hasWatchlist && personalLists == 0
             binding.recyclerPlaylistCards.visibility = if (isEmpty) View.GONE else View.VISIBLE
             if (!isEmpty) playlistAdapter.notifyDataSetChanged()
-            binding.tvLibraryCount.text = "${personalLists + 1} لیست"
+            // The main watchlist only counts once it has something in it.
+            binding.tvLibraryCount.text = "${personalLists + if (hasWatchlist) 1 else 0} لیست"
             binding.layoutLibraryEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
             binding.tvLibraryEmptyTitle.text = "هنوز لیستی نساختی"
             binding.tvLibraryEmptyDesc.text =

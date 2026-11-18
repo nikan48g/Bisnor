@@ -11,13 +11,13 @@
         android:id="@+id/toolbar_playlist_detail"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/surface_container"
+        android:background="@color/background"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="@color/white"
+        app:navigationIconTint="@color/on_surface"
         app:title="نام لیست"
         app:titleCentered="true"
         app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
-        app:titleTextColor="@color/white" />
+        app:titleTextColor="@color/on_surface" />
 
     <!-- Search within this playlist -->
     <com.google.android.material.card.MaterialCardView
@@ -85,7 +85,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_detail_all"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.Bisnor.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
@@ -95,7 +95,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_detail_unwatched"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.Bisnor.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/vazirmatn_medium"
@@ -104,7 +104,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_detail_watched"
-                style="@style/Widget.Material3.Chip.Filter"
+                style="@style/Widget.Bisnor.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/vazirmatn_medium"

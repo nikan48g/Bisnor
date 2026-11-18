@@ -270,12 +270,79 @@ async function socialLinks(request: Request, url: URL, env: Env, ctx: ExecutionC
   return response;
 }
 
+// ----------------------------------------------------------------- short share links
+// POST /api/share {data} stores a compressed watchlist and returns /s/<code>;
+// GET /api/share/<code> returns {data}; /s/<code> opens the import page.
+const SHARE_CODE = /^[A-Za-z0-9]{8}$/;
+const SHARE_MAX_BYTES = 65536;
+
+function shareCode(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  return Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+}
+
+function supabaseHeaders(env: Env): Headers {
+  return new Headers({
+    apikey: env.SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+    "Content-Type": "application/json"
+  });
+}
+
+async function createShare(request: Request, url: URL, env: Env): Promise<Response> {
+  const cors = { "access-control-allow-origin": "*" };
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return Response.json({ error: "share unavailable" }, { status: 503, headers: cors });
+  const body = await request.text();
+  if (body.length > SHARE_MAX_BYTES + 64) return Response.json({ error: "too large" }, { status: 413, headers: cors });
+  let data = "";
+  try { data = String((JSON.parse(body) as { data?: unknown }).data || ""); } catch { /* handled below */ }
+  if (!data || data.length > SHARE_MAX_BYTES || !/^[A-Za-z0-9+/=_-]+$/.test(data)) {
+    return Response.json({ error: "invalid list" }, { status: 400, headers: cors });
+  }
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const code = shareCode();
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/shared_lists`, {
+      method: "POST",
+      headers: supabaseHeaders(env),
+      body: JSON.stringify({ code, payload: data })
+    });
+    if (res.ok) return Response.json({ code, url: `${url.origin}/s/${code}` }, { headers: cors });
+    if (res.status !== 409) return Response.json({ error: "store failed" }, { status: 502, headers: cors });
+  }
+  return Response.json({ error: "try again" }, { status: 503, headers: cors });
+}
+
+async function readShare(code: string, env: Env): Promise<string | null> {
+  if (!SHARE_CODE.test(code) || !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return null;
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/shared_lists?code=eq.${code}&select=payload`, { headers: supabaseHeaders(env) });
+  if (!res.ok) return null;
+  const rows = await res.json() as Array<{ payload?: string }>;
+  return rows[0]?.payload || null;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const pathname = decodeURIComponent(url.pathname);
     if (pathname === "/api/social") return socialLinks(request, url, env, ctx);
     if (pathname === "/media") return proxyMedia(request, url, env);
+    if (pathname === "/api/share" && request.method === "POST") return createShare(request, url, env);
+    if (pathname === "/api/share" && request.method === "OPTIONS") {
+      return new Response(null, { headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "POST", "access-control-allow-headers": "content-type" } });
+    }
+    if (pathname.startsWith("/api/share/")) {
+      const data = await readShare(pathname.slice("/api/share/".length), env);
+      return data
+        ? Response.json({ data }, { headers: { "access-control-allow-origin": "*", "cache-control": "public, max-age=86400" } })
+        : Response.json({ error: "not found" }, { status: 404, headers: { "access-control-allow-origin": "*" } });
+    }
+    if (pathname.startsWith("/s/")) {
+      // Short link: resolve to the existing ?data= import page (web, desktop, app links).
+      const data = await readShare(pathname.slice(3).replace(/\/$/, ""), env);
+      if (!data) return new Response("این لینک اشتراک پیدا نشد یا منقضی شده است.", { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+      return Response.redirect(`${url.origin}/import?data=${encodeURIComponent(data)}`, 302);
+    }
     if (pathname === "/import" || pathname === "/import/") {
       return env.ASSETS.fetch(new URL("/import.html", url).toString());
     }

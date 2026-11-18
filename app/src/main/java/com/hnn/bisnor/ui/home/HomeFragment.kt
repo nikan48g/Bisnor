@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.home
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -104,11 +106,11 @@ class HomeFragment : Fragment() {
     private fun bindGreeting() {
         if (authManager.isLoggedIn && authManager.currentUsername.isNotEmpty()) {
             val display = authManager.currentUsername
-            binding.tvHomeGreeting.text = "سلام، ${display.replaceFirstChar { it.uppercase() }}"
-            binding.tvHomeGreetingSub.text = "امشب چه چیزی ببینیم؟"
+            binding.tvHomeGreeting.text = Tr.s(R.string.s_0b145e2, display.replaceFirstChar { it.uppercase() })
+            binding.tvHomeGreetingSub.text = Tr.s(R.string.s_c31b7b9)
         } else {
-            binding.tvHomeGreeting.text = "سلام"
-            binding.tvHomeGreetingSub.text = "به بیسنور خوش آمدی"
+            binding.tvHomeGreeting.text = Tr.s(R.string.s_78903c5)
+            binding.tvHomeGreetingSub.text = Tr.s(R.string.s_4515ceb)
         }
 
         val avatarUrl = authManager.userAvatarUrl
@@ -187,9 +189,9 @@ class HomeFragment : Fragment() {
                 if (binding.homeContent.visibility != View.VISIBLE) {
                     binding.homeContent.visibility = View.GONE
                     binding.layoutHomeError.visibility = View.VISIBLE
-                    binding.tvHomeErrorTitle.text = "ارتباط با سرور برقرار نشد"
+                    binding.tvHomeErrorTitle.text = Tr.s(R.string.s_68912df)
                     binding.tvHomeErrorDesc.text =
-                        "کاتالوگ ایران‌فلیکس در دسترس نیست. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+                        Tr.s(R.string.s_29745a3)
                 }
                 return@launch
             }
@@ -213,7 +215,7 @@ class HomeFragment : Fragment() {
         updateContinueWatchingRow()
 
         if (catalog.fromCache && userInitiated) {
-            Toast.makeText(requireContext(), "محتوای ذخیره‌شده نمایش داده می‌شود", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), Tr.s(R.string.s_158130f), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -347,7 +349,7 @@ class HomeFragment : Fragment() {
                 holder.b.imgContinueCover.load(ImageUrlHelper.getOptimizedImageUrl(cover)) { crossfade(true) }
             }
             val title = item.mediaTitle.ifEmpty { matched?.title ?: "" }
-            holder.b.tvContinueTitle.text = title.ifEmpty { "در حال تماشا" }
+            holder.b.tvContinueTitle.text = title.ifEmpty { Tr.s(R.string.s_f025339) }
 
             val watchedMin = (item.positionMs / 60000).toInt()
             val totalMin = (item.durationMs / 60000).toInt()
@@ -358,16 +360,16 @@ class HomeFragment : Fragment() {
                     append(" • ")
                 }
                 if (totalMin > 0) {
-                    append("$watchedMin از $totalMin دقیقه")
+                    append(Tr.s(R.string.s_a8fdbeb, watchedMin, totalMin))
                 } else {
-                    append("$watchedMin دقیقه تماشا شده")
+                    append(Tr.s(R.string.s_3fddcda, watchedMin))
                 }
             }
             holder.b.progressContinueBar.progress = item.progressPercent
 
             holder.b.root.setOnClickListener {
                 val intent = Intent(requireContext(), PlayerActivity::class.java).apply {
-                    putExtra("video_title", if (ep.isNotEmpty()) "$title - $ep" else title)
+                    putExtra("video_title", if (ep.isNotEmpty()) "${title} - ${ep}" else title)
                     putExtra("video_url", item.url)
                     putExtra("media_id", item.mediaId)
                     putExtra("media_title", title)
@@ -411,7 +413,7 @@ class HomeFragment : Fragment() {
 
     private fun toggleWatchlist(item: RealMedia) {
         val added = favoritesManager.toggleFavorite(item)
-        val message = if (added) "به واچ‌لیست اضافه شد" else "از واچ‌لیست حذف شد"
+        val message = if (added) Tr.s(R.string.s_d4c8338) else Tr.s(R.string.s_41fb5da)
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 

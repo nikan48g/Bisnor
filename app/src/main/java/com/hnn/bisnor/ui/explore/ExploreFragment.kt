@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.explore
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -41,13 +43,13 @@ class ExploreFragment : Fragment() {
     private var allLoaded = listOf<RealMedia>()
 
     // Filter state — every option maps to a real catalogue field.
-    private var filterType: String = "مهم نیست"
-    private var filterContent: String = "مهم نیست"
+    private var filterType: String = Tr.s(R.string.s_c1dfce9)
+    private var filterContent: String = Tr.s(R.string.s_c1dfce9)
     private val selectedGenres = mutableSetOf<String>()
-    private var filterCountry: String = "مهم نیست"
+    private var filterCountry: String = Tr.s(R.string.s_c1dfce9)
     private var filterMinImdb: Float = 0.0f
-    private var filterYearRange: String = "مهم نیست"
-    private var filterSort: String = "جدیدترین"
+    private var filterYearRange: String = Tr.s(R.string.s_c1dfce9)
+    private var filterSort: String = Tr.s(R.string.s_ca3e0f8)
     private var searchScope: String = "all"
 
     private var randomizerIndex = 0
@@ -176,12 +178,12 @@ class ExploreFragment : Fragment() {
             }
         }
 
-        if (filterType == "سینمایی") filtered = filtered.filter { it.type == "movie" }
-        else if (filterType == "سریال") filtered = filtered.filter { it.isSeries }
+        if (filterType == Tr.s(R.string.s_c189a24)) filtered = filtered.filter { it.type == "movie" }
+        else if (filterType == Tr.s(R.string.s_dee6fc4)) filtered = filtered.filter { it.isSeries }
 
-        if (filterContent == "دوبله") {
+        if (filterContent == Tr.s(R.string.s_cfa7558)) {
             filtered = filtered.filter { it.title.contains("دوبله") || it.description.contains("دوبله") }
-        } else if (filterContent == "زیرنویس") {
+        } else if (filterContent == Tr.s(R.string.s_87a4b33)) {
             filtered = filtered.filter { it.title.contains("زیرنویس") || it.description.contains("زیرنویس") }
         }
 
@@ -191,7 +193,7 @@ class ExploreFragment : Fragment() {
             }
         }
 
-        if (filterCountry != "مهم نیست") {
+        if (filterCountry != Tr.s(R.string.s_c1dfce9)) {
             val needle = if (filterCountry.contains("کره")) "کره" else filterCountry
             if (needle.isNotEmpty()) {
                 filtered = filtered.filter { item ->
@@ -205,40 +207,40 @@ class ExploreFragment : Fragment() {
 
         filtered = when {
             filterYearRange.contains("2024") || filterYearRange.contains("۲۰۲۴") -> filtered.filter { it.year >= 2024 }
+            filterYearRange.contains("قبل") || filterYearRange.contains("Before") -> filtered.filter { it.year in 1..2019 }
             filterYearRange.contains("2020") || filterYearRange.contains("۲۰۲۰") -> filtered.filter { it.year in 2020..2023 }
-            filterYearRange.contains("قبل") -> filtered.filter { it.year in 1..2019 }
             else -> filtered
         }
 
         filtered = when (filterSort) {
-            "بالاترین نمره IMDb" -> filtered.sortedByDescending { it.imdb }
-            "سال ساخت" -> filtered.sortedByDescending { it.year }
+            Tr.s(R.string.s_460b303) -> filtered.sortedByDescending { it.imdb }
+            Tr.s(R.string.s_c95d85a) -> filtered.sortedByDescending { it.year }
             else -> filtered
         }
 
         adapter.updateData(filtered)
 
         val hasQuery = query.isNotEmpty() || selectedGenres.isNotEmpty() ||
-            filterType != "مهم نیست" || filterContent != "مهم نیست" || filterCountry != "مهم نیست" ||
-            filterMinImdb > 0f || filterYearRange != "مهم نیست"
+            filterType != Tr.s(R.string.s_c1dfce9) || filterContent != Tr.s(R.string.s_c1dfce9) || filterCountry != Tr.s(R.string.s_c1dfce9) ||
+            filterMinImdb > 0f || filterYearRange != Tr.s(R.string.s_c1dfce9)
         binding.tvResultsCount.visibility = if (filtered.isNotEmpty()) View.VISIBLE else View.GONE
-        binding.tvResultsCount.text = "${filtered.size} نتیجه"
+        binding.tvResultsCount.text = Tr.s(R.string.s_863ba5c, filtered.size)
         binding.layoutEmptyResults.visibility =
             if (filtered.isEmpty() && hasQuery) View.VISIBLE else View.GONE
         binding.recyclerSearchResults.visibility =
             if (filtered.isEmpty() && hasQuery) View.INVISIBLE else View.VISIBLE
-        binding.tvEmptyTitle.text = "نتیجه‌ای پیدا نشد"
-        binding.tvEmptyDesc.text = "برای «${query.ifBlank { "این فیلتر" }}» چیزی در کاتالوگ نیست. عبارت یا فیلترها را تغییر دهید."
+        binding.tvEmptyTitle.text = Tr.s(R.string.s_c616574)
+        binding.tvEmptyDesc.text = Tr.s(R.string.s_dbb0c09, query.ifBlank { Tr.s(R.string.s_667be3f) })
     }
 
     private fun resetFilters() {
-        filterType = "مهم نیست"
-        filterContent = "مهم نیست"
+        filterType = Tr.s(R.string.s_c1dfce9)
+        filterContent = Tr.s(R.string.s_c1dfce9)
         selectedGenres.clear()
-        filterCountry = "مهم نیست"
+        filterCountry = Tr.s(R.string.s_c1dfce9)
         filterMinImdb = 0f
-        filterYearRange = "مهم نیست"
-        filterSort = "جدیدترین"
+        filterYearRange = Tr.s(R.string.s_c1dfce9)
+        filterSort = Tr.s(R.string.s_ca3e0f8)
         searchScope = "all"
     }
 
@@ -334,39 +336,39 @@ class ExploreFragment : Fragment() {
         btnSort.text = tempSort
         sliderImdb.value = tempMinImdb
         tvImdbLabel.text = if (tempMinImdb > 0f) {
-            "امتیاز IMDb: حداقل ${String.format("%.1f", tempMinImdb)}"
-        } else "امتیاز IMDb: مهم نیست"
+            Tr.s(R.string.s_54e65b0, String.format("%.1f", tempMinImdb))
+        } else Tr.s(R.string.s_f48b0f8)
 
         sliderImdb.addOnChangeListener { _, value, _ ->
             tempMinImdb = value
             tvImdbLabel.text = if (value > 0f) {
-                "امتیاز IMDb: حداقل ${String.format("%.1f", value)}"
-            } else "امتیاز IMDb: مهم نیست"
+                Tr.s(R.string.s_54e65b0, String.format("%.1f", value))
+            } else Tr.s(R.string.s_f48b0f8)
         }
 
         btnType.setOnClickListener {
-            val items = arrayOf("مهم نیست", "سینمایی", "سریال")
-            MaterialAlertDialogBuilder(requireContext()).setTitle("دسته:")
+            val items = arrayOf(Tr.s(R.string.s_c1dfce9), Tr.s(R.string.s_c189a24), Tr.s(R.string.s_dee6fc4))
+            MaterialAlertDialogBuilder(requireContext()).setTitle(Tr.s(R.string.s_7fdc425))
                 .setItems(items) { _, which -> tempType = items[which]; btnType.text = tempType }.show()
         }
         btnContent.setOnClickListener {
-            val items = arrayOf("مهم نیست", "دوبله", "زیرنویس")
-            MaterialAlertDialogBuilder(requireContext()).setTitle("محتوا:")
+            val items = arrayOf(Tr.s(R.string.s_c1dfce9), Tr.s(R.string.s_cfa7558), Tr.s(R.string.s_87a4b33))
+            MaterialAlertDialogBuilder(requireContext()).setTitle(Tr.s(R.string.s_cf9d126))
                 .setItems(items) { _, which -> tempContent = items[which]; btnContent.text = tempContent }.show()
         }
         btnCountry.setOnClickListener {
-            val items = (listOf("مهم نیست") + allLoaded.flatMap { it.country }.map { it.title }.filter { it.isNotBlank() }.distinct().sorted()).toTypedArray()
-            MaterialAlertDialogBuilder(requireContext()).setTitle("کشور:")
+            val items = (listOf(Tr.s(R.string.s_c1dfce9)) + allLoaded.flatMap { it.country }.map { it.title }.filter { it.isNotBlank() }.distinct().sorted()).toTypedArray()
+            MaterialAlertDialogBuilder(requireContext()).setTitle(Tr.s(R.string.s_4edca30))
                 .setItems(items) { _, which -> tempCountry = items[which]; btnCountry.text = tempCountry }.show()
         }
         btnYear.setOnClickListener {
-            val items = arrayOf("مهم نیست", "۲۰۲۴ - ۲۰۲۶", "۲۰۲۰ - ۲۰۲۳", "قبل از ۲۰۲۰")
-            MaterialAlertDialogBuilder(requireContext()).setTitle("سال انتشار:")
+            val items = arrayOf(Tr.s(R.string.s_c1dfce9), Tr.s(R.string.s_640cc79), Tr.s(R.string.s_583c81a), Tr.s(R.string.s_b3e7f3e))
+            MaterialAlertDialogBuilder(requireContext()).setTitle(Tr.s(R.string.s_7bb7894))
                 .setItems(items) { _, which -> tempYear = items[which]; btnYear.text = tempYear }.show()
         }
         btnSort.setOnClickListener {
-            val items = arrayOf("جدیدترین", "بالاترین نمره IMDb", "سال ساخت")
-            MaterialAlertDialogBuilder(requireContext()).setTitle("ترتیب بر اساس:")
+            val items = arrayOf(Tr.s(R.string.s_ca3e0f8), Tr.s(R.string.s_460b303), Tr.s(R.string.s_c95d85a))
+            MaterialAlertDialogBuilder(requireContext()).setTitle(Tr.s(R.string.s_607fca7))
                 .setItems(items) { _, which -> tempSort = items[which]; btnSort.text = tempSort }.show()
         }
 
@@ -376,7 +378,7 @@ class ExploreFragment : Fragment() {
             resetFilters()
             filterList()
             dialog.dismiss()
-            Toast.makeText(requireContext(), "فیلترها پاک شدند", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), Tr.s(R.string.s_c5be926), Toast.LENGTH_SHORT).show()
         }
 
         btnApply.setOnClickListener {
@@ -404,7 +406,7 @@ class ExploreFragment : Fragment() {
 
     private fun showRandomMovieDialog() {
         if (allLoaded.isEmpty()) {
-            Toast.makeText(requireContext(), "در حال دریافت کاتالوگ...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), Tr.s(R.string.s_aa12b04), Toast.LENGTH_SHORT).show()
             lifecycleScope.launch {
                 allLoaded = RealMediaRepository.getExploreCatalog()
                 showRandomMovieDialog()
@@ -443,7 +445,7 @@ class ExploreFragment : Fragment() {
 
         randomCandidates = scored.take(25).map { it.first }
         if (randomCandidates.isEmpty()) {
-            Toast.makeText(requireContext(), "کاتالوگ خالی است", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), Tr.s(R.string.s_b95dad4), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -472,17 +474,17 @@ class ExploreFragment : Fragment() {
 
             val matched = item.genres.firstOrNull { g -> preferred.any { g.title.contains(it) } }?.title
                 ?: preferred.firstOrNull()
-            val typeBadge = if (item.isSeries) "سریال" else "فیلم"
+            val typeBadge = if (item.isSeries) Tr.s(R.string.s_dee6fc4) else Tr.s(R.string.s_b063120)
             tvMatchReason.text = if (matched != null) {
-                "بر اساس ژانر «$matched» • $typeBadge"
+                Tr.s(R.string.s_a32cc11, matched, typeBadge)
             } else {
-                "منتخب از کاتالوگ بر اساس امتیاز IMDb • $typeBadge"
+                Tr.s(R.string.s_c427d5d, typeBadge)
             }
 
             tvTitle.text = item.title
-            val genreStr = item.genres.joinToString("، ") { it.title }
+            val genreStr = item.genres.joinToString(Tr.s(R.string.s_8a78cc5)) { it.title }
             val yearStr = if (item.year > 0) "${item.year} • " else ""
-            tvGenreYear.text = "$yearStr$typeBadge • $genreStr"
+            tvGenreYear.text = "${yearStr}${typeBadge} • ${genreStr}"
 
             val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(
                 item.description, item.imdb, isSeries = item.isSeries

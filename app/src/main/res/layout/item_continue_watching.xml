@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:fontFamily="?attr/appFontBold"
                 android:maxLines="1"
                 android:textColor="@color/on_surface"
                 android:textSize="13sp" />
@@ -77,7 +77,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
                 android:ellipsize="end"
-                android:fontFamily="@font/vazirmatn_regular"
+                android:fontFamily="?attr/appFontRegular"
                 android:maxLines="1"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="11sp" />

@@ -1,5 +1,7 @@
 package com.hnn.bisnor.util
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
@@ -24,9 +26,9 @@ object DownloadHelper {
     fun folderLabel(tree: String): String = runCatching {
         val id = DocumentsContract.getTreeDocumentId(Uri.parse(tree))
         val (volume, path) = id.substringBefore(':') to id.substringAfter(':', "")
-        val root = if (volume == "primary") "حافظه داخلی" else "کارت حافظه"
-        if (path.isEmpty()) root else "$root / $path"
-    }.getOrDefault("پوشه انتخاب‌شده")
+        val root = if (volume == "primary") Tr.s(R.string.s_548449e) else Tr.s(R.string.s_223d440)
+        if (path.isEmpty()) root else "${root} / ${path}"
+    }.getOrDefault(Tr.s(R.string.s_8c1967a))
 
     /**
      * Asks where to save: the app folder, the last chosen folder, or a new one.
@@ -34,31 +36,31 @@ object DownloadHelper {
      */
     fun chooseAndDownload(context: Context, title: String, url: String, pickFolder: () -> Unit) {
         if (url.isEmpty()) {
-            Toast.makeText(context, "آدرس دانلود نامعتبر است", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, Tr.s(R.string.s_4c666db), Toast.LENGTH_SHORT).show()
             return
         }
         val actions = mutableListOf(
-            ActionSheet.Action(R.drawable.ic_folder, "پوشه برنامه بیسنور") { downloadVideo(context, title, url) }
+            ActionSheet.Action(R.drawable.ic_folder, Tr.s(R.string.s_4eb5a88)) { downloadVideo(context, title, url) }
         )
         lastFolder(context)?.let { last ->
             actions += ActionSheet.Action(R.drawable.ic_folder, folderLabel(last)) { downloadVideo(context, title, url, last) }
         }
-        actions += ActionSheet.Action(R.drawable.ic_more_horiz, "انتخاب پوشه دیگر…") { pickFolder() }
-        ActionSheet.show(context, title = "کجا ذخیره شود؟", subtitle = title, actions = actions)
+        actions += ActionSheet.Action(R.drawable.ic_more_horiz, Tr.s(R.string.s_c6bbceb)) { pickFolder() }
+        ActionSheet.show(context, title = Tr.s(R.string.s_ec74a16), subtitle = title, actions = actions)
     }
 
     fun downloadVideo(context: Context, title: String, url: String, destTreeUri: String? = null) {
         if (url.isEmpty()) {
-            Toast.makeText(context, "آدرس دانلود نامعتبر است", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, Tr.s(R.string.s_4c666db), Toast.LENGTH_SHORT).show()
             return
         }
 
         try {
             SegmentedDownloadManager.startDownload(context, title, url, destTreeUri)
             val where = destTreeUri?.let { " → ${folderLabel(it)}" } ?: ""
-            Toast.makeText(context, "دانلود «$title» آغاز شد$where", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, Tr.s(R.string.s_3760a44, title, where), Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "خطا در شروع دانلود: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, Tr.s(R.string.s_40edd6d, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 }

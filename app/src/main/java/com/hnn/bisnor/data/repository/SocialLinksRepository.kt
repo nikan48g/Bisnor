@@ -1,5 +1,8 @@
 package com.hnn.bisnor.data.repository
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -25,8 +28,8 @@ object SocialLinksRepository {
 
     /** Shown when social.md can't be reached, so the section never disappears offline. */
     private val DEFAULTS = listOf(
-        SocialLink("telegram", "کانال تلگرام بیسنور", "https://t.me/bisnor"),
-        SocialLink("github", "گیت‌هاب بیسنور", "https://github.com/nikan48g/Bisnor")
+        SocialLink("telegram", Tr.s(R.string.s_48526f8), "https://t.me/bisnor"),
+        SocialLink("github", Tr.s(R.string.s_e40df9a), "https://github.com/nikan48g/Bisnor")
     )
 
     @Volatile private var cached: List<SocialLink>? = null

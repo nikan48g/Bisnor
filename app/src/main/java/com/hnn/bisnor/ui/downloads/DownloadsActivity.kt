@@ -1,5 +1,8 @@
 package com.hnn.bisnor.ui.downloads
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -71,11 +74,11 @@ class DownloadsActivity : AppCompatActivity() {
 
         val totalBytes = downloadsList.sumOf { it.totalBytes }
         val totalMb = totalBytes / (1024.0 * 1024.0)
-        binding.tvStorageDesc.text = "${downloadsList.size} فایل در لیست دانلودها"
+        binding.tvStorageDesc.text = Tr.s(R.string.s_d54c990, downloadsList.size)
         binding.tvTotalDownloadSize.text = if (totalMb >= 1024.0) {
-            String.format("%.2f گیگابایت", totalMb / 1024.0)
+            Tr.s(R.string.fmt_gb, String.format("%.2f", totalMb / 1024.0))
         } else {
-            String.format("%.1f مگابایت", totalMb)
+            Tr.s(R.string.s_7c690f1, String.format("%.1f", totalMb))
         }
     }
 
@@ -98,18 +101,18 @@ class DownloadsActivity : AppCompatActivity() {
                     holder.b.layoutPlayOfflineContainer.visibility = View.VISIBLE
                     holder.b.progressBarDownload.visibility = View.GONE
                     val mb = String.format("%.1f", item.totalBytes / (1024.0 * 1024.0))
-                    holder.b.tvDownloadInfo.text = "تکمیل شده • $mb مگابایت"
+                    holder.b.tvDownloadInfo.text = Tr.s(R.string.s_4bd4120, mb)
                     holder.b.root.setOnClickListener(null)
                 }
                 item.status == SegmentedTask.STATUS_FAILED -> {
                     holder.b.layoutDownloadProgress.visibility = View.VISIBLE
                     holder.b.layoutPlayOfflineContainer.visibility = View.GONE
                     holder.b.progressBarDownload.visibility = View.GONE
-                    holder.b.tvDownloadProgressText.text = "خطا در اتصال به سرور دانلود • برای تلاش مجدد لمس کنید"
-                    holder.b.tvDownloadInfo.text = "خطا در دریافت فایل"
+                    holder.b.tvDownloadProgressText.text = Tr.s(R.string.s_b364778)
+                    holder.b.tvDownloadInfo.text = Tr.s(R.string.s_e91db49)
                     holder.b.root.setOnClickListener {
                         SegmentedDownloadManager.retryDownload(this@DownloadsActivity, item.id)
-                        Toast.makeText(this@DownloadsActivity, "در حال تلاش مجدد برای دانلود...", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@DownloadsActivity, Tr.s(R.string.s_08dafcb), Toast.LENGTH_SHORT).show()
                         loadDownloads(silent = true)
                     }
                 }
@@ -128,30 +131,30 @@ class DownloadsActivity : AppCompatActivity() {
                     val downloadedMb = String.format("%.1f", item.bytesDownloaded / (1024.0 * 1024.0))
                     val totalMb = item.totalBytes / (1024.0 * 1024.0)
                     val speedMb = item.speedBytesPerSec / (1024.0 * 1024.0)
-                    val speedStr = if (speedMb >= 0.05) String.format("%.1f مگابایت/ثانیه", speedMb) else "در حال دریافت"
-                    val partLabel = if (item.isSegmented) "۸ تکه‌ای" else "تکه‌ای"
+                    val speedStr = if (speedMb >= 0.05) Tr.s(R.string.fmt_mbps, String.format("%.1f", speedMb)) else Tr.s(R.string.s_5e9b8ad)
+                    val partLabel = if (item.isSegmented) Tr.s(R.string.s_6d450a8) else Tr.s(R.string.s_7721427)
 
                     if (item.totalBytes > 0L) {
-                        val totalMbStr = String.format("%.1f مگابایت", totalMb)
-                        holder.b.tvDownloadProgressText.text = "$pct٪ • $downloadedMb از $totalMbStr ($partLabel • $speedStr)"
-                        holder.b.tvDownloadInfo.text = "در حال دانلود ($pct٪) • $speedStr"
+                        val totalMbStr = Tr.s(R.string.s_7c690f1, String.format("%.1f", totalMb))
+                        holder.b.tvDownloadProgressText.text = Tr.s(R.string.s_b686e3e, pct, downloadedMb, totalMbStr, partLabel, speedStr)
+                        holder.b.tvDownloadInfo.text = Tr.s(R.string.s_4706970, pct, speedStr)
                     } else {
-                        holder.b.tvDownloadProgressText.text = "$downloadedMb مگابایت دریافت شده ($partLabel • $speedStr)"
-                        holder.b.tvDownloadInfo.text = "در حال برقراری ارتباط..."
+                        holder.b.tvDownloadProgressText.text = Tr.s(R.string.s_9f81e3d, downloadedMb, partLabel, speedStr)
+                        holder.b.tvDownloadInfo.text = Tr.s(R.string.s_8a0a05b)
                     }
                 }
             }
 
             holder.b.btnDeleteDownload.setOnClickListener {
                 MaterialAlertDialogBuilder(this@DownloadsActivity)
-                    .setTitle("حذف فایل دانلود")
-                    .setMessage("آیا می‌خواهید «${item.title}» را حذف کنید؟")
-                    .setPositiveButton("حذف") { _, _ ->
+                    .setTitle(Tr.s(R.string.s_b5fb436))
+                    .setMessage(Tr.s(R.string.s_9de66fe, item.title))
+                    .setPositiveButton(Tr.s(R.string.s_3b9854e)) { _, _ ->
                         LocalDownloadManager.deleteDownload(this@DownloadsActivity, item)
                         loadDownloads()
-                        Toast.makeText(this@DownloadsActivity, "فایل حذف شد", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@DownloadsActivity, Tr.s(R.string.s_421e4fe), Toast.LENGTH_SHORT).show()
                     }
-                    .setNegativeButton("انصراف", null)
+                    .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
                     .show()
             }
 

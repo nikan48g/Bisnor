@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.library
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -181,39 +183,39 @@ class LibraryFragment : Fragment() {
             binding.recyclerPlaylistCards.visibility = if (isEmpty) View.GONE else View.VISIBLE
             if (!isEmpty) playlistAdapter.notifyDataSetChanged()
             // The main watchlist only counts once it has something in it.
-            binding.tvLibraryCount.text = "${personalLists + if (hasWatchlist) 1 else 0} لیست"
+            binding.tvLibraryCount.text = Tr.s(R.string.s_ab43d1b, personalLists + if (hasWatchlist) 1 else 0)
             binding.layoutLibraryEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
-            binding.tvLibraryEmptyTitle.text = "هنوز لیستی نساختی"
+            binding.tvLibraryEmptyTitle.text = Tr.s(R.string.s_a3903f7)
             binding.tvLibraryEmptyDesc.text =
-                "با دکمه ساخت لیست، فیلم‌های موردعلاقه‌ات را در لیست‌های شخصی دسته‌بندی کن."
-            binding.btnLibraryDiscover.text = "ساخت لیست جدید"
+                Tr.s(R.string.s_201cff1)
+            binding.btnLibraryDiscover.text = Tr.s(R.string.s_713f483)
             return
         }
 
         binding.recyclerPlaylistCards.visibility = View.GONE
         val entries = buildEntries()
         bindListOrGrid(entries)
-        binding.tvLibraryCount.text = "${entries.size} اثر"
+        binding.tvLibraryCount.text = Tr.s(R.string.s_b7d6727, entries.size)
         binding.layoutLibraryEmpty.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
 
         when (tab) {
             TAB_CONTINUE -> {
-                binding.tvLibraryEmptyTitle.text = "در حال تماشا خالی است"
+                binding.tvLibraryEmptyTitle.text = Tr.s(R.string.s_47da447)
                 binding.tvLibraryEmptyDesc.text =
-                    "با شروع تماشای یک فیلم یا سریال، پیشرفت شما همین‌جا ذخیره می‌شود."
+                    Tr.s(R.string.s_239156e)
             }
             TAB_WATCHLIST -> {
-                binding.tvLibraryEmptyTitle.text = "هنوز چیزی به لیستت اضافه نکردی"
+                binding.tvLibraryEmptyTitle.text = Tr.s(R.string.s_3af850b)
                 binding.tvLibraryEmptyDesc.text =
-                    "در صفحه هر فیلم یا سریال، نشان را بزن تا بعداً اینجا پیدایش کنی."
+                    Tr.s(R.string.s_46759e3)
             }
             else -> {
-                binding.tvLibraryEmptyTitle.text = "هنوز تماشایی کامل نشده"
+                binding.tvLibraryEmptyTitle.text = Tr.s(R.string.s_359a46f)
                 binding.tvLibraryEmptyDesc.text =
-                    "آثاری که تا انتها تماشا کنی در این بخش نگه داشته می‌شوند."
+                    Tr.s(R.string.s_ca836d4)
             }
         }
-        binding.btnLibraryDiscover.text = "کشف محتوا"
+        binding.btnLibraryDiscover.text = Tr.s(R.string.s_57fdd3d)
     }
 
     private data class Entry(
@@ -240,7 +242,7 @@ class LibraryFragment : Fragment() {
             TAB_CONTINUE -> historyManager.getAllContinueWatching().map { p ->
                 Entry(
                     mediaId = p.mediaId,
-                    title = p.mediaTitle.ifBlank { "در حال تماشا" },
+                    title = p.mediaTitle.ifBlank { Tr.s(R.string.s_f025339) },
                     cover = p.mediaCover,
                     isSeries = p.episodeTitle.isNotBlank(),
                     year = 0,
@@ -249,8 +251,8 @@ class LibraryFragment : Fragment() {
                     metaLine = buildString {
                         val watched = p.positionMs / 60000
                         val total = p.durationMs / 60000
-                        if (total > 0) append("$watched از $total دقیقه")
-                        else append("$watched دقیقه تماشا شده")
+                        if (total > 0) append(Tr.s(R.string.s_a8fdbeb, watched, total))
+                        else append(Tr.s(R.string.s_3fddcda, watched))
                     },
                     timestamp = p.timestamp,
                     resumeUrl = p.url,
@@ -269,10 +271,10 @@ class LibraryFragment : Fragment() {
                     progressPercent = progress?.progressPercent ?: 0,
                     episodeTitle = progress?.episodeTitle ?: "",
                     metaLine = buildString {
-                        append(if (m.isSeries) "سریال" else "فیلم")
+                        append(if (m.isSeries) Tr.s(R.string.s_dee6fc4) else Tr.s(R.string.s_b063120))
                         if (m.year > 0) append(" • ${m.year}")
                         val genre = m.genres.firstOrNull()?.title
-                        if (!genre.isNullOrBlank()) append(" • $genre")
+                        if (!genre.isNullOrBlank()) append(" • ${genre}")
                     },
                     timestamp = progress?.timestamp ?: 0L,
                     resumeUrl = progress?.url,
@@ -286,13 +288,13 @@ class LibraryFragment : Fragment() {
                 .map { p ->
                     Entry(
                         mediaId = p.mediaId,
-                        title = p.mediaTitle.ifBlank { "تماشا شده" },
+                        title = p.mediaTitle.ifBlank { Tr.s(R.string.s_52b7246) },
                         cover = p.mediaCover,
                         isSeries = p.episodeTitle.isNotBlank(),
                         year = 0,
                         progressPercent = 100,
                         episodeTitle = p.episodeTitle,
-                        metaLine = if (p.episodeTitle.isNotBlank()) "قسمت تماشا شده" else "تماشا شده",
+                        metaLine = if (p.episodeTitle.isNotBlank()) Tr.s(R.string.s_2dfdf27) else Tr.s(R.string.s_52b7246),
                         timestamp = p.timestamp,
                         resumeUrl = null,
                         media = favoritesManager.favoritesFlow.value.find { it.id == p.mediaId }
@@ -393,7 +395,7 @@ class LibraryFragment : Fragment() {
         private fun playlists(): List<CustomPlaylist> {
             val main = CustomPlaylist(
                 id = "fav",
-                name = "واچ‌لیست اصلی",
+                name = Tr.s(R.string.s_8cf8d5d),
                 items = favoritesManager.favoritesFlow.value.toMutableList()
             )
             val all = listOf(main) + playlistsManager.playlistsFlow.value
@@ -415,7 +417,7 @@ class LibraryFragment : Fragment() {
             val pl = playlists()[position]
             val b = holder.b
             b.tvPlaylistName.text = pl.name
-            b.tvPlaylistCountBadge.text = "${pl.items.size} اثر"
+            b.tvPlaylistCountBadge.text = Tr.s(R.string.s_b7d6727, pl.items.size)
 
             b.layoutPlaylistHeader.setOnClickListener { openPlaylist(pl) }
             b.root.setOnClickListener { openPlaylist(pl) }
@@ -424,13 +426,13 @@ class LibraryFragment : Fragment() {
                 b.btnPlaylistDelete.visibility = View.VISIBLE
                 b.btnPlaylistDelete.setOnClickListener {
                     MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("حذف لیست")
-                        .setMessage("لیست «${pl.name}» حذف شود؟")
-                        .setPositiveButton("حذف") { _, _ ->
+                        .setTitle(Tr.s(R.string.s_8ae4b6a))
+                        .setMessage(Tr.s(R.string.s_a386b4b, pl.name))
+                        .setPositiveButton(Tr.s(R.string.s_3b9854e)) { _, _ ->
                             playlistsManager.deletePlaylist(pl.id)
                             notifyDataSetChanged()
                         }
-                        .setNegativeButton("انصراف", null)
+                        .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
                         .show()
                 }
             } else {
@@ -447,7 +449,7 @@ class LibraryFragment : Fragment() {
             } else {
                 b.recyclerPlaylistItems.visibility = View.GONE
                 b.tvPlaylistEmptyHint.visibility = View.VISIBLE
-                b.tvPlaylistEmptyHint.text = "این لیست خالی است."
+                b.tvPlaylistEmptyHint.text = Tr.s(R.string.s_2194f09)
             }
         }
 
@@ -498,10 +500,10 @@ class LibraryFragment : Fragment() {
             setPadding(48, 24, 48, 16)
         }
         val input = EditText(requireContext()).apply {
-            hint = "نام لیست (مثلاً: فیلم‌های آخر هفته)"
+            hint = Tr.s(R.string.s_bd2b43d)
         }
         val switchPublic = com.google.android.material.materialswitch.MaterialSwitch(requireContext()).apply {
-            text = "لیست عمومی باشد (قابل اشتراک‌گذاری)"
+            text = Tr.s(R.string.s_bd661c5)
             isChecked = false
             textSize = 13f
         }
@@ -509,9 +511,9 @@ class LibraryFragment : Fragment() {
         layout.addView(switchPublic)
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("لیست جدید")
+            .setTitle(Tr.s(R.string.s_e0c8aab))
             .setView(layout)
-            .setPositiveButton("ایجاد") { _, _ ->
+            .setPositiveButton(Tr.s(R.string.s_2b89d69)) { _, _ ->
                 val name = input.text.toString().trim()
                 if (name.isNotEmpty()) {
                     val authManager = com.hnn.bisnor.data.remote.AuthManager(requireContext())
@@ -520,22 +522,22 @@ class LibraryFragment : Fragment() {
                         isPublic = switchPublic.isChecked,
                         creator = authManager.currentUsername
                     )
-                    Toast.makeText(requireContext(), "لیست «$name» ساخته شد", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), Tr.s(R.string.s_3de037f, name), Toast.LENGTH_SHORT).show()
                     tab = TAB_LISTS
                     syncTabChips()
                     render()
                 }
             }
-            .setNegativeButton("انصراف", null)
+            .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
             .show()
     }
 
     private fun showSortDialog() {
-        val labels = arrayOf("آخرین بازدید", "حروف الفبا", "سال انتشار")
+        val labels = arrayOf(Tr.s(R.string.s_ab2eed0), Tr.s(R.string.s_5d26d08), Tr.s(R.string.s_43eaa75))
         val values = arrayOf(SORT_RECENT, SORT_ALPHA, SORT_YEAR)
         val current = values.indexOf(sortMode).coerceAtLeast(0)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("مرتب‌سازی بر اساس")
+            .setTitle(Tr.s(R.string.s_a98ea44))
             .setSingleChoiceItems(labels, current) { dialog, which ->
                 sortMode = values[which]
                 binding.btnLibrarySort.text = labels[which]

@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.settings
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -73,6 +75,24 @@ class SettingsFragment : Fragment() {
             }
         }
 
+        // Language, interface style, font
+        val ctx = requireContext()
+        if (com.hnn.bisnor.util.AppPrefs.lang(ctx) == com.hnn.bisnor.util.AppPrefs.LANG_FA) binding.chipLangFa.isChecked = true else binding.chipLangEn.isChecked = true
+        binding.chipGroupLang.setOnCheckedStateChangeListener { _, ids ->
+            val tag = if (ids.firstOrNull() == R.id.chip_lang_en) com.hnn.bisnor.util.AppPrefs.LANG_EN else com.hnn.bisnor.util.AppPrefs.LANG_FA
+            if (tag != com.hnn.bisnor.util.AppPrefs.lang(ctx)) { com.hnn.bisnor.util.AppPrefs.setLang(ctx, tag); requireActivity().recreate() }
+        }
+        if (com.hnn.bisnor.util.AppPrefs.glass(ctx)) binding.chipUiModern.isChecked = true else binding.chipUiClassic.isChecked = true
+        binding.chipGroupUi.setOnCheckedStateChangeListener { _, ids ->
+            val glass = ids.firstOrNull() != R.id.chip_ui_classic
+            if (glass != com.hnn.bisnor.util.AppPrefs.glass(ctx)) { com.hnn.bisnor.util.AppPrefs.setGlass(ctx, glass); requireActivity().recreate() }
+        }
+        if (com.hnn.bisnor.util.AppPrefs.font(ctx) == "fancy") binding.chipFontFancy.isChecked = true else binding.chipFontAjor.isChecked = true
+        binding.chipGroupFont.setOnCheckedStateChangeListener { _, ids ->
+            val f = if (ids.firstOrNull() == R.id.chip_font_fancy) "fancy" else "ajor"
+            if (f != com.hnn.bisnor.util.AppPrefs.font(ctx)) { com.hnn.bisnor.util.AppPrefs.setFont(ctx, f); requireActivity().recreate() }
+        }
+
         // Content source (Next Movie / IranFlix / both)
         when (SourcePreferences.mode) {
             SourcePreferences.IRANFLIX -> binding.chipSourceIranflix.isChecked = true
@@ -121,7 +141,7 @@ class SettingsFragment : Fragment() {
 
         binding.btnSettingImport.setOnClickListener { showImportDialog() }
 
-        binding.tvSettingVersion.text = "نسخه فعلی ${com.hnn.bisnor.BuildConfig.VERSION_NAME}"
+        binding.tvSettingVersion.text = Tr.s(R.string.s_95197c8, com.hnn.bisnor.BuildConfig.VERSION_NAME)
         binding.btnSettingCheckUpdate.setOnClickListener {
             lifecycleScope.launch {
                 com.hnn.bisnor.util.UpdateChecker.checkForUpdates(requireActivity(), showToastIfLatest = true)
@@ -131,14 +151,14 @@ class SettingsFragment : Fragment() {
             val loader = coil.Coil.imageLoader(requireContext())
             loader.memoryCache?.clear()
             loader.diskCache?.clear()
-            Toast.makeText(requireContext(), "حافظه موقت تصاویر پاک شد", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), Tr.s(R.string.s_629b87d), Toast.LENGTH_SHORT).show()
         }
 
     }
 
     private fun showImportDialog() {
         val input = EditText(requireContext()).apply {
-            hint = "https://…/s/… یا کد دریافتی"
+            hint = Tr.s(R.string.s_a54ea1c)
             setSingleLine(false)
             minLines = 2
             maxLines = 5
@@ -148,22 +168,22 @@ class SettingsFragment : Fragment() {
             setPadding(24, 24, 24, 24)
         }
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("وارد کردن واچ‌لیست")
-            .setMessage("لینک اشتراک‌گذاری یا کد را اینجا بچسبانید؛ بعد انتخاب می‌کنید در لیست جدید ذخیره شود یا به یکی از لیست‌هایتان اضافه شود.")
+            .setTitle(Tr.s(R.string.s_594a166))
+            .setMessage(Tr.s(R.string.s_e8e9a8d))
             .setView(input)
-            .setPositiveButton("ادامه") { _, _ ->
+            .setPositiveButton(Tr.s(R.string.s_20e034c)) { _, _ ->
                 val text = input.text?.toString()
                 viewLifecycleOwner.lifecycleScope.launch {
                     val payload = SharedPlaylistImporter.resolve(text)
                     if (!isAdded) return@launch
                     if (payload == null) {
-                        Toast.makeText(requireContext(), "کد قابل خواندن نیست یا لیست خالی است", Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext(), Tr.s(R.string.s_936795a), Toast.LENGTH_LONG).show()
                     } else {
                         com.hnn.bisnor.util.ImportListDialog.show(requireContext(), payload)
                     }
                 }
             }
-            .setNegativeButton("انصراف", null)
+            .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
             .show()
     }
 
@@ -179,14 +199,14 @@ class SettingsFragment : Fragment() {
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, 16, 0, 24)
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            layoutDirection = if (com.hnn.bisnor.util.AppPrefs.isRtl(requireContext())) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
         }
 
         val header = TextView(context).apply {
-            text = "انتخاب پخش‌کننده ویدیو"
+            text = Tr.s(R.string.s_4ff4020)
             setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
             setPadding(24, 16, 24, 16)
-            layoutDirection = View.LAYOUT_DIRECTION_RTL
+            layoutDirection = if (com.hnn.bisnor.util.AppPrefs.isRtl(requireContext())) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
         }
         container.addView(header)
 
@@ -210,13 +230,13 @@ class SettingsFragment : Fragment() {
             val isSelected = player.id == historyManager.preferredPlayer
 
             if (player.isInstalled) {
-                tvStatus.text = if (player.id == "internal") "پیش‌فرض بیسنور • پشتیبانی از ژست لمسی" else "نصب شده و آماده پخش"
+                tvStatus.text = if (player.id == "internal") Tr.s(R.string.s_bc8ade3) else Tr.s(R.string.s_bc6b5e9)
                 tvStatus.setTextColor(resources.getColor(R.color.on_surface_variant, null))
                 radio.visibility = View.VISIBLE
                 radio.isChecked = isSelected
                 btnInstall.visibility = View.GONE
             } else {
-                tvStatus.text = "روی دستگاه شما نصب نیست"
+                tvStatus.text = Tr.s(R.string.s_da68e31)
                 tvStatus.setTextColor(resources.getColor(R.color.outline, null))
                 radio.visibility = View.GONE
                 btnInstall.visibility = View.VISIBLE
@@ -230,7 +250,7 @@ class SettingsFragment : Fragment() {
                 if (player.isInstalled) {
                     historyManager.preferredPlayer = player.id
                     updatePlayerLabel()
-                    Toast.makeText(context, "پخش‌کننده «${player.name}» فعال شد", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, Tr.s(R.string.s_60747f5, player.name), Toast.LENGTH_SHORT).show()
                     bottomSheet.dismiss()
                 } else {
                     PlayerLauncherHelper.openInGooglePlay(context, player.packageName)
@@ -247,12 +267,12 @@ class SettingsFragment : Fragment() {
 
     private fun updateAutoNextLabel() {
         if (!historyManager.isAutoNextEnabled) {
-            binding.tvAutoNextMinutesLabel.text = "غیرفعال"
+            binding.tvAutoNextMinutesLabel.text = Tr.s(R.string.s_7fdadc7)
             binding.tvAutoNextMinutesLabel.setTextColor(resources.getColor(R.color.outline, null))
             binding.btnSettingAutoNextTime.alpha = 0.6f
         } else {
             val mins = historyManager.autoNextMinutes
-            binding.tvAutoNextMinutesLabel.text = "$mins دقیقه مانده به پایان"
+            binding.tvAutoNextMinutesLabel.text = Tr.s(R.string.s_e4e1c29, mins)
             binding.tvAutoNextMinutesLabel.setTextColor(resources.getColor(R.color.primary, null))
             binding.btnSettingAutoNextTime.alpha = 1.0f
         }
@@ -260,11 +280,11 @@ class SettingsFragment : Fragment() {
 
     private fun showAutoNextTimeDialog() {
         val options = arrayOf(
-            "غیرفعال (عدم پخش خودکار قسمت بعدی)",
-            "۱ دقیقه مانده به پایان",
-            "۲ دقیقه مانده به پایان",
-            "۳ دقیقه مانده به پایان",
-            "۵ دقیقه مانده به پایان"
+            Tr.s(R.string.s_60a4837),
+            Tr.s(R.string.s_ede27ca),
+            Tr.s(R.string.s_34205e4),
+            Tr.s(R.string.s_01ff2fb),
+            Tr.s(R.string.s_0d23d82)
         )
         val values = intArrayOf(0, 1, 2, 3, 5)
         val currentIndex = if (!historyManager.isAutoNextEnabled) {
@@ -275,7 +295,7 @@ class SettingsFragment : Fragment() {
         }
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("پیشنهاد و پخش خودکار قسمت بعدی")
+            .setTitle(Tr.s(R.string.s_4e9387a))
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
                 val selected = values[which]
                 if (selected == 0) {
@@ -293,12 +313,12 @@ class SettingsFragment : Fragment() {
     }
 
     private fun showAutoNextCountdownDialog() {
-        val options = arrayOf("۵ ثانیه", "۱۰ ثانیه", "۱۵ ثانیه", "۲۰ ثانیه", "۳۰ ثانیه")
+        val options = arrayOf(Tr.s(R.string.s_19d9e2e), Tr.s(R.string.s_c069a96), Tr.s(R.string.s_a3f1241), Tr.s(R.string.s_6ca46aa), Tr.s(R.string.s_0041beb))
         val values = intArrayOf(5, 10, 15, 20, 30)
         val currentIndex = values.indexOf(historyManager.autoNextCountdownSeconds).coerceAtLeast(0)
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("مدت زمان شمارش معکوس")
+            .setTitle(Tr.s(R.string.s_017d758))
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
                 historyManager.autoNextCountdownSeconds = values[which]
                 updateAutoNextLabel()

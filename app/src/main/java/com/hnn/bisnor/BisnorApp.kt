@@ -1,5 +1,8 @@
 package com.hnn.bisnor
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.app.Activity
 import android.app.Application
 import android.app.DownloadManager
@@ -22,6 +25,8 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks, coil.Im
         coil.ImageLoader.Builder(this).allowHardware(false).crossfade(true).build()
 
     companion object {
+        lateinit var instance: BisnorApp
+            private set
         private var currentActivityRef: WeakReference<Activity>? = null
 
         val currentActivity: Activity?
@@ -35,7 +40,7 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks, coil.Im
             val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
             if (downloadId == -1L || context == null) return
 
-            var title = "فیلم جدید"
+            var title = Tr.s(R.string.s_009db4f)
             try {
                 val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                 val query = DownloadManager.Query().setFilterById(downloadId)
@@ -63,6 +68,7 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks, coil.Im
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         com.hnn.bisnor.util.ThemeHelper.initAppTheme(this)
         registerActivityLifecycleCallbacks(this)
         com.hnn.bisnor.data.repository.SegmentedDownloadManager.init(this)

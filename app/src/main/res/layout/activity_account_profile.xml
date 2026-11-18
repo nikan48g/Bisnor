@@ -16,7 +16,7 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@color/on_surface"
-            app:title="حساب کاربری و سلیقه من"
+            app:title="@string/s_96d6b3a"
             app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
             app:titleTextColor="@color/on_surface" />
     </com.google.android.material.appbar.AppBarLayout>
@@ -83,8 +83,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:text="کاربر بیسنور"
+                        android:fontFamily="?attr/appFontBold"
+                        android:text="@string/s_5e61cd2"
                         android:textColor="@color/on_surface"
                         android:textSize="18sp" />
 
@@ -93,8 +93,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="حساب ابری فعال"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_f5e20e2"
                         android:textColor="@color/primary"
                         android:textSize="12sp" />
 
@@ -104,13 +104,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:hint="نام کاربری جدید">
+                        android:hint="@string/s_699bacd">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_username"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_medium"
+                            android:fontFamily="?attr/appFontMedium"
                             android:inputType="textPersonName"
                             android:maxLines="1"
                             android:textColor="@color/on_surface"
@@ -122,8 +122,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="46dp"
                         android:layout_marginTop="12dp"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:text="ذخیره تغییرات"
+                        android:fontFamily="?attr/appFontBold"
+                        android:text="@string/s_55d482e"
                         app:cornerRadius="12dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -134,8 +134,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 android:layout_marginBottom="8dp"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="ترجیح تماشا: فیلم یا سریال؟ 🍿"
+                android:fontFamily="?attr/appFontBold"
+                android:text="@string/s_c06d90c"
                 android:textColor="@color/primary"
                 android:textSize="14sp" />
 
@@ -155,8 +155,8 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="بیشتر به دیدن چه نوع محتوایی علاقه دارید؟ این انتخاب پیشنهادات هوشمند صفحه اصلی و امشب چی ببینم را تنظیم می‌کند:"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_bddd5fa"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="12sp" />
 
@@ -175,11 +175,11 @@
                             android:layout_height="wrap_content"
                             android:minHeight="42dp"
                             android:layout_weight="1"
-                            android:fontFamily="@font/vazirmatn_bold"
+                            android:fontFamily="?attr/appFontBold"
                             android:paddingHorizontal="4dp"
                             android:insetTop="0dp"
                             android:insetBottom="0dp"
-                            android:text="بیشتر فیلم 🎬"
+                            android:text="@string/s_7e11966"
                             android:textSize="11sp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -189,11 +189,11 @@
                             android:layout_height="wrap_content"
                             android:minHeight="42dp"
                             android:layout_weight="1"
-                            android:fontFamily="@font/vazirmatn_bold"
+                            android:fontFamily="?attr/appFontBold"
                             android:paddingHorizontal="4dp"
                             android:insetTop="0dp"
                             android:insetBottom="0dp"
-                            android:text="هر دو 🍿"
+                            android:text="@string/s_2d892d1"
                             android:textSize="11sp" />
 
                         <com.google.android.material.button.MaterialButton
@@ -203,11 +203,11 @@
                             android:layout_height="wrap_content"
                             android:minHeight="42dp"
                             android:layout_weight="1"
-                            android:fontFamily="@font/vazirmatn_bold"
+                            android:fontFamily="?attr/appFontBold"
                             android:paddingHorizontal="4dp"
                             android:insetTop="0dp"
                             android:insetBottom="0dp"
-                            android:text="بیشتر سریال 📺"
+                            android:text="@string/s_d7a0678"
                             android:textSize="11sp" />
 
                     </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -221,8 +221,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 android:layout_marginBottom="8dp"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="ژانرهای مورد علاقه من (انتخاب دستی)"
+                android:fontFamily="?attr/appFontBold"
+                android:text="@string/s_48c65f1"
                 android:textColor="@color/primary"
                 android:textSize="14sp" />
 
@@ -242,8 +242,8 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="ژانرهایی که بیشتر دوست دارید را لمس کنید تا در پیشنهادات اولویت پیدا کنند:"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_8f6ebff"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="12sp" />
 
@@ -270,8 +270,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="تحلیل سلیقه و یادگیری خودکار"
+                    android:fontFamily="?attr/appFontBold"
+                    android:text="@string/s_c4a27a7"
                     android:textColor="@color/primary"
                     android:textSize="14sp" />
 
@@ -282,9 +282,9 @@
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
-                    android:fontFamily="@font/vazirmatn_medium"
+                    android:fontFamily="?attr/appFontMedium"
                     android:padding="4dp"
-                    android:text="پاک‌سازی یادگیری"
+                    android:text="@string/s_53429cb"
                     android:textColor="@color/error"
                     android:textSize="11.5sp" />
             </LinearLayout>
@@ -307,10 +307,10 @@
                         android:id="@+id/tv_empty_stats"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_regular"
+                        android:fontFamily="?attr/appFontRegular"
                         android:gravity="center"
                         android:paddingVertical="12dp"
-                        android:text="هنوز ویدیویی تماشا نکرده‌اید. با تماشای فیلم‌ها و سریال‌ها، هوش سلیقه‌سنج بیسنور به‌طور خودکار علاقه‌مندی شما را تحلیل و درصدبندی می‌کند."
+                        android:text="@string/s_ae2f904"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -329,16 +329,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="📊 کارنامه ماهانه تماشا و دیتا (محلی 🔒)"
+                    android:fontFamily="?attr/appFontBold"
+                    android:text="@string/s_7613fa9"
                     android:textColor="@color/primary"
                     android:textSize="14sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="۳۰ روز اخیر"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_4dcc91b"
                     android:textColor="@color/secondary"
                     android:textSize="11.5sp" />
             </LinearLayout>
@@ -376,8 +376,8 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="@font/vazirmatn_regular"
-                                android:text="🎬 فیلم‌ها"
+                                android:fontFamily="?attr/appFontRegular"
+                                android:text="@string/s_9ca27e8"
                                 android:textColor="@color/on_surface_variant"
                                 android:textSize="11sp" />
 
@@ -386,8 +386,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:fontFamily="@font/vazirmatn_bold"
-                                android:text="۰ ساعت"
+                                android:fontFamily="?attr/appFontBold"
+                                android:text="@string/s_470bbc6"
                                 android:textColor="@color/primary"
                                 android:textSize="12.5sp" />
                         </LinearLayout>
@@ -406,8 +406,8 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="@font/vazirmatn_regular"
-                                android:text="📺 سریال‌ها"
+                                android:fontFamily="?attr/appFontRegular"
+                                android:text="@string/s_587e87d"
                                 android:textColor="@color/on_surface_variant"
                                 android:textSize="11sp" />
 
@@ -416,8 +416,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:fontFamily="@font/vazirmatn_bold"
-                                android:text="۰ ساعت"
+                                android:fontFamily="?attr/appFontBold"
+                                android:text="@string/s_470bbc6"
                                 android:textColor="@color/secondary"
                                 android:textSize="12.5sp" />
                         </LinearLayout>
@@ -436,8 +436,8 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:fontFamily="@font/vazirmatn_regular"
-                                android:text="🌐 ترافیک تخمینی"
+                                android:fontFamily="?attr/appFontRegular"
+                                android:text="@string/s_fb00923"
                                 android:textColor="@color/on_surface_variant"
                                 android:textSize="11sp" />
 
@@ -446,8 +446,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:fontFamily="@font/vazirmatn_bold"
-                                android:text="۰ مگابایت"
+                                android:fontFamily="?attr/appFontBold"
+                                android:text="@string/s_c60e8aa"
                                 android:textColor="@color/rating_gold"
                                 android:textSize="12.5sp" />
                         </LinearLayout>
@@ -459,8 +459,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:layout_marginBottom="6dp"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="توزیع درصدی ژانرهای تماشا شده در این ماه:"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_4fe710b"
                         android:textColor="@color/on_surface"
                         android:textSize="12sp" />
 
@@ -501,8 +501,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="حفظ کامل حریم خصوصی: این آمار ۱۰۰٪ محلی روی گوشی شما محاسبه شده و هیچ دیتایی به هیچ سروری ارسال نمی‌شود."
+                            android:fontFamily="?attr/appFontRegular"
+                            android:text="@string/s_26b9f3b"
                             android:textColor="@color/on_surface_variant"
                             android:textSize="10.5sp" />
                     </LinearLayout>
@@ -517,8 +517,8 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="28dp"
                 android:layout_marginBottom="32dp"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="خروج از حساب کاربری"
+                android:fontFamily="?attr/appFontBold"
+                android:text="@string/s_15e25a1"
                 android:textColor="@color/error"
                 app:backgroundTint="#26BA1A1A"
                 app:cornerRadius="12dp"

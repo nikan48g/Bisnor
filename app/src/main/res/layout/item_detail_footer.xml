@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="12dp"
-        android:fontFamily="@font/vazirmatn_bold"
+        android:fontFamily="?attr/appFontBold"
         android:text="@string/label_similar"
         android:textColor="@color/primary"
         android:textSize="16sp" />

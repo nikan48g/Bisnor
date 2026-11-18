@@ -14,7 +14,7 @@
         android:background="@color/background"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:navigationIconTint="@color/on_surface"
-        app:title="نام لیست"
+        app:title="@string/s_3f42cd9"
         app:titleCentered="true"
         app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
         app:titleTextColor="@color/on_surface" />
@@ -49,8 +49,8 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@null"
-                android:fontFamily="@font/vazirmatn_regular"
-                android:hint="جستجو در این لیست..."
+                android:fontFamily="?attr/appFontRegular"
+                android:hint="@string/s_d3c5ec7"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:paddingHorizontal="12dp"
@@ -89,8 +89,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="همه فیلم‌ها"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/s_c89d178"
                 android:textColor="@color/on_surface" />
 
             <com.google.android.material.chip.Chip
@@ -98,8 +98,8 @@
                 style="@style/Widget.Bisnor.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="دیده‌نشده‌ها"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/s_968551c"
                 android:textColor="@color/on_surface" />
 
             <com.google.android.material.chip.Chip
@@ -107,8 +107,8 @@
                 style="@style/Widget.Bisnor.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="✓ دیده‌شده‌ها"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/s_9058429"
                 android:textColor="@color/on_surface" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
@@ -131,10 +131,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:fontFamily="@font/vazirmatn_medium"
+            android:fontFamily="?attr/appFontMedium"
             android:gravity="center"
             android:padding="24dp"
-            android:text="موردی در این لیست یافت نشد."
+            android:text="@string/s_e96f796"
             android:textColor="@color/on_surface_variant"
             android:textSize="14sp"
             android:visibility="gone" />

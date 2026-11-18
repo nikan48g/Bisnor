@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.profile
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -151,7 +153,7 @@ class ActivityHeatmapView @JvmOverloads constructor(
                 val ms = activity[epochDay] ?: 0L
                 val minutes = (ms / 60000).toInt()
                 val date = SimpleDateFormat("d MMMM", Locale("fa")).format(Date(epochDay * 86_400_000L))
-                val text = if (minutes <= 0) "$date • بدون تماشا" else "$date • $minutes دقیقه تماشا"
+                val text = if (minutes <= 0) Tr.s(R.string.s_1b5c74c, date) else Tr.s(R.string.s_f9de688, date, minutes)
                 Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
             }
             performClick()

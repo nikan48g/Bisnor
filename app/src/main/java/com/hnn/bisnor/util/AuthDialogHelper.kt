@@ -1,5 +1,7 @@
 package com.hnn.bisnor.util
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -118,16 +120,16 @@ object AuthDialogHelper {
 
         fun updateUi() {
             if (isRegisterMode) {
-                tvTitle.text = "ثبت‌نام در بیسنور"
+                tvTitle.text = Tr.s(R.string.s_492ec9c)
                 layoutAvatarPicker.visibility = View.VISIBLE
                 tvAvatarName.text = avatars.getOrNull(selectedIndex)?.name.orEmpty()
-                btnSubmit.text = "ایجاد حساب"
-                btnSwitch.text = "حساب دارید؟ وارد شوید"
+                btnSubmit.text = Tr.s(R.string.s_43af5ad)
+                btnSwitch.text = Tr.s(R.string.s_ed9966c)
             } else {
-                tvTitle.text = "ورود به حساب"
+                tvTitle.text = Tr.s(R.string.s_bc08f6a)
                 layoutAvatarPicker.visibility = View.GONE
-                btnSubmit.text = "ورود"
-                btnSwitch.text = "حساب ندارید؟ ثبت‌نام"
+                btnSubmit.text = Tr.s(R.string.s_32a81e5)
+                btnSwitch.text = Tr.s(R.string.s_83fe87f)
             }
         }
 
@@ -140,13 +142,13 @@ object AuthDialogHelper {
             val username = etUser.text?.toString()?.trim() ?: ""
             val password = etPass.text?.toString()?.trim() ?: ""
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(context, "نام کاربری و رمز عبور را وارد کنید", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, Tr.s(R.string.s_2699bfc), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             scope.launch {
                 btnSubmit.isEnabled = false
-                btnSubmit.text = "در حال ارتباط با سرور..."
+                btnSubmit.text = Tr.s(R.string.s_0248469)
                 val (success, message) = if (isRegisterMode) {
                     authManager.register(username, password)
                 } else {

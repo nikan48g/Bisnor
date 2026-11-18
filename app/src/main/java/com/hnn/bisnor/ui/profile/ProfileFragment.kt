@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.profile
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -109,16 +111,16 @@ class ProfileFragment : Fragment() {
         binding.tvProfileName.text = if (loggedIn && name.isNotBlank()) {
             name.replaceFirstChar { it.uppercase() }
         } else {
-            "مهمان"
+            Tr.s(R.string.s_b315663)
         }
         binding.tvProfileUsername.text = when {
-            loggedIn -> "@$name"
-            else -> "برای همگام‌سازی وارد شوید"
+            loggedIn -> "@${name}"
+            else -> Tr.s(R.string.s_9196d0f)
         }
         // Logged-in users manage the profile from the account row below; the
         // header itself must stay informational.
         binding.btnProfileAction.visibility = if (loggedIn) View.GONE else View.VISIBLE
-        binding.btnProfileAction.text = "ورود"
+        binding.btnProfileAction.text = Tr.s(R.string.s_32a81e5)
 
         val avatarUrl = authManager.userAvatarUrl
         binding.tvProfileInitial.visibility = View.GONE
@@ -151,11 +153,11 @@ class ProfileFragment : Fragment() {
             val hours = stats.totalWatchTimeMs / 3_600_000
             val minutes = (stats.totalWatchTimeMs % 3_600_000) / 60_000
             binding.tvStatHours.text = if (hours > 0) {
-                toPersianDigits("$hours")
+                toPersianDigits("${hours}")
             } else if (minutes > 0) {
-                toPersianDigits("$minutes")
+                toPersianDigits("${minutes}")
             } else {
-                "۰"
+                Tr.s(R.string.s_9d13af3)
             }
         }
     }
@@ -168,14 +170,14 @@ class ProfileFragment : Fragment() {
             val totalMs = daily.values.sum()
             val totalMinutes = totalMs / 60_000
             binding.tvHeatmapTotal.text = if (totalMinutes <= 0) {
-                "هنوز فعالیتی ثبت نشده"
+                Tr.s(R.string.s_165767b)
             } else {
                 val h = totalMinutes / 60
                 val m = totalMinutes % 60
                 if (h > 0) {
-                    "در بازه اخیر: ${toPersianDigits(h.toString())} ساعت و ${toPersianDigits(m.toString())} دقیقه"
+                    Tr.s(R.string.s_6596bc9, toPersianDigits(h.toString()), toPersianDigits(m.toString()))
                 } else {
-                    "در بازه اخیر: ${toPersianDigits(m.toString())} دقیقه"
+                    Tr.s(R.string.s_94d5d5d, toPersianDigits(m.toString()))
                 }            }
         }
     }
@@ -210,7 +212,7 @@ class ProfileFragment : Fragment() {
                     crossfade(true)
                 }
             }
-            holder.b.tvContinueTitle.text = item.mediaTitle.ifBlank { "در حال تماشا" }
+            holder.b.tvContinueTitle.text = item.mediaTitle.ifBlank { Tr.s(R.string.s_f025339) }
             val mins = (item.positionMs / 60000).toInt()
             val total = (item.durationMs / 60000).toInt()
             holder.b.tvContinueSubtitle.text = buildString {
@@ -218,7 +220,7 @@ class ProfileFragment : Fragment() {
                     append(item.episodeTitle)
                     append(" • ")
                 }
-                if (total > 0) append("$mins از $total دقیقه") else append("$mins دقیقه")
+                if (total > 0) append(Tr.s(R.string.s_a8fdbeb, mins, total)) else append(Tr.s(R.string.s_b59d572, mins))
             }
             holder.b.progressContinueBar.progress = item.progressPercent
             holder.b.root.setOnClickListener {
@@ -256,26 +258,26 @@ class ProfileFragment : Fragment() {
 
     private fun confirmLogout() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("خروج از حساب")
-            .setMessage("از حساب کاربری خارج می‌شوید؟ داده‌های محلی تماشا روی این دستگاه باقی می‌مانند.")
-            .setPositiveButton("خروج") { _, _ ->
+            .setTitle(Tr.s(R.string.s_e75c397))
+            .setMessage(Tr.s(R.string.s_fa09508))
+            .setPositiveButton(Tr.s(R.string.s_6080666)) { _, _ ->
                 authManager.logout()
-                Toast.makeText(requireContext(), "از حساب خارج شدید", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), Tr.s(R.string.s_9825d25), Toast.LENGTH_SHORT).show()
                 bindIdentity()
             }
-            .setNegativeButton("انصراف", null)
+            .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
             .show()
     }
 
     private fun showAboutDialog() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("بیسنور • تماشا بدون مرز")
+            .setTitle(Tr.s(R.string.s_ce0639b))
             .setMessage(
-                "نسخه ${BuildConfig.VERSION_NAME}\n\n" +
-                    "بیسنور یک کلاینت متن‌باز برای مرور و پخش فیلم و سریال است. " +
-                    "اطلاعات و لینک‌های پخش از سرویس ایران‌فلیکس دریافت می‌شوند."
+                Tr.s(R.string.s_8335edc, BuildConfig.VERSION_NAME) +
+                    Tr.s(R.string.s_e055ad0) +
+                    Tr.s(R.string.s_ef370fa)
             )
-            .setPositiveButton("مخزن گیت‌هاب") { _, _ ->
+            .setPositiveButton(Tr.s(R.string.s_8bbf960)) { _, _ ->
                 runCatching {
                     startActivity(
                         Intent(
@@ -285,11 +287,12 @@ class ProfileFragment : Fragment() {
                     )
                 }
             }
-            .setNegativeButton("بستن", null)
+            .setNegativeButton(Tr.s(R.string.s_fa88277), null)
             .show()
     }
 
     private fun toPersianDigits(value: String): String {
+        if (!com.hnn.bisnor.util.AppPrefs.isRtl(requireContext())) return value
         val builder = StringBuilder(value.length)
         value.forEach { c ->
             builder.append(
@@ -343,7 +346,7 @@ class ProfileFragment : Fragment() {
             setOnClickListener {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
                 runCatching { startActivity(intent) }
-                    .onFailure { Toast.makeText(requireContext(), "برنامه‌ای برای باز کردن این لینک نیست", Toast.LENGTH_SHORT).show() }
+                    .onFailure { Toast.makeText(requireContext(), Tr.s(R.string.s_96efa99), Toast.LENGTH_SHORT).show() }
             }
             isFocusable = true
         }

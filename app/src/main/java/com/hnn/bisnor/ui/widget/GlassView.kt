@@ -32,6 +32,9 @@ class GlassView @JvmOverloads constructor(
     defStyle: Int = 0
 ) : FrameLayout(context, attrs, defStyle) {
 
+    /** Classic UI (weak phones): a flat opaque panel, no per-frame blur. */
+    private val glass = com.hnn.bisnor.util.AppPrefs.glass(context)
+
     var cornerRadius: Float
     private val tintColor: Int
     private val density = resources.displayMetrics.density
@@ -88,7 +91,7 @@ class GlassView @JvmOverloads constructor(
     }
 
     private val preDraw = ViewTreeObserver.OnPreDrawListener {
-        if (isShown && width > 0 && height > 0) capture()
+        if (glass && isShown && width > 0 && height > 0) capture()
         true
     }
 
@@ -123,7 +126,7 @@ class GlassView @JvmOverloads constructor(
         super.onAttachedToWindow()
         // Sample the whole window content, so glass reflects every layer behind it.
         source = rootView
-        rootView.viewTreeObserver.addOnPreDrawListener(preDraw)
+        if (glass) rootView.viewTreeObserver.addOnPreDrawListener(preDraw)
     }
 
     override fun onDetachedFromWindow() {
@@ -146,6 +149,7 @@ class GlassView @JvmOverloads constructor(
             0f, 0f, 0f, h * 0.55f,
             ContextCompat.getColor(context, R.color.lg_sheen), 0, Shader.TileMode.CLAMP
         )
+        if (!glass) return
         val bw = max(1, w / DOWNSCALE)
         val bh = max(1, h / DOWNSCALE)
         bitmap?.recycle()
@@ -194,6 +198,20 @@ class GlassView @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
+        if (!glass) {
+            tintPaint.color = ContextCompat.getColor(context, R.color.surface_container_high)
+            canvas.drawRoundRect(bounds, cornerRadius, cornerRadius, tintPaint)
+            val i = rimPaint.strokeWidth / 2
+            rimPaint.shader = null
+            rimPaint.color = ContextCompat.getColor(context, R.color.outline_variant)
+            canvas.drawRoundRect(i, i, width - i, height - i, cornerRadius - i, cornerRadius - i, rimPaint)
+            if (isFocused) {
+                focusPaint.strokeWidth = 3 * density
+                val fi = focusPaint.strokeWidth / 2
+                canvas.drawRoundRect(fi, fi, width - fi, height - fi, cornerRadius - fi, cornerRadius - fi, focusPaint)
+            }
+            return
+        }
         val save = canvas.save()
         canvas.clipPath(clip)
         bitmap?.let { canvas.drawBitmap(it, null, bounds, blurPaint) }

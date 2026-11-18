@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.favorites
 
+import com.hnn.bisnor.util.Tr
+
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.content.Intent
@@ -28,7 +30,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
     private lateinit var adapter: RealMediaAdapter
 
     private var playlistId: String = "fav"
-    private var playlistName: String = "لیست"
+    private var playlistName: String = Tr.s(R.string.s_6936f97)
     private var allPlaylistItems = listOf<RealMedia>()
     private var currentFilter: String = "all"
     private var currentSearchQuery: String = ""
@@ -40,7 +42,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         playlistId = intent.getStringExtra("playlist_id") ?: "fav"
-        playlistName = intent.getStringExtra("playlist_name") ?: "لیست فیلم‌ها"
+        playlistName = intent.getStringExtra("playlist_name") ?: Tr.s(R.string.s_bec777c)
 
         favoritesManager = FavoritesManager(this)
         playlistsManager = PlaylistsManager(this)
@@ -54,11 +56,11 @@ class PlaylistDetailActivity : AppCompatActivity() {
             com.hnn.bisnor.util.ActionSheet.show(
                 this,
                 title = playlistName,
-                subtitle = "${allPlaylistItems.size} اثر",
+                subtitle = Tr.s(R.string.s_b7d6727, allPlaylistItems.size),
                 actions = listOf(
-                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_share, "اشتراک‌گذاری لیست") { sharePlaylistLink() },
-                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_filter, "مرتب‌سازی") { showSortDialog() },
-                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_lock, "عمومی یا خصوصی") { showPrivacyDialog() }
+                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_share, Tr.s(R.string.s_f78763a)) { sharePlaylistLink() },
+                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_filter, Tr.s(R.string.s_3c75edb)) { showSortDialog() },
+                    com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_lock, Tr.s(R.string.s_677feb1)) { showPrivacyDialog() }
                 )
             )
             true
@@ -151,52 +153,52 @@ class PlaylistDetailActivity : AppCompatActivity() {
 
     private fun showSortDialog() {
         val options = arrayOf(
-            "پیش‌فرض (ترتیب افزودن)",
-            "⭐ نمره و امتیاز من (بالاترین)",
-            "🏆 نمره IMDb (بالاترین)",
-            "🔤 الفبایی (عنوان اثر)"
+            Tr.s(R.string.s_7b7156e),
+            Tr.s(R.string.s_dd659dc),
+            Tr.s(R.string.s_4832a06),
+            Tr.s(R.string.s_74414a6)
         )
         val keys = arrayOf("default", "user_rating", "imdb_high", "title_az")
         val currentIndex = keys.indexOf(currentSortOrder).coerceAtLeast(0)
 
         com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle("رتبه‌بندی و مرتب‌سازی لیست")
+            .setTitle(Tr.s(R.string.s_1f4cd58))
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
                 currentSortOrder = keys[which]
                 filterAndDisplayList()
                 dialog.dismiss()
             }
-            .setNegativeButton("انصراف", null)
+            .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
             .show()
     }
 
     private fun showPrivacyDialog() {
         if (playlistId == "fav") {
-            android.widget.Toast.makeText(this, "لیست نشان‌شده‌های اصلی همواره خصوصی است.", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(this, Tr.s(R.string.s_6ac2923), android.widget.Toast.LENGTH_SHORT).show()
             return
         }
 
         val pl = playlistsManager.playlistsFlow.value.find { it.id == playlistId } ?: return
         val currentPublic = pl.isPublic
-        val statusText = if (currentPublic) "عمومی (قابل مشاهده برای سایرین)" else "خصوصی (فقط در دستگاه شما)"
+        val statusText = if (currentPublic) Tr.s(R.string.s_cdb8409) else Tr.s(R.string.s_701a5dd)
 
         com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle("حریم خصوصی واچ‌لیست")
-            .setMessage("وضعیت فعلی: $statusText\n\nآیا می‌خواهید وضعیت این واچ‌لیست را تغییر دهید؟")
-            .setPositiveButton(if (currentPublic) "خصوصی کردن 🔒" else "عمومی کردن 🌍") { _, _ ->
+            .setTitle(Tr.s(R.string.s_8c6cbaf))
+            .setMessage(Tr.s(R.string.s_23d77f2, statusText))
+            .setPositiveButton(if (currentPublic) Tr.s(R.string.s_37ff1fa) else Tr.s(R.string.s_53aefd9)) { _, _ ->
                 playlistsManager.setPlaylistPublic(playlistId, !currentPublic)
                 loadPlaylistData()
-                android.widget.Toast.makeText(this, "وضعیت لیست تغییر یافت.", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(this, Tr.s(R.string.s_ebcf625), android.widget.Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("انصراف", null)
+            .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
             .show()
     }
 
     private fun showMediaOptionsDialog(item: RealMedia) {
         val existingReview = playlistsManager.getReview(playlistId, item.id)
-        val reviewLabel = if (existingReview != null) "نمره من: ${existingReview.userRating} از ۱۰" else "امتیاز و یادداشت"
+        val reviewLabel = if (existingReview != null) Tr.s(R.string.s_e3be830, existingReview.userRating) else Tr.s(R.string.s_9f7b18e)
         val meta = listOfNotNull(
-            if (item.isSeries) "سریال" else "فیلم",
+            if (item.isSeries) Tr.s(R.string.s_dee6fc4) else Tr.s(R.string.s_b063120),
             item.year.takeIf { it > 0 }?.toString()
         ).joinToString(" · ")
 
@@ -206,18 +208,18 @@ class PlaylistDetailActivity : AppCompatActivity() {
             subtitle = meta,
             imageUrl = item.image.ifEmpty { item.cover },
             actions = listOf(
-                com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_play, "تماشا") {
+                com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_play, Tr.s(R.string.s_7e4e55e)) {
                     startActivity(Intent(this, DetailActivity::class.java).putExtra("real_media", item))
                 },
                 com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_star, reviewLabel) { showReviewDialog(item) },
-                com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_delete, "حذف از این لیست", destructive = true) {
+                com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_delete, Tr.s(R.string.s_45d3be0), destructive = true) {
                     if (playlistId == "fav") {
                         favoritesManager.toggleFavorite(item)
                     } else {
                         playlistsManager.removeFromPlaylist(playlistId, item.id)
                     }
                     loadPlaylistData()
-                    android.widget.Toast.makeText(this, "از لیست حذف شد", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(this, Tr.s(R.string.s_b8ee3d7), android.widget.Toast.LENGTH_SHORT).show()
                 }
             )
         )
@@ -260,7 +262,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
             playlistsManager.addReview(playlistId, item.id, userScore, userText)
             dialog.dismiss()
             filterAndDisplayList()
-            android.widget.Toast.makeText(this, "امتیاز و یادداشت شما با موفقیت ثبت شد!", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(this, Tr.s(R.string.s_583487a), android.widget.Toast.LENGTH_SHORT).show()
         }
 
         dialog.show()
@@ -268,7 +270,7 @@ class PlaylistDetailActivity : AppCompatActivity() {
 
     private fun sharePlaylistLink() {
         if (allPlaylistItems.isEmpty()) {
-            android.widget.Toast.makeText(this, "لیست خالی قابل اشتراک‌گذاری نیست.", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(this, Tr.s(R.string.s_677797d), android.widget.Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -279,14 +281,14 @@ class PlaylistDetailActivity : AppCompatActivity() {
         lifecycleScope.launch {
         // Short /s/<code> link when the worker can store the list, long ?data= link otherwise.
         val shareLink = com.hnn.bisnor.data.repository.SharedPlaylistImporter.shareLink(payload)
-        val message = "🎬 واچ‌لیست «$playlistName» در بیسنور شامل ${allPlaylistItems.size} فیلم و سریال:\n$shareLink\n\n(با لمس این لینک، لیست مستقیماً در اپلیکیشن بیسنور باز می‌شود)"
+        val message = Tr.s(R.string.s_4d11dbf, playlistName, allPlaylistItems.size, shareLink)
 
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "اشتراک‌گذاری واچ‌لیست «$playlistName» در بیسنور")
+            putExtra(Intent.EXTRA_SUBJECT, Tr.s(R.string.s_636fee2, playlistName))
             putExtra(Intent.EXTRA_TEXT, message)
         }
-        startActivity(Intent.createChooser(intent, "اشتراک‌گذاری لینک واچ‌لیست با دوستان:"))
+        startActivity(Intent.createChooser(intent, Tr.s(R.string.s_f3b4235)))
         }
     }
 }

@@ -38,8 +38,8 @@
             android:id="@+id/tv_player_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="پلیر بیسنور"
+            android:fontFamily="?attr/appFontBold"
+            android:text="@string/s_996c83a"
             android:textColor="@color/on_surface"
             android:textSize="15sp" />
 
@@ -48,8 +48,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:fontFamily="@font/vazirmatn_regular"
-            android:text="آماده استفاده"
+            android:fontFamily="?attr/appFontRegular"
+            android:text="@string/s_7407cc3"
             android:textColor="@color/on_surface_variant"
             android:textSize="12sp" />
     </LinearLayout>
@@ -68,8 +68,8 @@
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="wrap_content"
         android:layout_height="36dp"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:text="نصب ⬇"
+        android:fontFamily="?attr/appFontBold"
+        android:text="@string/s_f2f3416"
         android:textSize="11sp"
         android:visibility="gone"
         app:cornerRadius="10dp" />

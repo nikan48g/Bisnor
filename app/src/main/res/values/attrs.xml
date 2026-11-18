@@ -4,4 +4,8 @@
         <attr name="glassCornerRadius" format="dimension" />
         <attr name="glassTint" format="color" />
     </declare-styleable>
+    <attr name="appFont" format="reference" />
+    <attr name="appFontRegular" format="reference" />
+    <attr name="appFontMedium" format="reference" />
+    <attr name="appFontBold" format="reference" />
 </resources>

@@ -19,8 +19,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:text="انتخاب تصویر پروفایل اختصاصی 🎭"
+        android:fontFamily="?attr/appFontBold"
+        android:text="@string/s_157b668"
         android:textColor="@color/on_surface"
         android:textSize="17sp" />
 
@@ -28,8 +28,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:fontFamily="@font/vazirmatn_regular"
-        android:text="کاراکتر مورد علاقه خود را انتخاب کنید و پیش‌نمایش آن را ببینید:"
+        android:fontFamily="?attr/appFontRegular"
+        android:text="@string/s_ca7ad03"
         android:textColor="@color/on_surface_variant"
         android:textSize="12sp" />
 
@@ -74,7 +74,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:fontFamily="?attr/appFontBold"
                 android:textColor="@color/primary"
                 android:textSize="15sp" />
 
@@ -83,8 +83,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:fontFamily="@font/vazirmatn_regular"
-                android:text="پیش‌نمایش تصویر روی حساب کاربری شما"
+                android:fontFamily="?attr/appFontRegular"
+                android:text="@string/s_bf6541c"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="11.5sp" />
         </LinearLayout>
@@ -106,8 +106,8 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="16dp"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:text="تأیید و ذخیره آواتار ✨"
+        android:fontFamily="?attr/appFontBold"
+        android:text="@string/s_b5c469b"
         android:textSize="14sp"
         app:backgroundTint="@color/primary"
         app:cornerRadius="14dp" />

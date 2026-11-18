@@ -37,8 +37,8 @@
                 android:id="@+id/tv_banner_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="دانلود با موفقیت پایان یافت ✅"
+                android:fontFamily="?attr/appFontBold"
+                android:text="@string/s_687be9f"
                 android:textColor="@color/on_surface"
                 android:textSize="14sp" />
 
@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:ellipsize="end"
-                android:fontFamily="@font/vazirmatn_regular"
+                android:fontFamily="?attr/appFontRegular"
                 android:maxLines="1"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="12sp" />

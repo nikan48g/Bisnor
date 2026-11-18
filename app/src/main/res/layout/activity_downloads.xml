@@ -55,8 +55,8 @@
                     android:id="@+id/tv_storage_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="وضعیت حافظه دانلودها"
+                    android:fontFamily="?attr/appFontBold"
+                    android:text="@string/s_9d9fd8d"
                     android:textColor="@color/on_surface"
                     android:textSize="14sp" />
 
@@ -65,8 +65,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:fontFamily="@font/vazirmatn_regular"
-                    android:text="۰ فایل دانلود شده"
+                    android:fontFamily="?attr/appFontRegular"
+                    android:text="@string/s_00b7476"
                     android:textColor="@color/on_surface_variant"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -76,10 +76,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/badge_background"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:fontFamily="?attr/appFontBold"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="4dp"
-                android:text="۰ MB"
+                android:text="@string/s_3368251"
                 android:textColor="@color/primary"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -91,7 +91,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:padding="32dp"
-        android:fontFamily="@font/vazirmatn_regular"
+        android:fontFamily="?attr/appFontRegular"
         android:text="@string/label_empty_downloads"
         android:textColor="@color/on_surface_variant"
         android:textSize="14sp"

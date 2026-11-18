@@ -1,5 +1,8 @@
 package com.hnn.bisnor
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
@@ -149,6 +152,11 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
+        if (com.hnn.bisnor.util.AppPrefs.onboardedVersion(this) != BuildConfig.VERSION_NAME) {
+            startActivity(Intent(this, com.hnn.bisnor.ui.onboarding.OnboardingActivity::class.java).putExtra("next", Intent(intent)))
+            finish()
+            return
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -344,7 +352,7 @@ class MainActivity : AppCompatActivity() {
                         val payload = com.hnn.bisnor.data.repository.SharedPlaylistImporter.resolve(uri.toString())
                         if (payload == null) {
                             android.widget.Toast.makeText(
-                                this@MainActivity, "لیست اشتراکی پیدا نشد", android.widget.Toast.LENGTH_SHORT
+                                this@MainActivity, Tr.s(R.string.s_1d06817), android.widget.Toast.LENGTH_SHORT
                             ).show()
                         } else if (!isFinishing && !isDestroyed) {
                             com.hnn.bisnor.util.ImportListDialog.show(this@MainActivity, payload) { selectFavoritesTab() }

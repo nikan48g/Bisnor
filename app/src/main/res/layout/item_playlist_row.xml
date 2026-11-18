@@ -41,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:fontFamily="?attr/appFontBold"
                 android:textColor="@color/on_surface"
                 android:textSize="16sp" />
 
@@ -50,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/badge_background"
-                android:fontFamily="@font/vazirmatn_medium"
+                android:fontFamily="?attr/appFontMedium"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
                 android:textColor="@color/secondary"
@@ -90,10 +90,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:fontFamily="@font/vazirmatn_regular"
+            android:fontFamily="?attr/appFontRegular"
             android:gravity="center"
             android:padding="16dp"
-            android:text="هنوز اثری به این لیست اضافه نشده است."
+            android:text="@string/s_991138c"
             android:textColor="@color/on_surface_variant"
             android:textSize="12sp"
             android:visibility="gone" />

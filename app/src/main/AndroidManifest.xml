@@ -80,6 +80,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.onboarding.OnboardingActivity" android:exported="false" />
+
         <activity
             android:name=".ui.detail.DetailActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode"

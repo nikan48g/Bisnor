@@ -43,7 +43,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:fontFamily="@font/vazirmatn_bold"
+                    android:fontFamily="?attr/appFontBold"
                     android:maxLines="1"
                     android:textColor="@color/on_surface"
                     android:textSize="14sp" />
@@ -53,7 +53,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:fontFamily="@font/vazirmatn_regular"
+                    android:fontFamily="?attr/appFontRegular"
                     android:textColor="@color/on_surface_variant"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -90,7 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:fontFamily="@font/vazirmatn_regular"
+                android:fontFamily="?attr/appFontRegular"
                 android:textColor="@color/primary"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -109,8 +109,8 @@
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="پخش آفلاین"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/s_2d5706f"
                 android:textSize="12sp"
                 app:backgroundTint="@color/primary_container"
                 app:cornerRadius="10dp"

@@ -1,5 +1,8 @@
 package com.hnn.bisnor.ui.player
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.app.Activity
 import android.media.AudioManager
 import android.view.GestureDetector
@@ -60,7 +63,7 @@ class PlayerGestureController(
                             val newVol = (currentVol + step).coerceIn(0, maxVolume)
                             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVol, 0)
                             val pct = (newVol * 100) / maxVolume
-                            onIndicatorUpdate("🔊 بلندی صدا", "$pct%")
+                            onIndicatorUpdate(Tr.s(R.string.s_0567179), "${pct}%")
                         } else {
                             val lp = activity.window.attributes
                             var currentB = lp.screenBrightness
@@ -70,7 +73,7 @@ class PlayerGestureController(
                             lp.screenBrightness = newB
                             activity.window.attributes = lp
                             val pct = (newB * 100).toInt()
-                            onIndicatorUpdate("☀️ روشنایی", "$pct%")
+                            onIndicatorUpdate(Tr.s(R.string.s_287f31d), "${pct}%")
                         }
                         initialY = event.y
                     }

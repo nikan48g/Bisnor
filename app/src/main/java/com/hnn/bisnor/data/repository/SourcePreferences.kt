@@ -1,5 +1,8 @@
 package com.hnn.bisnor.data.repository
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.content.SharedPreferences
 
@@ -37,9 +40,9 @@ object SourcePreferences {
     fun usesIranflix(): Boolean = mode == IRANFLIX || mode == BOTH
 
     fun label(value: String = mode): String = when (value) {
-        IRANFLIX -> "ایران‌فلیکس"
-        BOTH -> "هر دو منبع"
-        else -> "نکست‌مووی"
+        IRANFLIX -> Tr.s(R.string.s_9a8fa14)
+        BOTH -> Tr.s(R.string.s_c77a9c6)
+        else -> Tr.s(R.string.s_1452e24)
     }
 
     private fun normalize(value: String?): String = when (value) {

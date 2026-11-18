@@ -1,5 +1,8 @@
 package com.hnn.bisnor.data.repository
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
@@ -118,7 +121,7 @@ object RealMediaRepository {
     private fun fetchFrom(server: String, path: String): FetchResult {
         return try {
             val request = Request.Builder()
-                .url("$server$path")
+                .url("${server}${path}")
                 .addHeader("User-Agent", "Mozilla/5.0 (Android; Mobile)")
                 .build()
             client.newCall(request).execute().use { response ->
@@ -133,8 +136,8 @@ object RealMediaRepository {
 
     private inline fun <reified T> readCache(key: String): T? {
         val prefs = cachePrefs() ?: return null
-        val json = prefs.getString("data_$key", null) ?: return null
-        val savedAt = prefs.getLong("time_$key", 0L)
+        val json = prefs.getString("data_${key}", null) ?: return null
+        val savedAt = prefs.getLong("time_${key}", 0L)
         if (System.currentTimeMillis() - savedAt > MAX_CACHE_AGE_MS) return null
         return try {
             gson.fromJson(json, object : TypeToken<T>() {}.type)
@@ -147,8 +150,8 @@ object RealMediaRepository {
         val prefs = cachePrefs() ?: return
         try {
             prefs.edit()
-                .putString("data_$key", gson.toJson(value))
-                .putLong("time_$key", System.currentTimeMillis())
+                .putString("data_${key}", gson.toJson(value))
+                .putLong("time_${key}", System.currentTimeMillis())
                 .apply()
         } catch (_: Exception) {
             // cache is best-effort only
@@ -233,12 +236,12 @@ object RealMediaRepository {
     }
 
     private suspend fun nextMovies(page: Int): List<RealMedia> =
-        nextList("nm_movies_$page") {
+        nextList("nm_movies_${page}") {
             NextMovieRepository.toMediaList(NextMovieRepository.browse(type = "movie", page = page))
         }
 
     private suspend fun nextSeries(page: Int): List<RealMedia> =
-        nextList("nm_series_$page") {
+        nextList("nm_series_${page}") {
             NextMovieRepository.toMediaList(NextMovieRepository.browse(type = "series", page = page))
         }
 
@@ -251,28 +254,28 @@ object RealMediaRepository {
     private suspend fun nextByGenre(vararg words: String): List<RealMedia> {
         val genreId = NextMovieRepository.genreId(*words)
         if (genreId <= 0) return emptyList()
-        return nextList("nm_genre_$genreId") {
+        return nextList("nm_genre_${genreId}") {
             NextMovieRepository.toMediaList(NextMovieRepository.browse(genreIds = listOf(genreId)))
         }
     }
 
     suspend fun getLatestMovies(page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/movie/by/filtres/0/created/$page/$API_KEY/", "movies_created_$page") },
+        { fetchList("/api/movie/by/filtres/0/created/${page}/${API_KEY}/", "movies_created_${page}") },
         { nextMovies(page + 1) }
     )
 
     suspend fun getPopularSeries(page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/serie/by/filtres/0/created/$page/$API_KEY/", "series_created_$page") },
+        { fetchList("/api/serie/by/filtres/0/created/${page}/${API_KEY}/", "series_created_${page}") },
         { nextSeries(page + 1) }
     )
 
     suspend fun getTopImdbMovies(page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/movie/by/filtres/0/imdb/$page/$API_KEY/", "movies_imdb_$page") },
+        { fetchList("/api/movie/by/filtres/0/imdb/${page}/${API_KEY}/", "movies_imdb_${page}") },
         { if (page == 0) nextTopRated() else emptyList() }
     )
 
     suspend fun getMoviesByGenre(genreId: Int, page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/movie/by/filtres/$genreId/created/$page/$API_KEY/", "movies_genre_${genreId}_$page") },
+        { fetchList("/api/movie/by/filtres/${genreId}/created/${page}/${API_KEY}/", "movies_genre_${genreId}_${page}") },
         { if (page == 0) nextByGenre(*genreWords(genreId)) else emptyList() }
     )
 
@@ -286,7 +289,7 @@ object RealMediaRepository {
     }
 
     suspend fun getPostersByCountry(countryId: Int, page: Int = 0): List<RealMedia> =
-        fetchList("/api/poster/by/filtres/0/$countryId/created/$page/$API_KEY/", "posters_country_${countryId}_$page")
+        fetchList("/api/poster/by/filtres/0/${countryId}/created/${page}/${API_KEY}/", "posters_country_${countryId}_${page}")
 
     private val inMemoryCatalog = mutableListOf<RealMedia>()
     private var catalogMode: String = ""
@@ -414,12 +417,12 @@ object RealMediaRepository {
         }
 
         val rows = listOfNotNull(
-            row("تازه اضافه‌شده‌ها", latest),
-            row("سریال‌های تازه", series),
-            row("برترین‌های IMDb", topRated),
-            row("انیمیشن و انیمه", anime),
-            row("سریال و فیلم کره‌ای", korean),
-            row("اکشن و هیجان", action)
+            row(Tr.s(R.string.s_948e09d), latest),
+            row(Tr.s(R.string.s_aac96e5), series),
+            row(Tr.s(R.string.s_ce6147a), topRated),
+            row(Tr.s(R.string.s_8f79a6c), anime),
+            row(Tr.s(R.string.s_f5a453a), korean),
+            row(Tr.s(R.string.s_bac4822), action)
         )
         return HomeCatalog(hero, rows, fromCache, rows.isEmpty() && hero.isEmpty())
     }
@@ -436,7 +439,7 @@ object RealMediaRepository {
         val remoteIranflix = if (useIranflix) {
             try {
                 val encoded = URLEncoder.encode(q, StandardCharsets.UTF_8.toString()).replace("+", "%20")
-                val body = fetch("/api/search/$encoded/$API_KEY/").body
+                val body = fetch("/api/search/${encoded}/${API_KEY}/").body
                 if (body.isNullOrBlank()) emptyList() else {
                     val jsonObject = JSONObject(body)
                     parseMediaList(jsonObject.optJSONArray("posters")?.toString() ?: "[]")
@@ -493,9 +496,9 @@ object RealMediaRepository {
         }
         if (seasons.isNotEmpty()) {
             nextMemorySeasons[nextId] = SeasonEntry(seasons, now)
-            writeCache("nm_seasons_$nextId", seasons)
+            writeCache("nm_seasons_${nextId}", seasons)
         } else {
-            val cached = readCache<List<RealSeason>>("nm_seasons_$nextId") ?: emptyList()
+            val cached = readCache<List<RealSeason>>("nm_seasons_${nextId}") ?: emptyList()
             if (cached.isNotEmpty()) nextMemorySeasons[nextId] = SeasonEntry(cached, now)
             return cached
         }
@@ -592,7 +595,7 @@ object RealMediaRepository {
             if (now - entry.at <= MEMORY_TTL_MS) return@withContext entry.data
         }
 
-        val result = fetch("/api/season/by/serie/$seriesId/$API_KEY/")
+        val result = fetch("/api/season/by/serie/${seriesId}/${API_KEY}/")
         val parsed = result.body?.let { body ->
             runCatching {
                 val array = JSONArray(body)
@@ -644,10 +647,10 @@ object RealMediaRepository {
 
         if (!parsed.isNullOrEmpty()) {
             memorySeasons[seriesId] = SeasonEntry(parsed, now)
-            writeCache("seasons_$seriesId", parsed)
+            writeCache("seasons_${seriesId}", parsed)
             parsed
         } else {
-            val cached = readCache<List<RealSeason>>("seasons_$seriesId") ?: emptyList()
+            val cached = readCache<List<RealSeason>>("seasons_${seriesId}") ?: emptyList()
             if (cached.isNotEmpty()) memorySeasons[seriesId] = SeasonEntry(cached, now)
             cached
         }

@@ -20,7 +20,7 @@
         android:layout_gravity="top|start"
         android:layout_margin="14dp"
         android:clickable="true"
-        android:contentDescription="بازگشت"
+        android:contentDescription="@string/s_a7976da"
         android:focusable="true"
         app:glassCornerRadius="22dp">
 

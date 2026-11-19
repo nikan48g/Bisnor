@@ -301,8 +301,8 @@ class DetailActivity : AppCompatActivity() {
                         source = best,
                         title = episode.title.ifBlank { Tr.s(R.string.s_a7d400f, index + 1) },
                         subtitle = buildString {
-                            append(Tr.s(R.string.s_a7d400f, index + 1))
-                            append(" • ${qualityLabel(best)}")
+                            append(qualityLabel(best))
+                            append(" • ${providerLabel(best)}")
                         },
                         thumbnail = null,
                         progress = progress,

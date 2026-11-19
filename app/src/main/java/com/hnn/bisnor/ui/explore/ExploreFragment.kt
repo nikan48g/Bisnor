@@ -81,10 +81,6 @@ class ExploreFragment : Fragment() {
             searchJob?.cancel()
             searchJob = lifecycleScope.launch {
                 delay(350)
-                if (q.isNotEmpty()) {
-                    historyManager.addRecentSearch(q)
-                    setupRecentSearches()
-                }
                 performSearch(q)
             }
         }

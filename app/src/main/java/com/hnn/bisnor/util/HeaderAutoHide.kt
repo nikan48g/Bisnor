@@ -21,7 +21,16 @@ object HeaderAutoHide {
             headers().forEach { it.visibility = if (h) View.GONE else View.VISIBLE }
         }
         val listener = object : RecyclerView.OnScrollListener() {
+            private var byUser = false
+            override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) byUser = true
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    byUser = false
+                    if (!rv.canScrollVertically(-1)) setHidden(false)
+                }
+            }
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                if (!byUser) return // ignore layout-driven scrolls (first load, list swaps)
                 if (!rv.canScrollVertically(-1)) setHidden(false)
                 else if (dy > 12 && rv.canScrollVertically(1)) setHidden(true)
                 else if (dy < -12) setHidden(false)

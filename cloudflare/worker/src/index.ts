@@ -160,59 +160,6 @@ async function proxyMedia(request: Request, url: URL, env: Env): Promise<Respons
   });
 }
 
-// Next Movie API is reached through the worker so browsers never deal with its
-// missing CORS headers, and the desktop build works from local assets too.
-const NEXT_MOVIE_BASE = "https://w.mihan-cdn.com/api";
-const NEXT_MOVIE_ALLOWED =
-  /^\/nm\/(?:auth\/guest-token|home|movie\/\d+\/(?:details|links|like|rating)|v3\/search|v2\/search|search\/star|view\/\d+\/progress)$/;
-const NEXT_MOVIE_CACHEABLE = /^\/nm\/(?:home|movie\/\d+\/(?:details|links))$/;
-const NEXT_MOVIE_TTL_SECONDS = 120;
-
-async function proxyNextMovie(request: Request, url: URL, ctx: ExecutionContext): Promise<Response> {
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
-  if (!NEXT_MOVIE_ALLOWED.test(url.pathname)) {
-    return Response.json({ error: "unsupported catalog request" }, { status: 404, headers: CORS_HEADERS });
-  }
-  if (!["GET", "POST"].includes(request.method)) {
-    return Response.json({ error: "unsupported catalog request" }, { status: 405, headers: CORS_HEADERS });
-  }
-
-  const cache = caches.default;
-  const cacheable = request.method === "GET" && NEXT_MOVIE_CACHEABLE.test(url.pathname);
-  const cacheKey = new Request(url.toString(), { method: "GET" });
-  if (cacheable) {
-    const cached = await cache.match(cacheKey);
-    if (cached) return cached;
-  }
-
-  const headers = new Headers();
-  headers.set("Accept", "application/json");
-  headers.set("Platform", "web_win32/1.0");
-  const authorization = request.headers.get("Authorization");
-  if (authorization) headers.set("Authorization", authorization);
-  if (request.method === "POST") headers.set("Content-Type", "application/json");
-
-  const upstream = await fetch(`${NEXT_MOVIE_BASE}${url.pathname.slice(3)}${url.search}`, {
-    method: request.method,
-    headers,
-    body: request.method === "POST" ? await request.arrayBuffer() : null
-  });
-
-  const responseHeaders = new Headers(CORS_HEADERS);
-  responseHeaders.set("content-type", upstream.headers.get("content-type") || "application/json");
-  responseHeaders.set(
-    "cache-control",
-    cacheable && upstream.ok
-      ? `public, max-age=${NEXT_MOVIE_TTL_SECONDS}`
-      : "no-store"
-  );
-  const response = new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
-  if (cacheable && upstream.ok) ctx.waitUntil(cache.put(cacheKey, response.clone()));
-  return response;
-}
-
 async function proxySupabase(request: Request, url: URL, env: Env): Promise<Response> {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });

@@ -368,5 +368,14 @@
         <item name="fontFamily">@font/ajorfancy</item>
         <item name="android:fontFamily">@font/ajorfancy</item>
     </style>
+    <!-- English: cinematic Bebas Neue headings over Barlow text. -->
+    <style name="ThemeOverlay.Bisnor.EnglishFont" parent="">
+        <item name="appFont">@font/barlow</item>
+        <item name="appFontRegular">@font/barlow_regular</item>
+        <item name="appFontMedium">@font/barlow_medium</item>
+        <item name="appFontBold">@font/bebasneue_regular</item>
+        <item name="fontFamily">@font/barlow</item>
+        <item name="android:fontFamily">@font/barlow</item>
+    </style>
 </resources>
 

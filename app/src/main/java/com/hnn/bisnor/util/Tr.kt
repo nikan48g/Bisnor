@@ -32,7 +32,9 @@ object Tr {
 
     /** weight: 0 regular, 1 medium, 2 bold */
     fun font(c: Context, weight: Int) = ResourcesCompat.getFont(
-        c, if (AppPrefs.font(c) == "fancy") {
+        c, if (AppPrefs.lang(c) == AppPrefs.LANG_EN) {
+            intArrayOf(R.font.barlow_regular, R.font.barlow_medium, R.font.bebasneue_regular)[weight]
+        } else if (AppPrefs.font(c) == "fancy") {
             intArrayOf(R.font.ajorfancy_regular, R.font.ajorfancy_medium, R.font.ajorfancy_bold)[weight]
         } else intArrayOf(R.font.ajor_regular, R.font.ajor_medium, R.font.ajor_bold)[weight]
     )

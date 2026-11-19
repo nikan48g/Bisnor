@@ -38,6 +38,9 @@ object ThemeHelper {
         if (AppPrefs.font(activity) == "fancy") {
             activity.theme.applyStyle(com.hnn.bisnor.R.style.ThemeOverlay_Bisnor_FancyFont, true)
         }
+        if (lang == AppPrefs.LANG_EN) {
+            activity.theme.applyStyle(com.hnn.bisnor.R.style.ThemeOverlay_Bisnor_EnglishFont, true)
+        }
         val locale = Locale(lang)
         Locale.setDefault(locale)
         val config = Configuration(activity.resources.configuration)

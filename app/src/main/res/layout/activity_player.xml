@@ -47,7 +47,7 @@
                 android:id="@+id/tv_indicator_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:fontFamily="?attr/appFontBold"
                 android:textColor="@color/primary"
                 android:textSize="20sp" />
 
@@ -56,7 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:fontFamily="@font/vazirmatn_medium"
+                android:fontFamily="?attr/appFontMedium"
                 android:textColor="@color/white"
                 android:textSize="14sp" />
         </LinearLayout>
@@ -96,8 +96,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="7dp"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="قفل صفحه"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/s_f72bc52"
                 android:textColor="@color/on_surface"
                 android:textSize="11.5sp" />
         </LinearLayout>
@@ -136,8 +136,8 @@
                     android:id="@+id/tv_next_episode_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="قسمت بعدی"
+                    android:fontFamily="?attr/appFontBold"
+                    android:text="@string/s_3dbe11f"
                     android:textColor="@color/on_surface"
                     android:textSize="14sp" />
 
@@ -146,7 +146,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:fontFamily="@font/vazirmatn_regular"
+                    android:fontFamily="?attr/appFontRegular"
                     android:textColor="@color/primary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -158,7 +158,7 @@
                 android:layout_height="40dp"
                 android:layout_marginStart="16dp"
                 android:minHeight="40dp"
-                android:text="پخش سریع"
+                android:text="@string/s_a6dba8d"
                 android:textSize="12sp"
                 app:icon="@drawable/ic_play" />
 
@@ -169,7 +169,7 @@
                 android:layout_marginStart="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
-                android:contentDescription="بستن"
+                android:contentDescription="@string/s_fa88277"
                 android:focusable="true"
                 android:padding="7dp"
                 android:src="@drawable/ic_refresh"
@@ -197,7 +197,7 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:contentDescription="بازگشت"
+            android:contentDescription="@string/s_a7976da"
             android:focusable="true"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
@@ -210,7 +210,7 @@
             android:layout_marginHorizontal="10dp"
             android:layout_weight="1"
             android:ellipsize="end"
-            android:fontFamily="@font/vazirmatn_bold"
+            android:fontFamily="?attr/appFontBold"
             android:maxLines="1"
             android:textColor="@color/white"
             android:textSize="14.5sp" />
@@ -220,7 +220,7 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:contentDescription="قفل لمس"
+            android:contentDescription="@string/s_c5ee605"
             app:icon="@drawable/ic_lock"
             app:iconTint="@color/white" />
 
@@ -232,10 +232,10 @@
             android:layout_marginStart="4dp"
             android:background="@drawable/bg_player_glass_pill"
             app:backgroundTint="@null"
-            android:contentDescription="انتخاب کیفیت پخش"
-            android:fontFamily="@font/vazirmatn_medium"
+            android:contentDescription="@string/s_72cf028"
+            android:fontFamily="?attr/appFontMedium"
             android:paddingHorizontal="10dp"
-            android:text="کیفیت"
+            android:text="@string/s_de39532"
             android:textColor="@color/white"
             android:textSize="11.5sp"
             app:cornerRadius="14dp"
@@ -253,7 +253,7 @@
             android:layout_marginStart="4dp"
             android:background="@drawable/bg_player_glass_pill"
             app:backgroundTint="@null"
-            android:contentDescription="تنظیمات پخش"
+            android:contentDescription="@string/s_ff86c7a"
             app:cornerRadius="14dp"
             app:icon="@drawable/ic_settings"
             app:iconTint="@color/white" />

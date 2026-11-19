@@ -1,5 +1,7 @@
 package com.hnn.bisnor.util
 
+import com.hnn.bisnor.util.Tr
+
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
@@ -39,7 +41,7 @@ object UpdateChecker {
 
     suspend fun checkForUpdates(context: Context, showToastIfLatest: Boolean = false) = withContext(Dispatchers.IO) {
         try {
-            val url = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest"
+            val url = "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest"
             val request = Request.Builder()
                 .url(url)
                 .addHeader("User-Agent", "Bisnor-Android-App")
@@ -53,7 +55,7 @@ object UpdateChecker {
                     val tagName = rawTagName.replace("v", "").trim()
                     val releaseNotes = json.optString("body", "تغییرات جدید و بهبود عملکرد کلی برنامه.")
                     val assets = json.optJSONArray("assets")
-                    var downloadUrl = json.optString("html_url", "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases")
+                    var downloadUrl = json.optString("html_url", "https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases")
 
                     if (assets != null && assets.length() > 0) {
                         for (i in 0 until assets.length()) {
@@ -71,19 +73,19 @@ object UpdateChecker {
                         }
                     } else if (showToastIfLatest) {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "شما از آخرین نسخه بیسنور (v$currentAppVersionName) استفاده می‌کنید.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, Tr.s(R.string.s_242335b, currentAppVersionName), Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else if (showToastIfLatest) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "هنوز نسخه جدیدتری در مخزن منتشر نشده است.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, Tr.s(R.string.s_2b5026e), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         } catch (e: Exception) {
             if (showToastIfLatest) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "خطا در برقراری ارتباط با سرور گیت‌هاب جهت به‌روزرسانی.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, Tr.s(R.string.s_02b2f2c), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -120,8 +122,8 @@ object UpdateChecker {
         val btnClose = view.findViewById<ImageView>(R.id.btn_close_update)
         val btnRemind = view.findViewById<MaterialButton>(R.id.btn_remind_later)
 
-        tvCurrentVersion.text = "v$currentAppVersionName"
-        tvNewVersion.text = "v$newVersion"
+        tvCurrentVersion.text = "v${currentAppVersionName}"
+        tvNewVersion.text = "v${newVersion}"
 
         if (wvChangelog != null) {
             wvChangelog.settings.apply {
@@ -136,7 +138,7 @@ object UpdateChecker {
         } else {
             val formattedNotes = formatChangelog(notes)
             tvChangelog.visibility = View.VISIBLE
-            tvChangelog.text = if (formattedNotes.isNotBlank()) formattedNotes else "بهینه‌سازی کلی، رفع باگ‌ها و ارتقای سرعت پخش استریم."
+            tvChangelog.text = if (formattedNotes.isNotBlank()) formattedNotes else Tr.s(R.string.s_861886c)
         }
 
         btnDownload.setOnClickListener {

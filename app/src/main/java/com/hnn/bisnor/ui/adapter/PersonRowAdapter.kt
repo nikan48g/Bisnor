@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.adapter
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -62,9 +64,9 @@ class PersonRowAdapter(
 
     companion object {
         fun roleLabel(role: String): String = when (role) {
-            "director" -> "کارگردان"
-            "writer" -> "نویسنده"
-            else -> "بازیگر"
+            "director" -> Tr.s(R.string.s_e44e127)
+            "writer" -> Tr.s(R.string.s_47db77f)
+            else -> Tr.s(R.string.s_40397e4)
         }
     }
 }

@@ -32,9 +32,16 @@ object ThemeHelper {
             AppCompatDelegate.setDefaultNightMode(targetMode)
         }
 
-        // Force RTL layout direction and Persian locale
-        activity.window.decorView.layoutDirection = View.LAYOUT_DIRECTION_RTL
-        val locale = Locale("fa")
+        val lang = AppPrefs.lang(activity)
+        activity.window.decorView.layoutDirection =
+            if (AppPrefs.isRtl(activity)) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
+        if (AppPrefs.font(activity) == "fancy") {
+            activity.theme.applyStyle(com.hnn.bisnor.R.style.ThemeOverlay_Bisnor_FancyFont, true)
+        }
+        if (lang == AppPrefs.LANG_EN) {
+            activity.theme.applyStyle(com.hnn.bisnor.R.style.ThemeOverlay_Bisnor_EnglishFont, true)
+        }
+        val locale = Locale(lang)
         Locale.setDefault(locale)
         val config = Configuration(activity.resources.configuration)
         config.setLocale(locale)

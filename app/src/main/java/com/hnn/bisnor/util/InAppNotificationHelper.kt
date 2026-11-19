@@ -53,7 +53,7 @@ object InAppNotificationHelper {
             val tvDesc = bannerView.findViewById<TextView>(R.id.tv_banner_desc)
             val btnClose = bannerView.findViewById<ImageView>(R.id.btn_close_banner)
 
-            tvDesc.text = "«$downloadTitle» آماده پخش آفلاین است (لمس کنید)"
+            tvDesc.text = Tr.s(R.string.s_5dadec5, downloadTitle)
 
             fun dismissBanner() {
                 bannerView.animate()

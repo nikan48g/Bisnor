@@ -11,6 +11,11 @@
 
     <!-- Android 11+ package visibility for supported external players. -->
     <queries>
+        <package android:name="idm.internet.download.manager" />
+        <package android:name="idm.internet.download.manager.plus" />
+        <package android:name="com.dv.adm" />
+        <package android:name="com.dv.adm.pay" />
+        <package android:name="org.freedownloadmanager.fdm" />
         <package android:name="org.videolan.vlc" />
         <package android:name="com.mxtech.videoplayer.ad" />
         <package android:name="com.mxtech.videoplayer.pro" />
@@ -68,6 +73,10 @@
                     android:scheme="https"
                     android:host="bisnor-pwa.drive-storage-hnn.workers.dev"
                     android:pathPrefix="/s/" />
+                <data
+                    android:scheme="https"
+                    android:host="bisnor-pwa.drive-storage-hnn.workers.dev"
+                    android:pathPrefix="/t/" />
             </intent-filter>
 
             <intent-filter>
@@ -79,6 +88,9 @@
                     android:host="bisnor.app" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".ui.onboarding.OnboardingActivity" android:exported="false" />
+        <activity android:name=".ui.settings.ServersActivity" android:exported="false" />
 
         <activity
             android:name=".ui.detail.DetailActivity"

@@ -1,5 +1,8 @@
 package com.hnn.bisnor.data.repository
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.app.DownloadManager
 import android.content.Context
 import android.database.Cursor
@@ -96,7 +99,7 @@ object LocalDownloadManager {
 
                 while (it.moveToNext()) {
                     val id = if (idIndex != -1) it.getLong(idIndex) else 0L
-                    val title = if (titleIndex != -1) it.getString(titleIndex) ?: "دانلود" else "دانلود"
+                    val title = if (titleIndex != -1) it.getString(titleIndex) ?: Tr.s(R.string.s_24bab7c) else Tr.s(R.string.s_24bab7c)
                     val uri = if (uriIndex != -1) it.getString(uriIndex) ?: "" else ""
                     val bytes = if (bytesIndex != -1) it.getLong(bytesIndex) else 0L
                     val downloadedBytes = if (downloadedIndex != -1) it.getLong(downloadedIndex) else 0L

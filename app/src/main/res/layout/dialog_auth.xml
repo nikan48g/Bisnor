@@ -10,8 +10,8 @@
         android:id="@+id/tv_auth_dialog_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:text="ورود به حساب"
+        android:fontFamily="?attr/appFontBold"
+        android:text="@string/s_bc08f6a"
         android:textColor="@color/on_surface"
         android:textSize="18sp" />
 
@@ -27,8 +27,8 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/vazirmatn_medium"
-            android:text="انتخاب کاراکتر و تصویر حساب:"
+            android:fontFamily="?attr/appFontMedium"
+            android:text="@string/s_2b7e16b"
             android:textColor="@color/on_surface_variant"
             android:textSize="12sp" />
 
@@ -45,7 +45,7 @@
             android:id="@+id/tv_signup_avatar_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/vazirmatn_bold"
+            android:fontFamily="?attr/appFontBold"
             android:gravity="center"
             android:textColor="@color/primary"
             android:textSize="13sp" />
@@ -58,13 +58,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:hint="نام کاربری">
+        android:hint="@string/s_b8a9ec7">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_auth_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/vazirmatn_medium"
+            android:fontFamily="?attr/appFontMedium"
             android:inputType="textNoSuggestions"
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -77,14 +77,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:hint="رمز عبور"
+        android:hint="@string/s_6814380"
         app:passwordToggleEnabled="true">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_auth_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/vazirmatn_medium"
+            android:fontFamily="?attr/appFontMedium"
             android:inputType="textPassword"
             android:maxLines="1" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -96,8 +96,8 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginTop="16dp"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:text="ورود"
+        android:fontFamily="?attr/appFontBold"
+        android:text="@string/s_32a81e5"
         app:backgroundTint="@color/primary"
         app:cornerRadius="12dp" />
 
@@ -108,8 +108,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:fontFamily="@font/vazirmatn_medium"
-        android:text="حساب کاربری ندارید؟ ثبت‌نام"
+        android:fontFamily="?attr/appFontMedium"
+        android:text="@string/s_b38cc60"
         android:textColor="@color/secondary" />
 
 </LinearLayout>

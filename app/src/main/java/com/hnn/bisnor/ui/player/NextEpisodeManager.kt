@@ -1,5 +1,8 @@
 package com.hnn.bisnor.ui.player
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.content.Intent
 import android.os.Handler
@@ -43,7 +46,7 @@ class NextEpisodeManager(
     private val countdownRunnable = object : Runnable {
         override fun run() {
             if (countdownSeconds > 0) {
-                binding.tvNextCountdown.text = "پخش خودکار تا $countdownSeconds ثانیه..."
+                binding.tvNextCountdown.text = Tr.s(R.string.s_5d652ed, countdownSeconds)
                 countdownSeconds--
                 handler.postDelayed(this, 1000)
             } else {
@@ -86,7 +89,7 @@ class NextEpisodeManager(
                 if (nextEp != null) {
                     val src = nextEp.sources.firstOrNull()
                     if (src != null) {
-                        val displayTitle = if (nextEp.title.isNotBlank()) nextEp.title else "قسمت بعدی"
+                        val displayTitle = if (nextEp.title.isNotBlank()) nextEp.title else Tr.s(R.string.s_3dbe11f)
                         nextEpisodeSource = src.copy(quality = displayTitle)
                     }
                 }
@@ -103,7 +106,7 @@ class NextEpisodeManager(
             val remainingMs = durationMs - currentPositionMs
             if (remainingMs in 1000..triggerThresholdMs) {
                 isNextCardShown = true
-                binding.tvNextEpisodeTitle.text = "قسمت بعدی: ${nextSrc.quality}"
+                binding.tvNextEpisodeTitle.text = Tr.s(R.string.s_868cffa, nextSrc.quality)
                 binding.cardNextEpisode.visibility = View.VISIBLE
                 binding.cardNextEpisode.animate().alpha(1f).setDuration(300).start()
                 countdownSeconds = historyManager.autoNextCountdownSeconds
@@ -126,7 +129,7 @@ class NextEpisodeManager(
         onSaveProgress()
 
         val intent = Intent(context, PlayerActivity::class.java).apply {
-            putExtra("video_title", "$mediaTitle - ${nextSrc.quality}")
+            putExtra("video_title", "${mediaTitle} - ${nextSrc.quality}")
             putExtra("video_url", nextSrc.url)
             putExtra("media_id", mediaId)
             putExtra("media_title", mediaTitle)

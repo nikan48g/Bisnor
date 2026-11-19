@@ -1,5 +1,7 @@
 package com.hnn.bisnor.util
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
@@ -43,8 +45,8 @@ object ActionSheet {
         val onSurface = ContextCompat.getColor(context, R.color.on_surface)
         val dim = ContextCompat.getColor(context, R.color.on_surface_variant)
         val danger = ContextCompat.getColor(context, R.color.danger)
-        val bold = ResourcesCompat.getFont(context, R.font.vazirmatn_bold)
-        val medium = ResourcesCompat.getFont(context, R.font.vazirmatn_medium)
+        val bold = com.hnn.bisnor.util.Tr.font(context, 2)
+        val medium = com.hnn.bisnor.util.Tr.font(context, 1)
 
         val root = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -150,7 +152,7 @@ object ActionSheet {
 
         // cancel capsule
         root.addView(TextView(context).apply {
-            text = "انصراف"
+            text = Tr.s(R.string.s_c8d2a1f)
             typeface = bold
             gravity = Gravity.CENTER
             setTextColor(onSurface)

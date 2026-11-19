@@ -1,5 +1,7 @@
 package com.hnn.bisnor.util
 
+import com.hnn.bisnor.util.Tr
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -46,7 +48,7 @@ object PlayerLauncherHelper {
         return listOf(
             PlayerAppInfo(
                 id = "internal",
-                name = "پلیر بیسنور (داخلی)",
+                name = Tr.s(R.string.s_f574302),
                 packageName = "",
                 isInstalled = true,
                 iconRes = R.drawable.ic_player_bisnor
@@ -97,11 +99,11 @@ object PlayerLauncherHelper {
 
     fun openInGooglePlay(context: Context, packageName: String) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${packageName}"))
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         } catch (e: Exception) {
-            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+            val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=${packageName}"))
             webIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(webIntent)
         }
@@ -135,7 +137,7 @@ object PlayerLauncherHelper {
                     putExtra("title", title)
                     putExtra(Intent.EXTRA_TITLE, title)
                 }
-                activity.startActivity(Intent.createChooser(intent, "پخش با:"))
+                activity.startActivity(Intent.createChooser(intent, Tr.s(R.string.s_1ee0bc4)))
             }
             else -> {
                 val intent = Intent(activity, PlayerActivity::class.java).apply {
@@ -158,7 +160,7 @@ object PlayerLauncherHelper {
 
     private fun launchExternal(activity: Activity, packageName: String, title: String, url: String) {
         if (!isPackageInstalled(activity.packageManager, packageName)) {
-            Toast.makeText(activity, "این برنامه نصب نیست. انتقال به گوگل‌پلی...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, Tr.s(R.string.s_7d4b236), Toast.LENGTH_SHORT).show()
             openInGooglePlay(activity, packageName)
             return
         }
@@ -173,7 +175,7 @@ object PlayerLauncherHelper {
             }
             activity.startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(activity, "خطا در باز کردن برنامه: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, Tr.s(R.string.s_69cb93f, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -23,8 +23,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="تنظیمات پخش"
+            android:fontFamily="?attr/appFontBold"
+            android:text="@string/s_ff86c7a"
             android:textColor="@color/on_surface"
             android:textSize="18sp" />
 
@@ -33,7 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
-            android:fontFamily="@font/vazirmatn_regular"
+            android:fontFamily="?attr/appFontRegular"
             android:textColor="@color/on_surface_variant"
             android:textSize="11.5sp" />
 
@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="زیرنویس"
+            android:text="@string/s_87a4b33"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -63,8 +63,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="انتخاب زیرنویس"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_13ec8f2"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
 
@@ -72,8 +72,8 @@
                     android:id="@+id/tv_sheet_subtitle_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_regular"
-                    android:text="خاموش"
+                    android:fontFamily="?attr/appFontRegular"
+                    android:text="@string/s_551b1db"
                     android:textColor="@color/primary"
                     android:textSize="11.5sp" />
             </LinearLayout>
@@ -90,8 +90,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="خاموش کردن زیرنویس"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_c8b5254"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -108,8 +108,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="ظاهر زیرنویس (اندازه و رنگ)"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_2269404"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
 
@@ -117,7 +117,7 @@
                     android:id="@+id/tv_sheet_subtitle_style_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_regular"
+                    android:fontFamily="?attr/appFontRegular"
                     android:textColor="@color/primary"
                     android:textSize="11.5sp" />
             </LinearLayout>
@@ -129,7 +129,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="زبان و ترک صوتی"
+            android:text="@string/s_35ebacf"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -149,8 +149,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="انتخاب ترک صوتی"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_a911ba4"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
 
@@ -158,7 +158,7 @@
                     android:id="@+id/tv_sheet_audio_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_regular"
+                    android:fontFamily="?attr/appFontRegular"
                     android:textColor="@color/primary"
                     android:textSize="11.5sp" />
             </LinearLayout>
@@ -171,7 +171,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="سرعت پخش"
+            android:text="@string/s_bc60b2d"
             android:textColor="@color/primary" />
 
         <com.google.android.material.chip.ChipGroup
@@ -224,7 +224,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="سایر تنظیمات"
+            android:text="@string/s_482a04d"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -244,8 +244,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="نسبت تصویر"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_2e241d6"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
 
@@ -253,7 +253,7 @@
                     android:id="@+id/tv_sheet_aspect_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_regular"
+                    android:fontFamily="?attr/appFontRegular"
                     android:text="Fit"
                     android:textColor="@color/primary"
                     android:textSize="11.5sp" />
@@ -271,8 +271,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="قفل لمس صفحه"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_4b238bc"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -289,8 +289,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="پخش با پلیر خارجی"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_ec33d5d"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
 

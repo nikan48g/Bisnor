@@ -1,5 +1,8 @@
 package com.hnn.bisnor.data.repository
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import com.hnn.bisnor.data.model.SharedPlaylistPayload
 import com.hnn.bisnor.data.remote.SupabaseManager
@@ -53,7 +56,7 @@ object SharedPlaylistImporter {
             ?: value.takeIf { BARE_SHORT_CODE.matches(it) }
         if (shortCode == null) return@withContext parse(value)
         val data = runCatching {
-            client.newCall(Request.Builder().url("$WORKER/api/share/$shortCode").build()).execute().use { res ->
+            client.newCall(Request.Builder().url("${WORKER}/api/share/${shortCode}").build()).execute().use { res ->
                 if (!res.isSuccessful) null else JSONObject(res.body?.string().orEmpty()).optString("data")
             }
         }.getOrNull()
@@ -69,12 +72,12 @@ object SharedPlaylistImporter {
         val short = runCatching {
             val body = JSONObject().put("data", compressed).toString()
                 .toRequestBody("application/json".toMediaType())
-            client.newCall(Request.Builder().url("$WORKER/api/share").post(body).build()).execute().use { res ->
+            client.newCall(Request.Builder().url("${WORKER}/api/share").post(body).build()).execute().use { res ->
                 if (!res.isSuccessful) null else JSONObject(res.body?.string().orEmpty()).optString("url")
             }
         }.getOrNull()
         short?.takeIf { it.startsWith("https://") }
-            ?: "$WORKER/import?data=${URLEncoder.encode(compressed, "UTF-8")}"
+            ?: "${WORKER}/import?data=${URLEncoder.encode(compressed, "UTF-8")}"
     }
 
     /**
@@ -83,7 +86,7 @@ object SharedPlaylistImporter {
      */
     fun save(context: Context, payload: SharedPlaylistPayload, playlistId: String? = null): Int {
         val manager = PlaylistsManager(context)
-        val target = playlistId ?: manager.createPlaylist("${payload.name} (اشتراکی)")
+        val target = playlistId ?: manager.createPlaylist(Tr.s(R.string.s_fcb55d6, payload.name))
         var saved = 0
         for (item in payload.items) {
             if (manager.addToPlaylist(target, item)) saved++

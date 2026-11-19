@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.player
 
+import com.hnn.bisnor.util.Tr
+
 import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.Intent
@@ -70,7 +72,7 @@ class PlayerActivity : AppCompatActivity() {
     private var mediaGenres: ArrayList<String> = arrayListOf()
     private var lastRecordedPosMs: Long = 0L
     private var currentSpeedIndex = 1 // 1.0x
-    private var selectedTextLabel: String = "خاموش"
+    private var selectedTextLabel: String = Tr.s(R.string.s_551b1db)
     private var selectedAudioLabel: String = ""
     private var textDisabled: Boolean = true
     private var sourceList: ArrayList<RealSource> = arrayListOf()
@@ -85,7 +87,7 @@ class PlayerActivity : AppCompatActivity() {
         AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
         AspectRatioFrameLayout.RESIZE_MODE_FILL
     )
-    private val aspectLabels = listOf("Fit (تناسب)", "Zoom (تمام‌صفحه)", "Stretch (کشیده)")
+    private val aspectLabels = listOf(Tr.s(R.string.s_5e3a2ca), Tr.s(R.string.s_a356461), Tr.s(R.string.s_eff3efb))
 
     // Screen Touch Lock
     private var isScreenLocked = false
@@ -122,6 +124,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        com.hnn.bisnor.util.ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -132,7 +135,7 @@ class PlayerActivity : AppCompatActivity() {
         historyManager = PlaybackHistoryManager(this)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-        val fullTitle = intent.getStringExtra("video_title") ?: "بیسنور سینما"
+        val fullTitle = intent.getStringExtra("video_title") ?: Tr.s(R.string.s_4da0902)
         videoUrl = intent.getStringExtra("video_url") ?: ""
         mediaId = intent.getIntExtra("media_id", 0)
         mediaTitle = intent.getStringExtra("media_title") ?: fullTitle
@@ -200,7 +203,7 @@ class PlayerActivity : AppCompatActivity() {
                     val delta = if (forward) 10000L else -10000L
                     val newPos = (it.currentPosition + delta).coerceIn(0L, it.duration)
                     it.seekTo(newPos)
-                    showIndicator(if (forward) "⏩ ۱۰+ ثانیه" else "⏪ ۱۰- ثانیه", "")
+                    showIndicator(if (forward) Tr.s(R.string.s_a9e40cb) else Tr.s(R.string.s_be2efbf), "")
                 }
             },
             onIndicatorUpdate = { title, subtitle ->
@@ -260,7 +263,7 @@ class PlayerActivity : AppCompatActivity() {
                     .build()
                 enterPictureInPictureMode(params)
             } catch (e: Exception) {
-                Toast.makeText(this, "تصویر در تصویر در این دستگاه پشتیبانی نمی‌شود", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, Tr.s(R.string.s_2803ea0), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -294,28 +297,28 @@ class PlayerActivity : AppCompatActivity() {
             if (group.type == C.TRACK_TYPE_AUDIO) {
                 for (i in 0 until group.length) {
                     val format = group.getTrackFormat(i)
-                    val lang = format.language ?: "صوت ${audioTracks.size + 1}"
-                    audioTracks.add(Pair(i, "صدا: $lang (${format.label ?: "پیش‌فرض"})"))
+                    val lang = format.language ?: Tr.s(R.string.s_8844368, audioTracks.size + 1)
+                    audioTracks.add(Pair(i, Tr.s(R.string.s_2308c32, lang, format.label ?: Tr.s(R.string.s_e0aa868))))
                 }
             } else if (group.type == C.TRACK_TYPE_TEXT) {
                 for (i in 0 until group.length) {
                     val format = group.getTrackFormat(i)
-                    val lang = format.language ?: "زیرنویس ${subTracks.size + 1}"
-                    subTracks.add(Pair(i, "زیرنویس: $lang (${format.label ?: "فارسی"})"))
+                    val lang = format.language ?: Tr.s(R.string.s_8e58c7e, subTracks.size + 1)
+                    subTracks.add(Pair(i, Tr.s(R.string.s_9e3c517, lang, format.label ?: Tr.s(R.string.s_66030b7))))
                 }
             }
         }
 
-        val allItems = arrayOf("غیرفعال‌سازی زیرنویس") + audioTracks.map { it.second } + subTracks.map { it.second }
+        val allItems = arrayOf(Tr.s(R.string.s_691ce77)) + audioTracks.map { it.second } + subTracks.map { it.second }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("انتخاب صوت و زیرنویس")
+            .setTitle(Tr.s(R.string.s_83975ee))
             .setItems(allItems) { _, which ->
                 if (which == 0) {
                     trackSelector.setParameters(trackSelector.buildUponParameters().setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true))
-                    Toast.makeText(this, "زیرنویس غیرفعال شد", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, Tr.s(R.string.s_1086bc0), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "لاین ${allItems[which]} انتخاب شد", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, Tr.s(R.string.s_0c2d266, allItems[which]), Toast.LENGTH_SHORT).show()
                 }
             }
             .show()
@@ -369,7 +372,7 @@ class PlayerActivity : AppCompatActivity() {
             }
             val speed = speeds[currentSpeedIndex]
             exoPlayer?.setPlaybackSpeed(speed)
-            showIndicator("سرعت پخش", speedLabels[currentSpeedIndex])
+            showIndicator(Tr.s(R.string.s_bc60b2d), speedLabels[currentSpeedIndex])
         }
 
         sheetBinding.btnSheetSubtitles.setOnClickListener {
@@ -383,7 +386,7 @@ class PlayerActivity : AppCompatActivity() {
         }
         sheetBinding.btnSheetSubtitleOff.setOnClickListener {
             disableSubtitles()
-            Toast.makeText(this, "زیرنویس خاموش شد", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_657654c), Toast.LENGTH_SHORT).show()
             sheet.dismiss()
         }
         sheetBinding.btnSheetAudio.setOnClickListener {
@@ -394,7 +397,7 @@ class PlayerActivity : AppCompatActivity() {
             currentAspectIndex = (currentAspectIndex + 1) % aspectModes.size
             binding.playerView.resizeMode = aspectModes[currentAspectIndex]
             sheetBinding.tvSheetAspectValue.text = aspectLabels[currentAspectIndex]
-            showIndicator("نسبت تصویر", aspectLabels[currentAspectIndex])
+            showIndicator(Tr.s(R.string.s_2e241d6), aspectLabels[currentAspectIndex])
         }
         sheetBinding.btnSheetLock.setOnClickListener {
             sheet.dismiss()
@@ -410,18 +413,16 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun chooseQuality() {
         if (sourceList.size < 2) {
-            Toast.makeText(this, "برای این مورد یک نسخه موجود است", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_bbb1319), Toast.LENGTH_SHORT).show()
             return
         }
-        val labels = sourceList.map { "${qualityLabel(it)} • ${providerLabel(it)}" }.toTypedArray()
-        val checked = sourceList.indexOfFirst { it.url == (currentSource?.url ?: videoUrl) }
-        MaterialAlertDialogBuilder(this)
-            .setTitle("انتخاب کیفیت")
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                dialog.dismiss()
-                switchSource(sourceList[which])
-            }
-            .show()
+        val activeUrl = currentSource?.url ?: videoUrl
+        val ordered = sourceList.sortedWith(compareByDescending<RealSource> { qualityRank(it) }.thenBy { providerLabel(it) })
+        val actions = ordered.map { src ->
+            val mark = if (src.url == activeUrl) "✓  " else ""
+            com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_play, "$mark${qualityLabel(src)} · ${providerLabel(src)}") { switchSource(src) }
+        }
+        com.hnn.bisnor.util.ActionSheet.show(this, title = Tr.s(R.string.s_2716945), subtitle = null, actions = actions)
     }
 
     private fun switchSource(source: RealSource) {
@@ -431,11 +432,11 @@ class PlayerActivity : AppCompatActivity() {
         currentSource = source
         videoUrl = source.url
         startPositionMs = resumeAt
-        selectedTextLabel = "خاموش"
+        selectedTextLabel = Tr.s(R.string.s_551b1db)
         textDisabled = true
         initializePlayer(source.url)
         updateQualityButton()
-        showIndicator("کیفیت", "${qualityLabel(source)} • ${providerLabel(source)}")
+        showIndicator(Tr.s(R.string.s_de39532), "${qualityLabel(source)} • ${providerLabel(source)}")
     }
 
     /** Short quality label next to the settings button; hidden for single-version items. */
@@ -447,19 +448,19 @@ class PlayerActivity : AppCompatActivity() {
         }
         button.visibility = View.VISIBLE
         val active = currentSource ?: sourceList.firstOrNull { it.url == videoUrl }
-        button.text = active?.let { qualityLabel(it) } ?: "کیفیت"
+        button.text = active?.let { qualityLabel(it) } ?: Tr.s(R.string.s_de39532)
     }
 
     private fun qualityLabel(source: RealSource): String {
         val match = Regex("(2160|1440|1080|720|540|480|360|240)").find(source.quality)
-        return match?.let { "${it.value}p" } ?: source.quality.ifBlank { "کیفیت اصلی" }
+        return match?.let { "${it.value}p" } ?: source.quality.ifBlank { Tr.s(R.string.s_59098e4) }
     }
 
     private fun qualityRank(source: RealSource): Int =
         Regex("(2160|1440|1080|720|540|480|360|240)").find(source.quality)?.value?.toIntOrNull() ?: 0
 
     private fun providerLabel(source: RealSource): String =
-        if (source.origin == "next") "نکست‌مووی" else "ایران‌فلیکس"
+        if (source.origin == "next") Tr.s(R.string.st_server1) else Tr.s(R.string.st_server2)
 
     private fun applySubtitleStyle() {
         val prefs = getSharedPreferences("bisnor_subtitles", MODE_PRIVATE)
@@ -484,23 +485,23 @@ class PlayerActivity : AppCompatActivity() {
     private fun subtitleStyleSummary(): String {
         val prefs = getSharedPreferences("bisnor_subtitles", MODE_PRIVATE)
         val size = when (prefs.getInt("size", 22)) {
-            16 -> "کوچک"
-            30 -> "بزرگ"
-            else -> "متوسط"
+            16 -> Tr.s(R.string.s_b3b56b7)
+            30 -> Tr.s(R.string.s_3b4a824)
+            else -> Tr.s(R.string.s_1418425)
         }
         val color = when (prefs.getInt("color", Color.WHITE)) {
-            Color.YELLOW -> "زرد"
-            0xFF7CFC00.toInt() -> "سبز"
-            0xFF40E0D0.toInt() -> "فیروزه‌ای"
-            else -> "سفید"
+            Color.YELLOW -> Tr.s(R.string.s_3070d7b)
+            0xFF7CFC00.toInt() -> Tr.s(R.string.s_7948ec1)
+            0xFF40E0D0.toInt() -> Tr.s(R.string.s_30e597d)
+            else -> Tr.s(R.string.s_f62cc23)
         }
-        return "$size • $color"
+        return "${size} • ${color}"
     }
 
     private fun showSubtitleStyle() {
-        val options = arrayOf("اندازه متن", "رنگ متن", "رنگ پس‌زمینه")
+        val options = arrayOf(Tr.s(R.string.s_9d033f8), Tr.s(R.string.s_a83b60a), Tr.s(R.string.s_b2cd583))
         MaterialAlertDialogBuilder(this)
-            .setTitle("ظاهر زیرنویس")
+            .setTitle(Tr.s(R.string.s_0821b0c))
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> pickSubtitleSize()
@@ -518,11 +519,11 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun pickSubtitleSize() {
         val values = intArrayOf(16, 22, 30)
-        val labels = arrayOf("کوچک", "متوسط", "بزرگ")
+        val labels = arrayOf(Tr.s(R.string.s_b3b56b7), Tr.s(R.string.s_1418425), Tr.s(R.string.s_3b4a824))
         val prefs = getSharedPreferences("bisnor_subtitles", MODE_PRIVATE)
         val current = values.indexOf(prefs.getInt("size", 22)).coerceAtLeast(0)
         MaterialAlertDialogBuilder(this)
-            .setTitle("اندازه زیرنویس")
+            .setTitle(Tr.s(R.string.s_675a25a))
             .setSingleChoiceItems(labels, current) { dialog, which ->
                 applySubtitlePref("size", values[which])
                 dialog.dismiss()
@@ -532,11 +533,11 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun pickSubtitleColor() {
         val values = intArrayOf(Color.WHITE, Color.YELLOW, 0xFF7CFC00.toInt(), 0xFF40E0D0.toInt())
-        val labels = arrayOf("سفید", "زرد", "سبز روشن", "فیروزه‌ای")
+        val labels = arrayOf(Tr.s(R.string.s_f62cc23), Tr.s(R.string.s_3070d7b), Tr.s(R.string.s_1068974), Tr.s(R.string.s_30e597d))
         val prefs = getSharedPreferences("bisnor_subtitles", MODE_PRIVATE)
         val current = values.indexOf(prefs.getInt("color", Color.WHITE)).coerceAtLeast(0)
         MaterialAlertDialogBuilder(this)
-            .setTitle("رنگ متن زیرنویس")
+            .setTitle(Tr.s(R.string.s_f8c32af))
             .setSingleChoiceItems(labels, current) { dialog, which ->
                 applySubtitlePref("color", values[which])
                 dialog.dismiss()
@@ -546,11 +547,11 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun pickSubtitleBackground() {
         val values = intArrayOf(Color.TRANSPARENT, Color.argb(150, 0, 0, 0), Color.BLACK)
-        val labels = arrayOf("بدون پس‌زمینه", "نیمه‌شفاف", "مشکی کامل")
+        val labels = arrayOf(Tr.s(R.string.s_a1f875b), Tr.s(R.string.s_01506c9), Tr.s(R.string.s_e114dc1))
         val prefs = getSharedPreferences("bisnor_subtitles", MODE_PRIVATE)
         val current = values.indexOf(prefs.getInt("bg", Color.argb(150, 0, 0, 0))).coerceAtLeast(0)
         MaterialAlertDialogBuilder(this)
-            .setTitle("پس‌زمینه زیرنویس")
+            .setTitle(Tr.s(R.string.s_03d1a58))
             .setSingleChoiceItems(labels, current) { dialog, which ->
                 applySubtitlePref("bg", values[which])
                 dialog.dismiss()
@@ -563,7 +564,7 @@ class PlayerActivity : AppCompatActivity() {
             ?.filter { it.type == C.TRACK_TYPE_TEXT && it.length > 0 }
             .orEmpty()
         if (groups.isEmpty()) {
-            Toast.makeText(this, "این ویدیو زیرنویس قابل انتخاب ندارد", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_8f428b0), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -574,14 +575,14 @@ class PlayerActivity : AppCompatActivity() {
                 options.add(
                     format.label?.takeIf { it.isNotBlank() }
                         ?: format.language?.takeIf { it.isNotBlank() }
-                        ?: "زیرنویس ${options.size + 1}"
+                        ?: Tr.s(R.string.s_8e58c7e, options.size + 1)
                 )
             }
         }
 
-        val items = arrayOf("خاموش") + options.toTypedArray()
+        val items = arrayOf(Tr.s(R.string.s_551b1db)) + options.toTypedArray()
         MaterialAlertDialogBuilder(this)
-            .setTitle("زیرنویس")
+            .setTitle(Tr.s(R.string.s_87a4b33))
             .setItems(items) { _, which ->
                 if (which == 0) {
                     disableSubtitles()
@@ -592,7 +593,7 @@ class PlayerActivity : AppCompatActivity() {
                             selectTextGroup(group, flat)
                             selectedTextLabel = options[which - 1]
                             textDisabled = false
-                            Toast.makeText(this, "زیرنویس: ${options[which - 1]}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, Tr.s(R.string.s_7e433c9, options[which - 1]), Toast.LENGTH_SHORT).show()
                             break
                         }
                         flat -= group.length
@@ -607,7 +608,7 @@ class PlayerActivity : AppCompatActivity() {
             ?.filter { it.type == C.TRACK_TYPE_AUDIO && it.length > 0 }
             .orEmpty()
         if (groups.isEmpty()) {
-            Toast.makeText(this, "ترک صوتی قابل انتخابی وجود ندارد", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_1806fb1), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -618,20 +619,20 @@ class PlayerActivity : AppCompatActivity() {
                 options.add(
                     format.label?.takeIf { it.isNotBlank() }
                         ?: format.language?.takeIf { it.isNotBlank() }
-                        ?: "صوت ${options.size + 1}"
+                        ?: Tr.s(R.string.s_8844368, options.size + 1)
                 )
             }
         }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("ترک صوتی")
+            .setTitle(Tr.s(R.string.s_c75ddd5))
             .setSingleChoiceItems(options.toTypedArray(), -1) { dialog, which ->
                 var flat = which
                 for (group in groups) {
                     if (flat < group.length) {
                         selectAudioGroup(group, flat)
                         selectedAudioLabel = options[which]
-                        Toast.makeText(this, "صدا: ${options[which]}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, Tr.s(R.string.s_b3e0c9d, options[which]), Toast.LENGTH_SHORT).show()
                         break
                     }
                     flat -= group.length
@@ -661,7 +662,7 @@ class PlayerActivity : AppCompatActivity() {
         trackSelector.setParameters(
             trackSelector.buildUponParameters().setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
         )
-        selectedTextLabel = "خاموش"
+        selectedTextLabel = Tr.s(R.string.s_551b1db)
         textDisabled = true
     }
 
@@ -677,7 +678,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.playerView.useController = false
         binding.topPlayerBar.visibility = View.GONE
         binding.cardUnlockScreen.visibility = View.VISIBLE
-        showIndicator("قفل لمس صفحه", "برای باز کردن دکمه بالا را لمس کنید")
+        showIndicator(Tr.s(R.string.s_4b238bc), Tr.s(R.string.s_a4968cb))
     }
 
     private fun unlockScreen() {
@@ -685,7 +686,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.playerView.useController = true
         binding.cardUnlockScreen.visibility = View.GONE
         binding.topPlayerBar.visibility = View.VISIBLE
-        showIndicator("قفل صفحه باز شد", "")
+        showIndicator(Tr.s(R.string.s_13728fd), "")
         handler.postDelayed(hideControlsRunnable, 4000)
     }
 
@@ -693,7 +694,7 @@ class PlayerActivity : AppCompatActivity() {
         try {
             val cleanUrl = videoUrl.trim().replace(" ", "%20")
             if (cleanUrl.isEmpty()) {
-                Toast.makeText(this, "آدرس ویدیو یافت نشد", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, Tr.s(R.string.s_91f34a3), Toast.LENGTH_SHORT).show()
                 return
             }
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -702,9 +703,9 @@ class PlayerActivity : AppCompatActivity() {
                 putExtra(Intent.EXTRA_TITLE, mediaTitle)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            startActivity(Intent.createChooser(intent, "پخش ویدیو با:"))
+            startActivity(Intent.createChooser(intent, Tr.s(R.string.s_c2da619)))
         } catch (e: Exception) {
-            Toast.makeText(this, "خطا در باز کردن پلیر خارجی: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_dae84a5, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -713,9 +714,9 @@ class PlayerActivity : AppCompatActivity() {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
             val clip = android.content.ClipData.newPlainText("Video URL", videoUrl)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "لینک ویدیو در حافظه کپی شد", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_97466f0), Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Toast.makeText(this, "خطا در کپی لینک: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_93d553a, e.message), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -731,37 +732,32 @@ class PlayerActivity : AppCompatActivity() {
             PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED
         ) || errorMsg.contains("Source", ignoreCase = true) || errorMsg.contains("Response code", ignoreCase = true)
 
-        val detailText = if (isNetworkOrSource) {
-            "سرور ویدیو پاسخ نداد یا اتصال اینترنت با خطا مواجه شد.\n\n" +
-            "💡 نکته مهم:\n" +
-            "اکثر سرورهای دانلود داخل ایران در صورت روشن بودن فیلترشکن (VPN) دسترسی آی‌پی‌های خارجی را مسدود می‌کنند.\n\n" +
-            "راهکارهای سریع:\n" +
-            "۱. فیلترشکن خود را موقتاً خاموش کنید و «تلاش مجدد» را بزنید.\n" +
-            "۲. یا با دکمه «پخش با VLC / MX Player» ویدیو را در برنامه‌های جانبی باز کنید."
-        } else {
-            "خطا در رندر تصویر یا صدای ویدیو: $errorMsg\n\nپیشنهاد می‌شود ویدیو را با VLC یا MX Player باز کنید."
-        }
+        val detailText = if (isNetworkOrSource) Tr.s(R.string.err_net_msg) else Tr.s(R.string.err_play_msg, errorMsg)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("خطا در برقراری ارتباط با سرور ویدیو")
+            .setTitle(Tr.s(R.string.err_title))
             .setMessage(detailText)
-            .setPositiveButton("🚀 پخش با VLC / MX / پلیر جانبی") { _, _ ->
+            .setPositiveButton(Tr.s(R.string.err_retry)) { _, _ -> initializePlayer(videoUrl) }
+            .setNeutralButton(Tr.s(R.string.err_other_player)) { _, _ ->
                 openWithExternalPlayer()
                 finish()
             }
-            .setNeutralButton("🔄 تلاش مجدد") { _, _ ->
-                initializePlayer(videoUrl)
-            }
-            .setNegativeButton("📋 کپی لینک") { _, _ ->
-                copyVideoUrl()
-            }
+            .setNegativeButton(Tr.s(R.string.err_copy)) { _, _ -> copyVideoUrl() }
             .setCancelable(true)
             .show()
     }
 
     private fun initializePlayer(url: String) {
+        if (url.isEmpty()) { startPlayback(url); return }
+        lifecycleScope.launch {
+            val ready = runCatching { com.hnn.bisnor.data.repository.NextMovieRepository.playableUrl(url) }.getOrDefault(url)
+            if (!isFinishing && !isDestroyed) startPlayback(ready)
+        }
+    }
+
+    private fun startPlayback(url: String) {
         if (url.isEmpty()) {
-            Toast.makeText(this, "آدرس ویدیو یافت نشد", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_91f34a3), Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -810,7 +806,7 @@ class PlayerActivity : AppCompatActivity() {
                         val mins = (startPositionMs / 1000) / 60
                         val secs = (startPositionMs / 1000) % 60
                         val timeStr = String.format("%02d:%02d", mins, secs)
-                        Toast.makeText(this@PlayerActivity, "ادامه پخش از دقیقه $timeStr", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@PlayerActivity, Tr.s(R.string.s_846e347, timeStr), Toast.LENGTH_SHORT).show()
                     }
 
                     prepare()
@@ -828,7 +824,7 @@ class PlayerActivity : AppCompatActivity() {
             binding.playerView.post { applySubtitleStyle() }
 
         } catch (e: Exception) {
-            Toast.makeText(this, "خطا در پخش: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_f2fe7d9, e.message), Toast.LENGTH_SHORT).show()
             finish()
         }
     }

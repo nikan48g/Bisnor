@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
+    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
@@ -13,7 +14,7 @@
         android:background="@color/background"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:navigationIconTint="@color/on_surface"
-        app:title="پروفایل"
+        app:title="@string/s_476b3ee"
         app:titleTextColor="@color/on_surface" />
 
     <LinearLayout
@@ -49,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:fontFamily="@font/vazirmatn_bold"
+            android:fontFamily="?attr/appFontBold"
             android:gravity="center"
             android:textColor="@color/on_surface"
             android:textSize="21sp" />
@@ -60,7 +61,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:background="@drawable/badge_background"
-            android:fontFamily="@font/vazirmatn_medium"
+            android:fontFamily="?attr/appFontMedium"
             android:paddingHorizontal="10dp"
             android:paddingVertical="3dp"
             android:textColor="@color/primary"
@@ -73,8 +74,8 @@
         android:layout_marginHorizontal="18dp"
         android:layout_marginTop="22dp"
         android:layout_marginBottom="10dp"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:text="آثار"
+        android:fontFamily="?attr/appFontBold"
+        android:text="@string/s_25912e8"
         android:textColor="@color/on_surface"
         android:textSize="15.5sp" />
 
@@ -119,9 +120,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:fontFamily="@font/vazirmatn_bold"
+                android:fontFamily="?attr/appFontBold"
                 android:gravity="center"
-                android:text="اثری پیدا نشد"
+                android:text="@string/s_5a11492"
                 android:textColor="@color/on_surface"
                 android:textSize="15sp" />
 
@@ -129,9 +130,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:fontFamily="@font/vazirmatn_regular"
+                android:fontFamily="?attr/appFontRegular"
                 android:gravity="center"
-                android:text="در حال حاضر اثری از این شخص در کاتالوگ موجود نیست."
+                android:text="@string/s_4b7f246"
                 android:textColor="@color/on_surface_variant"
                 android:textSize="12sp" />
         </LinearLayout>

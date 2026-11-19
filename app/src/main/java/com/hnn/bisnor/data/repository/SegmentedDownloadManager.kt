@@ -35,7 +35,10 @@ data class SegmentedTask(
     var destTreeUri: String? = null,
     // content:// uri of the moved file; null while it still lives in filePath.
     var savedUri: String? = null,
-    @Transient var job: Job? = null
+    @Transient var job: Job? = null,
+    // Live per-part progress (8 parts); null for single-stream downloads and after a restart.
+    @Transient var partDone: java.util.concurrent.atomic.AtomicLongArray? = null,
+    @Transient var partTotal: LongArray? = null
 ) {
     /** Where the finished video can be read from. */
     val playablePath: String get() = savedUri ?: filePath
@@ -188,6 +191,8 @@ object SegmentedDownloadManager {
             if (task.isSegmented && totalLength > 0L) {
                 val numParts = 8
                 val partSize = totalLength / numParts
+                task.partDone = java.util.concurrent.atomic.AtomicLongArray(numParts)
+                task.partTotal = LongArray(numParts) { i -> if (i == numParts - 1) totalLength - i * partSize else partSize }
                 val partJobs = (0 until numParts).map { partIdx ->
                     downloadScope.async {
                         val start = partIdx * partSize
@@ -212,6 +217,7 @@ object SegmentedDownloadManager {
                                 while (inputStream.read(buffer).also { read = it } != -1 && isActive) {
                                     raf.write(buffer, 0, read)
                                     task.bytesDownloaded.addAndGet(read.toLong())
+                                    task.partDone?.addAndGet(partIdx, read.toLong())
                                 }
                             }
                         }

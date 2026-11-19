@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.profile
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -55,7 +57,7 @@ class AccountProfileActivity : AppCompatActivity() {
             if (newName.isNotEmpty()) {
                 authManager.updateUsername(newName)
                 binding.tvProfileName.text = newName
-                Toast.makeText(this, "اطلاعات با موفقیت ذخیره شد", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, Tr.s(R.string.s_fdd5fe2), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -68,34 +70,34 @@ class AccountProfileActivity : AppCompatActivity() {
 
         binding.btnResetTaste.setOnClickListener {
             MaterialAlertDialogBuilder(this)
-                .setTitle("پاکسازی تاریخچه سلیقه")
-                .setMessage("آیا می‌خواهید تمام داده‌های یادگیری شده از تماشای فیلم‌ها پاک شوند؟")
-                .setPositiveButton("بله، پاک شود") { _, _ ->
+                .setTitle(Tr.s(R.string.s_e8b7aae))
+                .setMessage(Tr.s(R.string.s_1c3523d))
+                .setPositiveButton(Tr.s(R.string.s_9bc22b6)) { _, _ ->
                     tasteDb.resetLearnedTaste()
                     loadTasteStats()
                     loadMonthlyAnalytics()
-                    Toast.makeText(this, "تاریخچه سلیقه پاکسازی شد", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, Tr.s(R.string.s_701ccde), Toast.LENGTH_SHORT).show()
                 }
-                .setNegativeButton("انصراف", null)
+                .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
                 .show()
         }
 
         binding.btnProfileLogoutFull.setOnClickListener {
             MaterialAlertDialogBuilder(this)
-                .setTitle("خروج از حساب")
-                .setMessage("آیا مطمئن هستید می‌خواهید از حساب کاربری خود خارج شوید؟")
-                .setPositiveButton("خروج") { _, _ ->
+                .setTitle(Tr.s(R.string.s_e75c397))
+                .setMessage(Tr.s(R.string.s_d8a775b))
+                .setPositiveButton(Tr.s(R.string.s_6080666)) { _, _ ->
                     authManager.logout()
-                    Toast.makeText(this, "از حساب کاربری خارج شدید", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, Tr.s(R.string.s_2442c7d), Toast.LENGTH_SHORT).show()
                     finish()
                 }
-                .setNegativeButton("انصراف", null)
+                .setNegativeButton(Tr.s(R.string.s_c8d2a1f), null)
                 .show()
         }
     }
 
     private fun setupProfileData() {
-        val username = authManager.currentUsername.ifEmpty { "کاربر بیسنور" }
+        val username = authManager.currentUsername.ifEmpty { Tr.s(R.string.s_5e61cd2) }
         binding.tvProfileName.text = username
         binding.etUsername.setText(username)
 
@@ -135,7 +137,7 @@ class AccountProfileActivity : AppCompatActivity() {
 
         if (stats.isEmpty()) {
             val emptyTv = TextView(this).apply {
-                text = "هنوز ویدیویی تماشا نکرده‌اید. با تماشای فیلم‌ها و سریال‌ها، هوش سلیقه‌سنج بیسنور به‌طور خودکار علاقه‌مندی شما را تحلیل و درصدبندی می‌کند."
+                text = Tr.s(R.string.s_ae2f904)
                 setTextColor(getColor(R.color.on_surface_variant))
                 textSize = 12f
                 setPadding(0, 16, 0, 16)
@@ -163,7 +165,7 @@ class AccountProfileActivity : AppCompatActivity() {
             }
 
             val pctTv = TextView(this).apply {
-                text = "${stat.percentage}٪"
+                text = Tr.s(R.string.s_78efdc9, stat.percentage)
                 textSize = 12f
                 setTextColor(getColor(R.color.primary))
             }
@@ -206,9 +208,9 @@ class AccountProfileActivity : AppCompatActivity() {
                 }
                 tasteDb.setContentTypePreference(newPref)
                 val msg = when (newPref) {
-                    "movie" -> "ترجیح شما روی بیشتر فیلم تنظیم شد 🎬"
-                    "series" -> "ترجیح شما روی بیشتر سریال تنظیم شد 📺"
-                    else -> "ترجیح شما روی هر دو (متعادل) تنظیم شد 🍿"
+                    "movie" -> Tr.s(R.string.s_8c8e71b)
+                    "series" -> Tr.s(R.string.s_408c2b0)
+                    else -> Tr.s(R.string.s_96a2638)
                 }
                 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
             }
@@ -222,13 +224,13 @@ class AccountProfileActivity : AppCompatActivity() {
         val mMin = monthly.movieDurationMs / 1000 / 60
         val mH = mMin / 60
         val mR = mMin % 60
-        binding.tvMonthlyMovieHours.text = if (mH > 0) "$mH ساعت و $mR دقیقه" else if (mR > 0) "$mR دقیقه" else "۰ دقیقه"
+        binding.tvMonthlyMovieHours.text = if (mH > 0) Tr.s(R.string.s_b780352, mH, mR) else if (mR > 0) Tr.s(R.string.s_b59d572, mR) else Tr.s(R.string.s_71aaadd)
 
         // Series Duration
         val sMin = monthly.seriesDurationMs / 1000 / 60
         val sH = sMin / 60
         val sR = sMin % 60
-        binding.tvMonthlySeriesHours.text = if (sH > 0) "$sH ساعت و $sR دقیقه" else if (sR > 0) "$sR دقیقه" else "۰ دقیقه"
+        binding.tvMonthlySeriesHours.text = if (sH > 0) Tr.s(R.string.s_b780352, sH, sR) else if (sR > 0) Tr.s(R.string.s_b59d572, sR) else Tr.s(R.string.s_71aaadd)
 
         // Data Usage
         val bytes = monthly.totalDataUsageBytes
@@ -245,7 +247,7 @@ class AccountProfileActivity : AppCompatActivity() {
 
         if (monthly.genreStats.isEmpty()) {
             val emptyTv = TextView(this).apply {
-                text = "هنوز تماشایی در ۳۰ روز اخیر ثبت نشده است. با دیدن فیلم‌ها و سریال‌ها، نمودار تفکیکی در این بخش نمایش می‌یابد."
+                text = Tr.s(R.string.s_7013762)
                 setTextColor(getColor(R.color.on_surface_variant))
                 textSize = 11.5f
                 setPadding(0, 12, 0, 12)
@@ -294,7 +296,7 @@ class AccountProfileActivity : AppCompatActivity() {
             }
 
             val pctTv = TextView(this).apply {
-                text = "${stat.percentage}٪"
+                text = Tr.s(R.string.s_78efdc9, stat.percentage)
                 textSize = 12f
                 setTextColor(getColor(R.color.on_surface_variant))
             }
@@ -307,20 +309,20 @@ class AccountProfileActivity : AppCompatActivity() {
     }
 
     private fun formatDataUsage(bytes: Long): String {
-        if (bytes <= 0L) return "۰ مگابایت"
+        if (bytes <= 0L) return Tr.s(R.string.s_c60e8aa)
         val gb = bytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
         return if (gb >= 1.0) {
-            String.format(java.util.Locale.US, "%.1f گیگابایت", gb)
+            Tr.s(R.string.fmt_gb, String.format(java.util.Locale.US, "%.1f", gb))
         } else {
             val mb = (bytes / (1024L * 1024L)).coerceAtLeast(1L)
-            "$mb مگابایت"
+            Tr.s(R.string.s_7c690f1, mb)
         }
     }
 
     private fun showAvatarSelectionDialog() {
         com.hnn.bisnor.util.AvatarPickerDialogHelper.show(this, authManager) { avatar ->
             binding.imgProfileAvatarLarge.setImageResource(avatar.drawableRes)
-            Toast.makeText(this, "تصویر پروفایل به «${avatar.name}» تغییر یافت", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_ae2ea53, avatar.name), Toast.LENGTH_SHORT).show()
         }
     }
 }

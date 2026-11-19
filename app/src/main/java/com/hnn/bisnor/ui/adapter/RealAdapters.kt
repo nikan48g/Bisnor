@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.adapter
 
+import com.hnn.bisnor.util.Tr
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,9 +36,9 @@ class RealHeroBannerAdapter(
             binding.tvBadgeRating.visibility = if (item.imdb > 0.0) View.VISIBLE else View.GONE
 
             binding.tvHeroTitle.text = item.title
-            binding.tvHeroType.text = if (item.isSeries) "سریال" else "فیلم"
+            binding.tvHeroType.text = if (item.isSeries) Tr.s(R.string.s_dee6fc4) else Tr.s(R.string.s_b063120)
 
-            val genreNames = item.genres.take(3).joinToString("، ") { it.title }
+            val genreNames = item.genres.take(3).joinToString(Tr.s(R.string.s_8a78cc5)) { it.title }
             val parts = mutableListOf<String>()
             if (item.year > 0) parts.add(item.year.toString())
             if (genreNames.isNotEmpty()) parts.add(genreNames)
@@ -124,15 +126,15 @@ class RealMediaAdapter(
         val haystack = (item.title + " " + item.description).lowercase()
         when {
             haystack.contains("دوبله") -> {
-                view.text = "دوبله"
+                view.text = Tr.s(R.string.s_cfa7558)
                 view.visibility = View.VISIBLE
             }
             item.isSeries -> {
-                view.text = "سریال"
+                view.text = Tr.s(R.string.s_dee6fc4)
                 view.visibility = View.VISIBLE
             }
             haystack.contains("زیرنویس") -> {
-                view.text = "زیرنویس"
+                view.text = Tr.s(R.string.s_87a4b33)
                 view.visibility = View.VISIBLE
             }
             else -> view.visibility = View.GONE
@@ -210,7 +212,7 @@ class RealSourceAdapter(
         fun bind(source: RealSource) {
             binding.tvLinkQuality.text = source.quality
             binding.tvLinkInfo.text = when {
-                source.type.isNotBlank() && source.type != "null" -> "فرمت ${source.type.uppercase()}"
+                source.type.isNotBlank() && source.type != "null" -> Tr.s(R.string.s_e80fe3c, source.type.uppercase())
                 else -> ""
             }
             binding.btnLinkDownload.visibility = View.GONE

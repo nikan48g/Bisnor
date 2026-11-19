@@ -28,8 +28,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="به‌روزرسانی جدید"
+            android:fontFamily="?attr/appFontBold"
+            android:text="@string/s_eef89fd"
             android:textColor="@color/on_surface"
             android:textSize="18sp" />
     </FrameLayout>
@@ -59,8 +59,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:fontFamily="@font/vazirmatn_bold"
-                android:text="نسخه جدید بیسنور منتشر شد!"
+                android:fontFamily="?attr/appFontBold"
+                android:text="@string/s_bda05a1"
                 android:textColor="@color/on_surface"
                 android:textSize="20sp" />
 
@@ -89,8 +89,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="نسخه فعلی شما:"
+                            android:fontFamily="?attr/appFontRegular"
+                            android:text="@string/s_2c8b9ce"
                             android:textColor="@color/on_surface_variant"
                             android:textSize="12sp" />
 
@@ -99,7 +99,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:fontFamily="@font/vazirmatn_bold"
+                            android:fontFamily="?attr/appFontBold"
                             android:text="v1.0.0"
                             android:textColor="@color/secondary"
                             android:textSize="16sp" />
@@ -120,8 +120,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_regular"
-                            android:text="جدیدترین نسخه:"
+                            android:fontFamily="?attr/appFontRegular"
+                            android:text="@string/s_f761c3a"
                             android:textColor="@color/on_surface_variant"
                             android:textSize="12sp" />
 
@@ -130,7 +130,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:fontFamily="@font/vazirmatn_bold"
+                            android:fontFamily="?attr/appFontBold"
                             android:text="v1.0.1"
                             android:textColor="@color/primary"
                             android:textSize="16sp" />
@@ -156,8 +156,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_bold"
-                        android:text="تغییرات و امکانات نسخه جدید:"
+                        android:fontFamily="?attr/appFontBold"
+                        android:text="@string/s_b0e058e"
                         android:textColor="@color/primary"
                         android:textSize="14sp" />
 
@@ -174,7 +174,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:fontFamily="@font/vazirmatn_regular"
+                        android:fontFamily="?attr/appFontRegular"
                         android:lineSpacingExtra="4dp"
                         android:textColor="@color/on_surface"
                         android:textSize="13sp"
@@ -191,8 +191,8 @@
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:fontFamily="@font/vazirmatn_bold"
-        android:text="دانلود و نصب نسخه جدید 🚀"
+        android:fontFamily="?attr/appFontBold"
+        android:text="@string/s_b485761"
         android:textSize="15sp"
         app:backgroundTint="@color/primary"
         app:cornerRadius="16dp" />
@@ -203,8 +203,8 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginTop="4dp"
-        android:fontFamily="@font/vazirmatn_medium"
-        android:text="یادآوری در دفعات بعد"
+        android:fontFamily="?attr/appFontMedium"
+        android:text="@string/s_cf70880"
         android:textColor="@color/outline" />
 
 </LinearLayout>

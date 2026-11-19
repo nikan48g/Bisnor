@@ -4,6 +4,10 @@
          Base theme (LIGHT). Dark values live in values-night/themes.xml.
          ============================================================ -->
     <style name="Theme.Bisnor" parent="Theme.Material3.Light.NoActionBar">
+        <item name="appFont">@font/ajor</item>
+        <item name="appFontRegular">@font/ajor_regular</item>
+        <item name="appFontMedium">@font/ajor_medium</item>
+        <item name="appFontBold">@font/ajor_bold</item>
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorPrimaryContainer">@color/primary_container</item>
@@ -41,8 +45,8 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowBackground">@color/background</item>
 
-        <item name="fontFamily">@font/vazirmatn</item>
-        <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="fontFamily">?attr/appFont</item>
+        <item name="android:fontFamily">?attr/appFont</item>
         <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Bisnor.Headline</item>
         <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Bisnor.Headline</item>
         <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Bisnor.SectionTitle</item>
@@ -70,41 +74,41 @@
          Typography
          ============================================================ -->
     <style name="TextAppearance.Bisnor" parent="TextAppearance.Material3.BodyMedium">
-        <item name="fontFamily">@font/vazirmatn_regular</item>
-        <item name="android:fontFamily">@font/vazirmatn_regular</item>
+        <item name="fontFamily">?attr/appFontRegular</item>
+        <item name="android:fontFamily">?attr/appFontRegular</item>
         <item name="android:textColor">@color/on_surface</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="TextAppearance.Bisnor.Display" parent="TextAppearance.Bisnor">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="fontFamily">?attr/appFontBold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">30sp</item>
         <item name="android:lineSpacingMultiplier">1.15</item>
     </style>
 
     <style name="TextAppearance.Bisnor.Headline" parent="TextAppearance.Bisnor">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="fontFamily">?attr/appFontBold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">22sp</item>
         <item name="android:lineSpacingMultiplier">1.15</item>
     </style>
 
     <style name="TextAppearance.Bisnor.SectionTitle" parent="TextAppearance.Bisnor">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="fontFamily">?attr/appFontBold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">17sp</item>
     </style>
 
     <style name="TextAppearance.Bisnor.TitleLarge" parent="TextAppearance.Bisnor">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="fontFamily">?attr/appFontBold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">19sp</item>
     </style>
 
     <style name="TextAppearance.Bisnor.Title" parent="TextAppearance.Bisnor">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="fontFamily">?attr/appFontBold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">15sp</item>
     </style>
 
@@ -114,8 +118,8 @@
     </style>
 
     <style name="TextAppearance.Bisnor.Support" parent="TextAppearance.Bisnor">
-        <item name="fontFamily">@font/vazirmatn_regular</item>
-        <item name="android:fontFamily">@font/vazirmatn_regular</item>
+        <item name="fontFamily">?attr/appFontRegular</item>
+        <item name="android:fontFamily">?attr/appFontRegular</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textColor">@color/on_surface_variant</item>
     </style>
@@ -126,14 +130,14 @@
     </style>
 
     <style name="TextAppearance.Bisnor.Label" parent="TextAppearance.Bisnor">
-        <item name="fontFamily">@font/vazirmatn_medium</item>
-        <item name="android:fontFamily">@font/vazirmatn_medium</item>
+        <item name="fontFamily">?attr/appFontMedium</item>
+        <item name="android:fontFamily">?attr/appFontMedium</item>
         <item name="android:textSize">12.5sp</item>
     </style>
 
     <style name="TextAppearance.Bisnor.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="fontFamily">?attr/appFontBold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">11sp</item>
         <item name="android:textColor">@color/primary</item>
     </style>
@@ -147,8 +151,8 @@
     </style>
 
     <style name="TextAppearance.Bisnor.BottomNav.Inactive" parent="TextAppearance.Material3.LabelSmall">
-        <item name="fontFamily">@font/vazirmatn_medium</item>
-        <item name="android:fontFamily">@font/vazirmatn_medium</item>
+        <item name="fontFamily">?attr/appFontMedium</item>
+        <item name="android:fontFamily">?attr/appFontMedium</item>
         <item name="android:textSize">11sp</item>
         <item name="android:textColor">@color/on_surface_variant</item>
     </style>
@@ -191,7 +195,7 @@
     <style name="Widget.Bisnor.Button" parent="Widget.Material3.Button">
         <item name="backgroundTint">@color/primary</item>
         <item name="android:textColor">@color/on_primary</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">14sp</item>
         <item name="android:minHeight">52dp</item>
         <item name="cornerRadius">100dp</item>
@@ -206,7 +210,7 @@
     <!-- Thin outlined chip like Apple's "TV-PG / 4K" badges. -->
     <style name="TextAppearance.Bisnor.MetaChip">
         <item name="android:background">@drawable/bg_rating_chip</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">11sp</item>
         <item name="android:paddingStart">7dp</item>
@@ -231,7 +235,7 @@
     <style name="Widget.Bisnor.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
         <item name="backgroundTint">@color/surface_container_high</item>
         <item name="android:textColor">@color/on_surface</item>
-        <item name="android:fontFamily">@font/vazirmatn_medium</item>
+        <item name="android:fontFamily">?attr/appFontMedium</item>
         <item name="android:textSize">13sp</item>
         <item name="android:minHeight">48dp</item>
         <item name="cornerRadius">100dp</item>
@@ -252,7 +256,7 @@
     </style>
 
     <style name="Widget.Bisnor.Chip" parent="Widget.Material3.Chip.Filter">
-        <item name="android:fontFamily">@font/vazirmatn_medium</item>
+        <item name="android:fontFamily">?attr/appFontMedium</item>
         <item name="android:textSize">12.5sp</item>
         <item name="chipBackgroundColor">@color/chip_background_selector</item>
         <item name="android:textColor">@color/chip_text_selector</item>
@@ -331,8 +335,8 @@
     <!-- Dialog titles need a view style (layout params) as well as typography, so
          this extends the Material title style instead of a text appearance. -->
     <style name="MaterialAlertDialog.Bisnor.Title.Text" parent="MaterialAlertDialog.Material3.Title.Text">
-        <item name="fontFamily">@font/vazirmatn_bold</item>
-        <item name="android:fontFamily">@font/vazirmatn_bold</item>
+        <item name="fontFamily">?attr/appFontBold</item>
+        <item name="android:fontFamily">?attr/appFontBold</item>
         <item name="android:textSize">17sp</item>
         <item name="android:textColor">@color/on_surface</item>
     </style>
@@ -344,13 +348,34 @@
 
     <!-- Fullscreen player theme (unchanged behaviour, new accents) -->
     <style name="Theme.Bisnor.Player" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="appFont">@font/ajor</item>
+        <item name="appFontRegular">@font/ajor_regular</item>
+        <item name="appFontMedium">@font/ajor_medium</item>
+        <item name="appFontBold">@font/ajor_bold</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:statusBarColor">@color/black</item>
         <item name="android:navigationBarColor">@color/black</item>
-        <item name="fontFamily">@font/vazirmatn</item>
-        <item name="android:fontFamily">@font/vazirmatn</item>
+        <item name="fontFamily">?attr/appFont</item>
+        <item name="android:fontFamily">?attr/appFont</item>
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.Bisnor.Dialog</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.Bisnor.BottomSheet</item>
+    </style>
+    <style name="ThemeOverlay.Bisnor.FancyFont" parent="">
+        <item name="appFont">@font/ajorfancy</item>
+        <item name="appFontRegular">@font/ajorfancy_regular</item>
+        <item name="appFontMedium">@font/ajorfancy_medium</item>
+        <item name="appFontBold">@font/ajorfancy_bold</item>
+        <item name="fontFamily">@font/ajorfancy</item>
+        <item name="android:fontFamily">@font/ajorfancy</item>
+    </style>
+    <!-- English: cinematic Bebas Neue headings over Barlow text. -->
+    <style name="ThemeOverlay.Bisnor.EnglishFont" parent="">
+        <item name="appFont">@font/barlow</item>
+        <item name="appFontRegular">@font/barlow_regular</item>
+        <item name="appFontMedium">@font/barlow_medium</item>
+        <item name="appFontBold">@font/bebasneue_regular</item>
+        <item name="fontFamily">@font/barlow</item>
+        <item name="android:fontFamily">@font/barlow</item>
     </style>
 </resources>
 

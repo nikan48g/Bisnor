@@ -17,8 +17,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/vazirmatn_bold"
-            android:text="تنظیمات"
+            android:fontFamily="?attr/appFontBold"
+            android:text="@string/s_b67081a"
             android:textColor="@color/on_surface"
             android:textSize="24sp" />
 
@@ -26,8 +26,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
-            android:fontFamily="@font/vazirmatn_regular"
-            android:text="پخش، ظاهر و دانلودها"
+            android:fontFamily="?attr/appFontRegular"
+            android:text="@string/s_029c280"
             android:textColor="@color/on_surface_variant"
             android:textSize="12.5sp" />
 
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="8dp"
-            android:text="دانلودها و ذخیره‌سازی"
+            android:text="@string/s_e4a3f47"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -69,8 +69,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="مدیریت دانلودها"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_7624e6e"
                         android:textColor="@color/on_surface"
                         android:textSize="13.5sp" />
 
@@ -78,8 +78,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="فایل‌های ذخیره‌شده و تماشای آفلاین"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_39778d4"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -99,7 +99,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:layout_marginBottom="8dp"
-            android:text="واچ‌لیست"
+            android:text="@string/s_39a97ef"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -117,7 +117,7 @@
                 <ImageView
                     android:layout_width="22dp"
                     android:layout_height="22dp"
-                    android:contentDescription="وارد کردن واچ‌لیست"
+                    android:contentDescription="@string/s_594a166"
                     android:src="@drawable/ic_import_list"
                     app:tint="@color/primary" />
 
@@ -131,8 +131,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="وارد کردن واچ‌لیست"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_594a166"
                         android:textColor="@color/on_surface"
                         android:textSize="13.5sp" />
 
@@ -140,8 +140,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="لینک یا کد دریافتی از دوستان"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_a82105e"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="11.5sp" />
                 </LinearLayout>
@@ -155,7 +155,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:layout_marginBottom="8dp"
-            android:text="ظاهر برنامه"
+            android:text="@string/s_f42858f"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -168,8 +168,8 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="پوسته برنامه"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/s_5564d24"
                 android:textColor="@color/on_surface"
                 android:textSize="13.5sp" />
 
@@ -186,37 +186,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="سیستم" />
+                    android:text="@string/s_1ddbed6" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_theme_dark"
                     style="@style/Widget.Bisnor.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="تاریک" />
+                    android:text="@string/s_8aa4968" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_theme_light"
                     style="@style/Widget.Bisnor.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="روشن" />
+                    android:text="@string/s_fd5beab" />
             </com.google.android.material.chip.ChipGroup>
         </LinearLayout>
-
-        <!-- Content sources -->
-        <TextView
-            style="@style/TextAppearance.Bisnor.Label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
-            android:layout_marginBottom="8dp"
-            android:text="منابع محتوا"
-            android:textColor="@color/primary" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_card_surface"
             android:orientation="vertical"
             android:padding="16dp">
@@ -224,49 +215,110 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/vazirmatn_medium"
-                android:text="منبع پخش"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/settings_language"
                 android:textColor="@color/on_surface"
                 android:textSize="13.5sp" />
 
             <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chip_group_sources"
+                android:id="@+id/chip_group_lang"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                app:singleSelection="true">
+                app:singleSelection="true"
+                app:selectionRequired="true">
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_source_next"
+                    android:id="@+id/chip_lang_fa"
                     style="@style/Widget.Bisnor.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="نکست‌مووی" />
-
+                    android:text="@string/lang_fa" />
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_source_iranflix"
+                    android:id="@+id/chip_lang_en"
                     style="@style/Widget.Bisnor.Chip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ایران‌فلیکس" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_source_both"
-                    style="@style/Widget.Bisnor.Chip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="هر دو" />
+                    android:text="@string/lang_en" />
             </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="16dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:lineSpacingExtra="3dp"
-                android:text="در حالت «هر دو»، هر عنوان یک‌بار نمایش داده می‌شود؛ اطلاعات از ایران‌فلیکس و قسمت‌ها و لینک‌ها از هر دو منبع می‌آید."
-                android:textColor="@color/on_surface_variant"
-                android:textSize="12sp" />
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/settings_ui_style"
+                android:textColor="@color/on_surface"
+                android:textSize="13.5sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_ui"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_ui_modern"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ui_modern_short" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_ui_classic"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ui_classic_short" />
+            </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card_surface"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="?attr/appFontMedium"
+                android:text="@string/settings_font"
+                android:textColor="@color/on_surface"
+                android:textSize="13.5sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_font"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_font_ajor"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/font_ajor" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_font_fancy"
+                    style="@style/Widget.Bisnor.Chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/font_fancy" />
+            </com.google.android.material.chip.ChipGroup>
         </LinearLayout>
 
         <!-- Playback -->
@@ -276,7 +328,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:layout_marginBottom="8dp"
-            android:text="پخش و ویدیو"
+            android:text="@string/s_540bea8"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -299,8 +351,8 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="پخش خودکار قسمت بعدی"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_a476031"
                         android:textColor="@color/on_surface"
                         android:textSize="13.5sp" />
 
@@ -308,8 +360,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="نمایش تایمر و پخش خودکار قسمت بعد"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_ddf0c46"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -334,8 +386,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/vazirmatn_medium"
-                    android:text="زمان نمایش قسمت بعدی"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/s_f8013e0"
                     android:textColor="@color/on_surface"
                     android:textSize="13sp" />
 
@@ -343,8 +395,8 @@
                     android:id="@+id/tv_auto_next_minutes_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/vazirmatn_bold"
-                    android:text="۲ دقیقه مانده به پایان"
+                    android:fontFamily="?attr/appFontBold"
+                    android:text="@string/s_34205e4"
                     android:textColor="@color/primary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -367,8 +419,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="پخش‌کننده پیش‌فرض"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_fc72396"
                         android:textColor="@color/on_surface"
                         android:textSize="13.5sp" />
 
@@ -377,8 +429,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="پلیر داخلی بیسنور"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_4b35f47"
                         android:textColor="@color/primary"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -406,8 +458,8 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="هشدار رده سنی"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_7d5e593"
                         android:textColor="@color/on_surface"
                         android:textSize="13.5sp" />
 
@@ -415,8 +467,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="نمایش هشدار برای عناوین +۱۶ و +۱۸"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_d69060c"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -437,7 +489,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:layout_marginBottom="8dp"
-            android:text="سایر"
+            android:text="@string/s_b47a8a7"
             android:textColor="@color/primary" />
 
         <LinearLayout
@@ -468,8 +520,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="بررسی به‌روزرسانی"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_d5f8583"
                         android:textColor="@color/on_surface"
                         android:textSize="13.5sp" />
 
@@ -477,7 +529,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
+                        android:fontFamily="?attr/appFontRegular"
                         android:id="@+id/tv_setting_version"
                         android:text=""
                         android:textColor="@color/on_surface_variant"
@@ -515,8 +567,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/vazirmatn_medium"
-                        android:text="پاک‌سازی حافظه موقت تصاویر"
+                        android:fontFamily="?attr/appFontMedium"
+                        android:text="@string/s_fdcd08f"
                         android:textColor="@color/on_surface"
                         android:textSize="13.5sp" />
 
@@ -524,8 +576,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:fontFamily="@font/vazirmatn_regular"
-                        android:text="اگر پوسترها درست نمایش داده نمی‌شوند"
+                        android:fontFamily="?attr/appFontRegular"
+                        android:text="@string/s_72ecd11"
                         android:textColor="@color/on_surface_variant"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -542,9 +594,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:fontFamily="@font/vazirmatn_regular"
+            android:fontFamily="?attr/appFontRegular"
             android:gravity="center"
-            android:text="بیسنور • تماشا بدون مرز"
+            android:text="@string/s_ce0639b"
             android:textColor="@color/outline"
             android:textSize="10.5sp" />
     </LinearLayout>

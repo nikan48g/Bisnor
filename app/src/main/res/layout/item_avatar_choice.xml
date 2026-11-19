@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:ellipsize="end"
-        android:fontFamily="@font/vazirmatn_medium"
+        android:fontFamily="?attr/appFontMedium"
         android:gravity="center"
         android:maxLines="1"
         android:textColor="@color/on_surface"

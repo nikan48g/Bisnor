@@ -1,5 +1,8 @@
 package com.hnn.bisnor.data.repository
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.content.SharedPreferences
 
@@ -15,21 +18,46 @@ object SourcePreferences {
 
     private const val PREFS = "bisnor_prefs"
     private const val KEY = "bisnor_source"
+    private const val KEY_AUTO = "bisnor_source_auto"
     private var prefs: SharedPreferences? = null
 
+    /** The user's manual pick; only used when [auto] is off. */
     @Volatile
-    var mode: String = BOTH
+    var manualMode: String = BOTH
         private set
+
+    @Volatile
+    var auto: Boolean = true
+        private set
+
+    /** Which servers the last health check found reachable (both until proven otherwise). */
+    @Volatile
+    var up: Set<String> = setOf(NEXT, IRANFLIX)
+
+    /** What the app actually uses right now. */
+    val mode: String
+        get() = if (!auto) manualMode else when {
+            NEXT in up && IRANFLIX in up -> BOTH
+            IRANFLIX in up -> IRANFLIX
+            NEXT in up -> NEXT
+            else -> BOTH
+        }
+
+    fun setAuto(value: Boolean) {
+        auto = value
+        prefs?.edit()?.putBoolean(KEY_AUTO, value)?.apply()
+    }
 
     fun init(context: Context) {
         prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        mode = normalize(prefs?.getString(KEY, BOTH))
+        manualMode = normalize(prefs?.getString(KEY, BOTH))
+        auto = prefs?.getBoolean(KEY_AUTO, true) ?: true
     }
 
     fun setMode(value: String) {
         val normalized = normalize(value)
-        if (normalized == mode) return
-        mode = normalized
+        if (normalized == manualMode) return
+        manualMode = normalized
         prefs?.edit()?.putString(KEY, normalized)?.apply()
     }
 
@@ -37,9 +65,9 @@ object SourcePreferences {
     fun usesIranflix(): Boolean = mode == IRANFLIX || mode == BOTH
 
     fun label(value: String = mode): String = when (value) {
-        IRANFLIX -> "ایران‌فلیکس"
-        BOTH -> "هر دو منبع"
-        else -> "نکست‌مووی"
+        IRANFLIX -> Tr.s(R.string.s_9a8fa14)
+        BOTH -> Tr.s(R.string.s_c77a9c6)
+        else -> Tr.s(R.string.s_1452e24)
     }
 
     private fun normalize(value: String?): String = when (value) {

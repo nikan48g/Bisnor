@@ -57,7 +57,7 @@
                         android:layout_width="46dp"
                         android:layout_height="46dp"
                         android:clickable="true"
-                        android:contentDescription="پروفایل"
+                        android:contentDescription="@string/s_476b3ee"
                         android:focusable="true"
                         app:glassCornerRadius="23dp">
 
@@ -65,7 +65,7 @@
                             android:id="@+id/tv_home_avatar_initial"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:fontFamily="@font/vazirmatn_bold"
+                            android:fontFamily="?attr/appFontBold"
                             android:gravity="center"
                             android:textColor="@color/white"
                             android:textSize="17sp"
@@ -92,11 +92,11 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:ellipsize="end"
-                            android:fontFamily="@font/vazirmatn_bold"
+                            android:fontFamily="?attr/appFontBold"
                             android:maxLines="1"
                             android:shadowColor="#80000000"
                             android:shadowRadius="10"
-                            android:text="سلام"
+                            android:text="@string/s_78903c5"
                             android:textColor="@color/white"
                             android:textSize="17sp" />
 
@@ -104,10 +104,10 @@
                             android:id="@+id/tv_home_greeting_sub"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/vazirmatn_regular"
+                            android:fontFamily="?attr/appFontRegular"
                             android:shadowColor="#80000000"
                             android:shadowRadius="10"
-                            android:text="امشب چه چیزی ببینیم؟"
+                            android:text="@string/s_c31b7b9"
                             android:textColor="#D9FFFFFF"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -117,7 +117,7 @@
                         android:layout_width="46dp"
                         android:layout_height="46dp"
                         android:clickable="true"
-                        android:contentDescription="جستجو"
+                        android:contentDescription="@string/s_0da0a4d"
                         android:focusable="true"
                         app:glassCornerRadius="23dp">
 
@@ -204,8 +204,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="@font/vazirmatn_bold"
-                            android:text="در حال تماشا"
+                            android:fontFamily="?attr/appFontBold"
+                            android:text="@string/s_f025339"
                             android:textColor="@color/on_surface"
                             android:textSize="17sp" />
 
@@ -216,9 +216,9 @@
                             android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
-                            android:fontFamily="@font/vazirmatn_medium"
+                            android:fontFamily="?attr/appFontMedium"
                             android:padding="6dp"
-                            android:text="کتابخانه"
+                            android:text="@string/s_e4660a4"
                             android:textColor="@color/primary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -247,9 +247,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="28dp"
-                    android:fontFamily="@font/vazirmatn_regular"
+                    android:fontFamily="?attr/appFontRegular"
                     android:gravity="center"
-                    android:text="بیسنور • تماشا بدون مرز"
+                    android:text="@string/s_ce0639b"
                     android:textColor="@color/outline"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -277,9 +277,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:fontFamily="@font/vazirmatn_bold"
+                    android:fontFamily="?attr/appFontBold"
                     android:gravity="center"
-                    android:text="ارتباط با سرور برقرار نشد"
+                    android:text="@string/s_68912df"
                     android:textColor="@color/on_surface"
                     android:textSize="15sp" />
 
@@ -288,10 +288,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:fontFamily="@font/vazirmatn_regular"
+                    android:fontFamily="?attr/appFontRegular"
                     android:gravity="center"
                     android:lineSpacingExtra="3dp"
-                    android:text="اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+                    android:text="@string/s_588b27d"
                     android:textColor="@color/on_surface_variant"
                     android:textSize="12.5sp" />
 
@@ -301,7 +301,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="46dp"
                     android:layout_marginTop="18dp"
-                    android:text="تلاش دوباره" />
+                    android:text="@string/s_5bdddf7" />
             </LinearLayout>
 
             <ProgressBar

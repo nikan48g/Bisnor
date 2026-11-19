@@ -1,5 +1,7 @@
 package com.hnn.bisnor.ui.detail
 
+import com.hnn.bisnor.util.Tr
+
 import androidx.activity.enableEdgeToEdge
 import android.content.Intent
 import android.os.Bundle
@@ -65,7 +67,7 @@ class DetailActivity : AppCompatActivity() {
     private var trailerUrl: String? = null
     private var people: List<RealPerson> = emptyList()
     private var peopleAdapter: PersonRowAdapter? = null
-    private var sectionTitle = "کیفیت‌های پخش"
+    private var sectionTitle = Tr.s(R.string.s_6551c81)
     private lateinit var adapter: DetailRecyclerAdapter
     private var synopsisExpanded = false
 
@@ -179,10 +181,10 @@ class DetailActivity : AppCompatActivity() {
         if (!meta.isAdultOr18) return
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("هشدار رده سنی")
-            .setMessage("این اثر ممکن است برای افراد زیر ۱۸ سال مناسب نباشد. ادامه می‌دهید؟")
-            .setPositiveButton("ادامه") { dialog, _ -> dialog.dismiss() }
-            .setNegativeButton("بازگشت") { _, _ -> finish() }
+            .setTitle(Tr.s(R.string.s_7d5e593))
+            .setMessage(Tr.s(R.string.s_b957a25))
+            .setPositiveButton(Tr.s(R.string.s_20e034c)) { dialog, _ -> dialog.dismiss() }
+            .setNegativeButton(Tr.s(R.string.s_a7976da)) { _, _ -> finish() }
             .setCancelable(false)
             .show()
     }
@@ -207,7 +209,7 @@ class DetailActivity : AppCompatActivity() {
         }
 
         if (item.isSeries) {
-            sectionTitle = "در حال دریافت قسمت‌ها..."
+            sectionTitle = Tr.s(R.string.s_0c1fd9c)
             adapter.notifyItemChanged(0)
             lifecycleScope.launch {
                 val seasons = try {
@@ -236,9 +238,9 @@ class DetailActivity : AppCompatActivity() {
         val choices = playableSources(item.sources)
         if (choices.isEmpty()) {
             sectionTitle = if (item.nextId > 0 && com.hnn.bisnor.data.repository.SourcePreferences.usesNext()) {
-                "در حال دریافت لینک‌ها..."
+                Tr.s(R.string.s_68e40ac)
             } else {
-                "لینک پخشی برای این اثر موجود نیست"
+                Tr.s(R.string.s_bf4912c)
             }
             if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
             return
@@ -250,14 +252,11 @@ class DetailActivity : AppCompatActivity() {
         rows.add(
             DetailRow(
                 source = best,
-                title = "پخش فیلم",
+                title = Tr.s(R.string.s_e342dd0),
                 subtitle = buildString {
                     append(qualityLabel(best))
                     append(" • ").append(providerLabel(best))
-                    if (choices.size > 1) append(" • ").append(choices.size).append(" نسخه")
-                    if (progress != null && progress.positionMs > 1000) {
-                        append(" • دیده‌شده تا ${formatMinutes(progress.positionMs)}")
-                    }
+                    if (choices.size > 1) append(" • ").append(choices.size).append(Tr.s(R.string.s_0744a9b))
                 },
                 thumbnail = null,
                 progress = progress,
@@ -265,21 +264,21 @@ class DetailActivity : AppCompatActivity() {
                 sources = choices
             )
         )
-        sectionTitle = "پخش و دانلود"
+        sectionTitle = Tr.s(R.string.s_8135467)
         if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
     }
 
     private fun qualityLabel(source: RealSource): String {
         val raw = source.quality
         val match = Regex("(2160|1440|1080|720|540|480|360|240)").find(raw)
-        return match?.let { "${it.value}p" } ?: raw.ifBlank { "کیفیت اصلی" }
+        return match?.let { "${it.value}p" } ?: raw.ifBlank { Tr.s(R.string.s_59098e4) }
     }
 
     private fun qualityRank(source: RealSource): Int =
         Regex("(2160|1440|1080|720|540|480|360|240)").find(source.quality)?.value?.toIntOrNull() ?: 0
 
     private fun providerLabel(source: RealSource): String =
-        if (source.origin == "next") "نکست‌مووی" else "ایران‌فلیکس"
+        if (source.origin == "next") Tr.s(R.string.st_server1) else Tr.s(R.string.st_server2)
 
     private fun playableSources(sources: List<RealSource>): List<RealSource> =
         sources.filter { it.url.isNotBlank() && !it.quality.contains("تیزر") && !it.url.contains("tizer") }
@@ -289,7 +288,7 @@ class DetailActivity : AppCompatActivity() {
         rows.clear()
         if (allSeasons.isNotEmpty()) {
             val season = allSeasons.getOrNull(selectedSeasonIndex) ?: allSeasons.first()
-            sectionTitle = "قسمت‌های ${season.title}"
+            sectionTitle = Tr.s(R.string.s_89b155a, season.title)
             season.episodes.forEachIndexed { index, episode ->
                 // One row per episode: every quality of every source stays inside
                 // the player's quality picker instead of duplicating the episode.
@@ -300,15 +299,12 @@ class DetailActivity : AppCompatActivity() {
                 rows.add(
                     DetailRow(
                         source = best,
-                        title = episode.title.ifBlank { "قسمت ${index + 1}" },
+                        title = episode.title.ifBlank { Tr.s(R.string.s_a7d400f, index + 1) },
                         subtitle = buildString {
-                            append("قسمت ${index + 1}")
-                            if (!episode.duration.isNullOrBlank()) append(" • ${episode.duration}")
-                            append(" • ${qualityLabel(best)}")
+                            append(qualityLabel(best))
                             append(" • ${providerLabel(best)}")
-                            if (choices.size > 1) append(" • ${choices.size} نسخه")
                         },
-                        thumbnail = episode.image.takeIf { it.isNotBlank() },
+                        thumbnail = null,
                         progress = progress,
                         episodeIndex = index,
                         sources = choices
@@ -316,7 +312,7 @@ class DetailActivity : AppCompatActivity() {
                 )
             }
         } else {
-            sectionTitle = "قسمتی برای این سریال یافت نشد"
+            sectionTitle = Tr.s(R.string.s_46e154a)
         }
         if (!isFinishing && !isDestroyed) adapter.notifyDataSetChanged()
     }
@@ -326,7 +322,7 @@ class DetailActivity : AppCompatActivity() {
     private fun play(row: DetailRow, resumePosition: Long = 0L) {
         val item = mediaItem ?: return
         if (row.source.url.isBlank()) {
-            Toast.makeText(this, "آدرس ویدیو معتبر نیست", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_de4f96f), Toast.LENGTH_SHORT).show()
             return
         }
         val banner = item.cover.ifEmpty { item.image }
@@ -364,7 +360,7 @@ class DetailActivity : AppCompatActivity() {
     private fun playPrimary() {
         val item = mediaItem ?: return
         if (rows.isEmpty()) {
-            Toast.makeText(this, "هنوز لینک پخشی بارگذاری نشده است", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, Tr.s(R.string.s_902e48a), Toast.LENGTH_SHORT).show()
             return
         }
         val resumeRow = rows.firstOrNull { it.progress != null && !it.progress.isFinished }
@@ -385,17 +381,17 @@ class DetailActivity : AppCompatActivity() {
 
     private fun showAddToPlaylistDialog(media: RealMedia) {
         val playlists = playlistsManager.playlistsFlow.value
-        val items = arrayOf("نشان‌شده‌ها (واچ‌لیست اصلی)") + playlists.map { it.name }
+        val items = arrayOf(Tr.s(R.string.s_bead5da)) + playlists.map { it.name }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("افزودن «${media.title}» به:")
+            .setTitle(Tr.s(R.string.s_947e2cd, media.title))
             .setItems(items) { _, which ->
                 if (which == 0) {
                     val added = favoritesManager.toggleFavorite(media)
                     adapter.notifyItemChanged(0)
                     Toast.makeText(
                         this,
-                        if (added) "به واچ‌لیست اضافه شد" else "از واچ‌لیست حذف شد",
+                        if (added) Tr.s(R.string.s_d4c8338) else Tr.s(R.string.s_41fb5da),
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
@@ -403,7 +399,7 @@ class DetailActivity : AppCompatActivity() {
                     val added = playlistsManager.addToPlaylist(target.id, media)
                     Toast.makeText(
                         this,
-                        if (added) "به «${target.name}» اضافه شد" else "قبلاً در این لیست بود",
+                        if (added) Tr.s(R.string.s_7d1afff, target.name) else Tr.s(R.string.s_6b8d25b),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -412,13 +408,14 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun shareMedia(media: RealMedia) {
-        val text = "«${media.title}» را در بیسنور ببینید.\nhttps://bisnor.app"
+        val link = "${com.hnn.bisnor.data.repository.SharedPlaylistImporter.WORKER}/t/${android.net.Uri.encode(media.title)}"
+        val text = Tr.s(R.string.s_12c5f8f, media.title, link)
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, media.title)
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, "اشتراک‌گذاری"))
+        startActivity(Intent.createChooser(intent, Tr.s(R.string.s_06b5d81)))
     }
 
     // ---------------------------------------------------------------- adapter
@@ -493,16 +490,16 @@ class DetailActivity : AppCompatActivity() {
                 b.tvHeaderRating.text = if (rating > 0.0) {
                     String.format(Locale.US, "%.1f IMDb", rating)
                 } else {
-                    "بدون امتیاز"
+                    Tr.s(R.string.s_cd99a49)
                 }
                 b.tvHeaderRating.visibility = if (rating > 0.0) View.VISIBLE else View.GONE
-                b.tvHeaderYear.text = if (item.year > 0) item.year.toString() else "نامشخص"
+                b.tvHeaderYear.text = if (item.year > 0) item.year.toString() else Tr.s(R.string.s_264f61d)
                 b.tvHeaderType.text = when {
-                    item.isSeries -> "سریال"
+                    item.isSeries -> Tr.s(R.string.s_dee6fc4)
                     !item.duration.isNullOrBlank() -> item.duration
-                    else -> "فیلم"
+                    else -> Tr.s(R.string.s_b063120)
                 }
-                b.tvHeaderGenres.text = item.genres.joinToString("، ") { it.title }
+                b.tvHeaderGenres.text = item.genres.joinToString(Tr.s(R.string.s_8a78cc5)) { it.title }
 
                 if (!meta.ageRating.isNullOrBlank()) {
                     b.tvHeaderAgeRating.text = meta.ageRating
@@ -511,10 +508,10 @@ class DetailActivity : AppCompatActivity() {
                     b.tvHeaderAgeRating.visibility = View.GONE
                 }
 
-                val synopsis = meta.cleanStoryline.ifBlank { "توضیحاتی ثبت نشده است." }
+                val synopsis = meta.cleanStoryline.ifBlank { Tr.s(R.string.s_51c6199) }
                 b.tvHeaderStoryline.text = synopsis
                 b.btnExpandStory.visibility = if (synopsis.length > 150) View.VISIBLE else View.GONE
-                b.btnExpandStory.text = if (synopsisExpanded) "کمتر" else "بیشتر"
+                b.btnExpandStory.text = if (synopsisExpanded) Tr.s(R.string.s_10762b8) else Tr.s(R.string.s_972f0d5)
                 b.tvHeaderStoryline.maxLines = if (synopsisExpanded) Int.MAX_VALUE else 4
                 b.btnExpandStory.setOnClickListener {
                     synopsisExpanded = !synopsisExpanded
@@ -546,7 +543,7 @@ class DetailActivity : AppCompatActivity() {
                 }
 
                 b.btnHeaderPlay.text = if (rows.any { it.progress != null && !it.progress.isFinished }) {
-                    "ادامه تماشا"
+                    Tr.s(R.string.s_b934114)
                 } else {
                     getString(R.string.btn_watch_now)
                 }
@@ -567,7 +564,7 @@ class DetailActivity : AppCompatActivity() {
                     val text = TextView(this@DetailActivity).apply {
                         this.text = badge
                         setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                        typeface = ResourcesCompat.getFont(this@DetailActivity, R.font.vazirmatn_medium)
+                        typeface = com.hnn.bisnor.util.Tr.font(this@DetailActivity, 1)
                         setTextColor(
                             ContextCompat.getColor(
                                 this@DetailActivity,
@@ -596,12 +593,13 @@ class DetailActivity : AppCompatActivity() {
                 b.layoutHeaderPeople.visibility = View.VISIBLE
                 val rowAdapter = peopleAdapter ?: PersonRowAdapter(people) { person ->
                     openPerson(person)
-                }.also {
-                    peopleAdapter = it
+                }.also { peopleAdapter = it }
+                // The header view is recreated when the list re-binds, so attach the adapter every time.
+                if (b.recyclerHeaderPeople.adapter !== rowAdapter) {
                     b.recyclerHeaderPeople.layoutManager = LinearLayoutManager(
                         this@DetailActivity, RecyclerView.HORIZONTAL, false
                     )
-                    b.recyclerHeaderPeople.adapter = it
+                    b.recyclerHeaderPeople.adapter = rowAdapter
                 }
                 rowAdapter.updateData(people)
             }
@@ -648,14 +646,14 @@ class DetailActivity : AppCompatActivity() {
                 if (progress != null && progress.positionMs > 1000) {
                     if (progress.isFinished) {
                         b.tvLinkResumeBadge.visibility = View.VISIBLE
-                        b.tvLinkResumeBadge.text = "تماشا شده"
+                        b.tvLinkResumeBadge.text = Tr.s(R.string.s_52b7246)
                         b.tvLinkResumeBadge.setTextColor(getColor(R.color.bisnor_success))
                         b.imgLinkWatched.visibility = View.VISIBLE
                         b.progressLink.visibility = View.GONE
                     } else {
                         b.tvLinkResumeBadge.visibility = View.VISIBLE
                         b.tvLinkResumeBadge.text =
-                            "ادامه از ${formatMinutes(progress.positionMs)} • ${progress.progressPercent}%"
+                            Tr.s(R.string.resume_short, formatMinutes(progress.positionMs))
                         b.tvLinkResumeBadge.setTextColor(getColor(R.color.primary))
                         b.imgLinkWatched.visibility = View.GONE
                         b.progressLink.visibility = View.VISIBLE
@@ -671,23 +669,29 @@ class DetailActivity : AppCompatActivity() {
                 b.root.setOnClickListener { play(row) }
                 // Long-press copies the direct link so it can be pasted into ADM / any download manager.
                 val copyLink = View.OnLongClickListener {
-                    val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    cm.setPrimaryClip(android.content.ClipData.newPlainText("link", row.source.url))
-                    android.widget.Toast.makeText(this@DetailActivity, "لینک مستقیم کپی شد", android.widget.Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        val direct = runCatching { com.hnn.bisnor.data.repository.NextMovieRepository.playableUrl(row.source.url) }.getOrDefault(row.source.url)
+                        val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("link", direct))
+                        android.widget.Toast.makeText(this@DetailActivity, Tr.s(R.string.s_0e2a1c3), android.widget.Toast.LENGTH_SHORT).show()
+                    }
                     true
                 }
                 b.root.setOnLongClickListener(copyLink)
                 b.btnLinkDownload.setOnLongClickListener(copyLink)
                 b.btnLinkDownload.setOnClickListener {
                     val title = "${mediaItem?.title ?: "Bisnor"} - ${row.title}"
-                    DownloadHelper.chooseAndDownload(this@DetailActivity, title, row.source.url) {
-                        pendingDownload = title to row.source.url
-                        try {
-                            pickDownloadFolder.launch(DownloadHelper.lastFolder(this@DetailActivity)?.let { android.net.Uri.parse(it) })
-                        } catch (_: android.content.ActivityNotFoundException) {
-                            // Some TVs ship without the system folder picker.
-                            pendingDownload = null
-                            DownloadHelper.downloadVideo(this@DetailActivity, title, row.source.url)
+                    lifecycleScope.launch {
+                        val direct = runCatching { com.hnn.bisnor.data.repository.NextMovieRepository.playableUrl(row.source.url) }.getOrDefault(row.source.url)
+                        DownloadHelper.chooseAndDownload(this@DetailActivity, title, direct) {
+                            pendingDownload = title to direct
+                            try {
+                                pickDownloadFolder.launch(DownloadHelper.lastFolder(this@DetailActivity)?.let { android.net.Uri.parse(it) })
+                            } catch (_: android.content.ActivityNotFoundException) {
+                                // Some TVs ship without the system folder picker.
+                                pendingDownload = null
+                                DownloadHelper.downloadVideo(this@DetailActivity, title, direct)
+                            }
                         }
                     }
                 }
@@ -780,12 +784,12 @@ class DetailActivity : AppCompatActivity() {
 
         val age = meta.ageRating
             ?: item.classification?.trim()?.takeIf { it.isNotBlank() && !it.equals("N/A", true) }
-        if (!age.isNullOrBlank()) badges.add("رده سنی $age")
+        if (!age.isNullOrBlank()) badges.add(Tr.s(R.string.s_f1c0a21, age))
 
         meta.language?.takeIf { it.isNotBlank() }?.let { badges.add(it) }
 
         if (meta.hasPersianSubtitle && badges.none { it.contains("زیرنویس") }) {
-            badges.add("زیرنویس فارسی")
+            badges.add(Tr.s(R.string.s_a2b9152))
         }
 
         val country = meta.country ?: item.country.firstOrNull()?.title
@@ -796,14 +800,14 @@ class DetailActivity : AppCompatActivity() {
         meta.quality?.takeIf { it.isNotBlank() }?.let { raw ->
             val resolutions = Regex("""\d{3,4}""").findAll(raw).map { it.value }.distinct().toList()
             if (resolutions.isNotEmpty()) {
-                badges.add("کیفیت " + resolutions.joinToString(" / ") { "${it}p" })
+                badges.add(Tr.s(R.string.s_d73d76c) + resolutions.joinToString(" / ") { "${it}p" })
             } else {
-                badges.add("کیفیت ${raw.take(20)}")
+                badges.add(Tr.s(R.string.s_a5645b9, raw.take(20)))
             }
         }
 
-        meta.format?.takeIf { it.isNotBlank() }?.let { badges.add("فرمت ${it.uppercase()}") }
-        meta.declaredSize?.takeIf { it.isNotBlank() }?.let { badges.add("حجم ${it.take(36)}") }
+        meta.format?.takeIf { it.isNotBlank() }?.let { badges.add(Tr.s(R.string.s_e80fe3c, it.uppercase())) }
+        meta.declaredSize?.takeIf { it.isNotBlank() }?.let { badges.add(Tr.s(R.string.s_383108f, it.take(36))) }
 
         return badges.distinct().take(7)
     }

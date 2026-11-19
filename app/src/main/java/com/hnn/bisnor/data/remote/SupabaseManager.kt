@@ -1,5 +1,7 @@
 package com.hnn.bisnor.data.remote
 
+import com.hnn.bisnor.util.Tr
+
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
@@ -28,17 +30,17 @@ class AuthManager(private val context: Context) {
 
     companion object {
         val FUNNY_AVATARS = listOf(
-            FunnyAvatar("avatar_breakingbad", "والتر وایت (بریکینگ بد)", R.drawable.avatar_breakingbad),
-            FunnyAvatar("avatar_luffy", "لوفی (وان پیس)", R.drawable.avatar_luffy),
-            FunnyAvatar("avatar_wednesday", "ونزدی آدامز", R.drawable.avatar_wednesday),
-            FunnyAvatar("avatar_nami", "نامی (وان پیس)", R.drawable.avatar_nami),
-            FunnyAvatar("avatar_garfield", "گارفیلد", R.drawable.avatar_garfield),
-            FunnyAvatar("avatar_bluey", "بلویی", R.drawable.avatar_bluey),
-            FunnyAvatar("avatar_bingo", "بینگو", R.drawable.avatar_bingo),
-            FunnyAvatar("avatar_carmen", "کارمن سندیگو", R.drawable.avatar_carmen),
-            FunnyAvatar("avatar_film", "کلاکت سینما", R.drawable.avatar_film),
-            FunnyAvatar("avatar_theater", "ماسک نمایش", R.drawable.avatar_theater),
-            FunnyAvatar("avatar_star", "ستاره طلایی", R.drawable.avatar_star)
+            FunnyAvatar("avatar_breakingbad", Tr.s(R.string.s_73a8530), R.drawable.avatar_breakingbad),
+            FunnyAvatar("avatar_luffy", Tr.s(R.string.s_6cccc91), R.drawable.avatar_luffy),
+            FunnyAvatar("avatar_wednesday", Tr.s(R.string.s_0bf7564), R.drawable.avatar_wednesday),
+            FunnyAvatar("avatar_nami", Tr.s(R.string.s_53ffda0), R.drawable.avatar_nami),
+            FunnyAvatar("avatar_garfield", Tr.s(R.string.s_823f1a0), R.drawable.avatar_garfield),
+            FunnyAvatar("avatar_bluey", Tr.s(R.string.s_7aa4715), R.drawable.avatar_bluey),
+            FunnyAvatar("avatar_bingo", Tr.s(R.string.s_ba75c7a), R.drawable.avatar_bingo),
+            FunnyAvatar("avatar_carmen", Tr.s(R.string.s_6e02496), R.drawable.avatar_carmen),
+            FunnyAvatar("avatar_film", Tr.s(R.string.s_40b3a80), R.drawable.avatar_film),
+            FunnyAvatar("avatar_theater", Tr.s(R.string.s_00207f9), R.drawable.avatar_theater),
+            FunnyAvatar("avatar_star", Tr.s(R.string.s_907623d), R.drawable.avatar_star)
         )
 
         fun getAvatarDrawable(id: String): Int {
@@ -81,10 +83,10 @@ class AuthManager(private val context: Context) {
         val cleanPass = password.trim()
 
         if (!cleanUser.matches(Regex("^[a-z0-9_.-]{3,32}$"))) {
-            return@withContext Pair(false, "نام کاربری باید بین ۳ تا ۳۲ حرف انگلیسی، عدد یا زیرخط باشد.")
+            return@withContext Pair(false, Tr.s(R.string.s_037bfd7))
         }
         if (cleanPass.length < 6) {
-            return@withContext Pair(false, "رمز عبور باید حداقل ۶ کاراکتر باشد.")
+            return@withContext Pair(false, Tr.s(R.string.s_6c62242))
         }
 
         val (ok, message) = SupabaseManager.signUp(context, cleanUser, cleanPass, userAvatarId)
@@ -94,7 +96,7 @@ class AuthManager(private val context: Context) {
                 SupabaseManager.fetchProfile(context)?.let { mergeCloudIntoLocal(context, it) }
             }
             syncUp(context)
-            Pair(true, "ثبت‌نام با موفقیت انجام شد! حساب شما فعال گردید.")
+            Pair(true, Tr.s(R.string.s_e512675))
         } else {
             Pair(false, message)
         }
@@ -105,7 +107,7 @@ class AuthManager(private val context: Context) {
         val cleanPass = password.trim()
 
         if (cleanUser.isEmpty() || cleanPass.isEmpty()) {
-            return@withContext Pair(false, "نام کاربری و رمز عبور را وارد کنید.")
+            return@withContext Pair(false, Tr.s(R.string.s_22a2d66))
         }
 
         val (ok, message) = SupabaseManager.signIn(context, cleanUser, cleanPass)
@@ -128,7 +130,7 @@ class AuthManager(private val context: Context) {
         // client never managed to upload its favorites.
         syncUp(context)
 
-        Pair(true, "ورود با موفقیت انجام شد! حساب شما همگام‌سازی گردید.")
+        Pair(true, Tr.s(R.string.s_6911e7f))
     }
 
     private fun mergeCloudIntoLocal(c: Context, record: JSONObject) {
@@ -156,7 +158,7 @@ class AuthManager(private val context: Context) {
                 val array = JSONArray(raw)
                 for (i in 0 until array.length()) {
                     val obj = array.optJSONObject(i) ?: continue
-                    val key = obj.optString("id").ifBlank { "index_$i" }
+                    val key = obj.optString("id").ifBlank { "index_${i}" }
                     merged[key] = obj
                 }
             }
@@ -326,9 +328,9 @@ object SupabaseManager {
         val bearerToken = if (authToken.isNotBlank()) authToken else anonKey
 
         val requestBuilder = Request.Builder()
-            .url("$url$path")
+            .url("${url}${path}")
             .addHeader("apikey", anonKey)
-            .addHeader("Authorization", "Bearer $bearerToken")
+            .addHeader("Authorization", "Bearer ${bearerToken}")
 
         val body = payload?.toString()?.toRequestBody(jsonMediaType)
         when (method) {
@@ -363,7 +365,7 @@ object SupabaseManager {
                 val (code, responseStr) = executeRequest(c, "/auth/v1/signup", "POST", body, useAuthToken = false)
                 if (code in 200..299) {
                     if (!saveSession(c, responseStr)) {
-                        return@withContext Pair(false, "ثبت‌نام انجام شد اما حساب فعال نشد. تنظیمات تأیید ایمیل سرور باید غیرفعال باشد.")
+                        return@withContext Pair(false, Tr.s(R.string.s_a38159a))
                     }
 
                     // Ensure profile record exists in profiles table
@@ -376,22 +378,22 @@ object SupabaseManager {
                         }
                         executeRequest(c, "/rest/v1/profiles", "POST", profileBody, useAuthToken = true)
                     }
-                    Pair(true, "ثبت‌نام با موفقیت انجام شد.")
+                    Pair(true, Tr.s(R.string.s_d06602d))
                 } else {
                     val lower = responseStr.lowercase()
                     val errorMsg = when {
                         lower.contains("already registered") || lower.contains("user_already_exists") ->
-                            "این نام کاربری قبلاً ثبت شده است."
+                            Tr.s(R.string.s_02aeece)
                         lower.contains("weak_password") || lower.contains("least") ->
-                            "رمز عبور ضعیف است. حداقل ۶ کاراکتر وارد کنید."
+                            Tr.s(R.string.s_d4ee14d)
                         lower.contains("email_address_invalid") ->
-                            "خطا در پیکربندی حساب کاربری. لطفاً برنامه را به آخرین نسخه به‌روزرسانی کنید."
-                        else -> "خطا در ثبت‌نام (${code}). اتصال اینترنت خود را بررسی کنید."
+                            Tr.s(R.string.s_d80237b)
+                        else -> Tr.s(R.string.s_c6c467e, code)
                     }
                     Pair(false, errorMsg)
                 }
             } catch (e: Exception) {
-                Pair(false, "خطا در اتصال به سرور بیسنور: ${e.message}")
+                Pair(false, Tr.s(R.string.s_80a4a55, e.message))
             }
         }
 
@@ -408,15 +410,15 @@ object SupabaseManager {
                 if (code in 200..299) {
                     val saved = saveSession(c, responseStr)
                     if (saved) {
-                        Pair(true, "ورود با موفقیت انجام شد.")
+                        Pair(true, Tr.s(R.string.s_da89da9))
                     } else {
-                        Pair(false, "خطا در دریافت توکن احراز هویت.")
+                        Pair(false, Tr.s(R.string.s_fa6920c))
                     }
                 } else {
-                    Pair(false, "نام کاربری یا رمز عبور نادرست است.")
+                    Pair(false, Tr.s(R.string.s_e2db820))
                 }
             } catch (e: Exception) {
-                Pair(false, "خطا در ارتباط با سرور: ${e.message}")
+                Pair(false, Tr.s(R.string.s_5ba3f87, e.message))
             }
         }
 
@@ -441,7 +443,7 @@ object SupabaseManager {
         val userId = getUserId(c)
         if (userId.isEmpty() || !hasSession(c)) return@withContext null
         try {
-            val (code, responseStr) = executeRequest(c, "/rest/v1/profiles?user_id=eq.$userId&select=*", "GET", useAuthToken = true)
+            val (code, responseStr) = executeRequest(c, "/rest/v1/profiles?user_id=eq.${userId}&select=*", "GET", useAuthToken = true)
             if (code in 200..299) {
                 val arr = JSONArray(responseStr)
                 if (arr.length() > 0) arr.getJSONObject(0) else null
@@ -455,7 +457,7 @@ object SupabaseManager {
         val userId = getUserId(c)
         if (userId.isEmpty() || !hasSession(c)) return@withContext false
         try {
-            val (code, _) = executeRequest(c, "/rest/v1/profiles?user_id=eq.$userId", "PATCH", payload, useAuthToken = true)
+            val (code, _) = executeRequest(c, "/rest/v1/profiles?user_id=eq.${userId}", "PATCH", payload, useAuthToken = true)
             code in 200..299
         } catch (e: Exception) {
             false

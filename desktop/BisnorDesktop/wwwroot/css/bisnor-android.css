@@ -11,7 +11,7 @@
     --bn-surface: #1C1815;
     --bn-elevated: #27201A;
     --bn-high: #332A23;
-    --bn-accent: #FF891F;
+    --bn-accent: #3DA5FF;
     --bn-accent-soft: #33200C;
     --bn-on-accent: #2A1500;
     --bn-text: #F8F5F1;
@@ -25,7 +25,7 @@
     /* Remap the legacy variables used by app.css. */
     --primary: var(--bn-accent);
     --on-primary: var(--bn-on-accent);
-    --secondary: #FFB067;
+    --secondary: #8CC4FF;
     --on-secondary: #2A1500;
     --background: var(--bn-bg);
     --on-background: var(--bn-text);
@@ -36,7 +36,7 @@
     --on-surface-variant: var(--bn-text-dim);
     --glass-bg: var(--bn-surface);
     --glass-border: var(--bn-border);
-    --glass-glow: rgba(255, 137, 31, 0.25);
+    --glass-glow: rgba(61, 165, 255, 0.25);
     --liquid-highlight: transparent;
     --liquid-shadow: rgba(0, 0, 0, 0.35);
     --rating-gold: #FFC24B;
@@ -50,7 +50,7 @@ body.theme-light {
     --bn-surface: #FFFFFF;
     --bn-elevated: #F1E9E1;
     --bn-high: #EADFD4;
-    --bn-accent: #C25E00;
+    --bn-accent: #0A66E0;
     --bn-accent-soft: #FFF0E0;
     --bn-on-accent: #FFFFFF;
     --bn-text: #1C1815;
@@ -708,7 +708,7 @@ body:not(.tab-home) .header-greeting {
 .heat-cell.level-1 { background: #5A3A17; }
 .heat-cell.level-2 { background: #8A5211; }
 .heat-cell.level-3 { background: #C06A0D; }
-.heat-cell.level-4 { background: #FF891F; }
+.heat-cell.level-4 { background: #3DA5FF; }
 .heat-cell.empty { background: transparent; }
 
 body.theme-light .heat-cell.level-0 { background: #EDE4DA; }

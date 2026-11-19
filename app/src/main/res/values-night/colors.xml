@@ -6,16 +6,16 @@
          ============================================================ -->
 
     <!-- Brand / accent -->
-    <color name="primary">#FF891F</color>
-    <color name="on_primary">#2A1500</color>
-    <color name="primary_container">#3A2410</color>
-    <color name="on_primary_container">#FFDDB8</color>
+    <color name="primary">#3DA5FF</color>
+    <color name="on_primary">#00203F</color>
+    <color name="primary_container">#0E2B52</color>
+    <color name="on_primary_container">#CCE4FF</color>
 
     <!-- Secondary -->
-    <color name="secondary">#FFB067</color>
+    <color name="secondary">#8CC4FF</color>
     <color name="on_secondary">#2A1500</color>
     <color name="secondary_container">#2C2C2E</color>
-    <color name="on_secondary_container">#FFDDB8</color>
+    <color name="on_secondary_container">#CCE4FF</color>
 
     <!-- Tertiary -->
     <color name="tertiary">#FFB4A2</color>
@@ -70,10 +70,10 @@
 
     <!-- Activity heatmap scale (0 = no activity) -->
     <color name="heat_0">#2C2C2E</color>
-    <color name="heat_1">#5C3A12</color>
-    <color name="heat_2">#8F5512</color>
-    <color name="heat_3">#C8700F</color>
-    <color name="heat_4">#FF891F</color>
+    <color name="heat_1">#123A6B</color>
+    <color name="heat_2">#1C5BA8</color>
+    <color name="heat_3">#2F86F0</color>
+    <color name="heat_4">#3DA5FF</color>
     <!-- Liquid glass (dark): smoked glass over a saturated blur -->
     <color name="lg_tint">#73141416</color>
     <color name="lg_sheen">#26FFFFFF</color>

@@ -1,5 +1,8 @@
 package com.hnn.bisnor
 
+import com.hnn.bisnor.R
+import com.hnn.bisnor.util.Tr
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
@@ -149,8 +152,14 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
+        if (com.hnn.bisnor.util.AppPrefs.onboardedVersion(this) != BuildConfig.VERSION_NAME) {
+            startActivity(Intent(this, com.hnn.bisnor.ui.onboarding.OnboardingActivity::class.java).putExtra("next_data", intent.dataString))
+            finish()
+            return
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        com.hnn.bisnor.ui.startup.StartupOverlay.show(this, binding.root as android.view.ViewGroup, listOf(binding.navGlass))
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -339,12 +348,16 @@ class MainActivity : AppCompatActivity() {
                 val path = uri.path ?: ""
                 val isPlaylistLink = path.contains("playlist") || host.contains("playlist") ||
                     path.trimEnd('/') == "/import" || path.startsWith("/s/")
-                if (isPlaylistLink) {
+                if (host.contains("workers.dev") && path.startsWith("/t/")) {
+                    // Shared title: open it in Explore by name.
+                    val title = android.net.Uri.decode(path.removePrefix("/t/")).trim()
+                    if (title.isNotEmpty()) selectExploreTab(title, "all")
+                } else if (isPlaylistLink) {
                     lifecycleScope.launch {
                         val payload = com.hnn.bisnor.data.repository.SharedPlaylistImporter.resolve(uri.toString())
                         if (payload == null) {
                             android.widget.Toast.makeText(
-                                this@MainActivity, "لیست اشتراکی پیدا نشد", android.widget.Toast.LENGTH_SHORT
+                                this@MainActivity, Tr.s(R.string.s_1d06817), android.widget.Toast.LENGTH_SHORT
                             ).show()
                         } else if (!isFinishing && !isDestroyed) {
                             com.hnn.bisnor.util.ImportListDialog.show(this@MainActivity, payload) { selectFavoritesTab() }

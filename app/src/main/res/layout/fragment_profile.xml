@@ -418,6 +418,37 @@
             <View style="@style/Widget.Bisnor.Divider" />
 
             <LinearLayout
+                android:id="@+id/btn_profile_servers"
+                style="@style/Widget.Bisnor.SettingRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_storage"
+                    app:tint="@color/primary" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:fontFamily="?attr/appFontMedium"
+                    android:text="@string/srv_row"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13.5sp" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_left"
+                    app:tint="@color/on_surface_variant" />
+            </LinearLayout>
+
+            <View style="@style/Widget.Bisnor.Divider" />
+
+            <LinearLayout
                 android:id="@+id/btn_profile_downloads"
                 style="@style/Widget.Bisnor.SettingRow"
                 android:layout_width="match_parent"
@@ -506,73 +537,6 @@
                     android:textColor="@color/tertiary"
                     android:textSize="13.5sp" />
             </LinearLayout>
-        </LinearLayout>
-
-        <!-- Server: automatic or manual -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_card_surface"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <TextView
-                style="@style/TextAppearance.Bisnor.Label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/srv_title"
-                android:textColor="@color/primary" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="@style/TextAppearance.Bisnor.Title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/srv_auto" />
-
-                    <TextView
-                        style="@style/TextAppearance.Bisnor.Caption"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/srv_auto_desc"
-                        android:textColor="@color/on_surface_variant" />
-                </LinearLayout>
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_server_auto"
-                    style="@style/Widget.Bisnor.Switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/server_options"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="vertical" />
-
-            <TextView
-                android:id="@+id/tv_server_hint"
-                style="@style/TextAppearance.Bisnor.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/srv_manual_hint"
-                android:textColor="@color/on_surface_variant" />
         </LinearLayout>
 
         <!-- Follow us (social.md) — bottom of the profile tab -->

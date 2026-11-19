@@ -88,6 +88,7 @@ class LibraryFragment : Fragment() {
 
         binding.recyclerLibrary.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerLibrary.adapter = libraryAdapter
+        com.hnn.bisnor.util.HeaderAutoHide.attach(binding.root as android.view.ViewGroup, binding.recyclerLibrary.parent as android.view.View, listOf(binding.recyclerLibrary, binding.recyclerPlaylistCards))
 
         binding.recyclerPlaylistCards.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerPlaylistCards.adapter = playlistAdapter

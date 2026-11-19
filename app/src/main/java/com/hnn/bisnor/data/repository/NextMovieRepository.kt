@@ -152,14 +152,21 @@ object NextMovieRepository {
      * right after the link resolves. The same files stream fine over port 80.
      */
     private suspend fun rewriteStreamUrls(root: JSONObject) {
+        // Only single movies are resolved eagerly. A long series has thousands of links and
+        // resolving each redirect chain up front took minutes; episodes are resolved
+        // lazily with [playableUrl] when they are played, downloaded or shared.
         root.optJSONArray("movie_links")?.let { rewriteLinks(it) }
-        val seasons = root.optJSONArray("seasons") ?: return
-        for (i in 0 until seasons.length()) {
-            val episodes = seasons.optJSONObject(i)?.optJSONArray("episodes") ?: continue
-            for (j in 0 until episodes.length()) {
-                episodes.optJSONObject(j)?.optJSONArray("links")?.let { rewriteLinks(it) }
-            }
-        }
+    }
+
+    private val resolvedUrls = java.util.concurrent.ConcurrentHashMap<String, String>()
+
+    /** Final, directly streamable address of [url] (cached; non-CDN addresses pass through). */
+    suspend fun playableUrl(url: String): String {
+        if (!url.startsWith("http")) return url
+        resolvedUrls[url]?.let { return it }
+        val resolved = resolveStreamUrl(url)
+        resolvedUrls[url] = resolved
+        return resolved
     }
 
     private suspend fun rewriteLinks(array: JSONArray) = coroutineScope {

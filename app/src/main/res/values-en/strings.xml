@@ -117,7 +117,8 @@
     <string name="s_41fb5da">Removed from watchlist</string>
     <string name="s_7d1afff">Added to “%1$s”</string>
     <string name="s_6b8d25b">Already in this list</string>
-    <string name="s_12c5f8f">Watch “%1$s” on Bisnor.\nhttps://bisnor.app</string>
+    <string name="s_12c5f8f">Watch “%1$s” on Bisnor.
+%2$s</string>
     <string name="s_06b5d81">Share</string>
     <string name="s_cd99a49">No rating</string>
     <string name="s_264f61d">Unknown</string>
@@ -642,4 +643,7 @@
     <string name="dl_section_active">In progress</string>
     <string name="dl_section_done">Downloaded</string>
     <string name="dl_empty_hint">Tap Download on any movie or episode and it shows up here.</string>
+    <string name="srv_row">Servers</string>
+    <string name="srv_row_desc">Automatic or manual streaming server</string>
+    <string name="resume_short">At %1$s</string>
 </resources>

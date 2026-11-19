@@ -257,9 +257,6 @@ class DetailActivity : AppCompatActivity() {
                     append(qualityLabel(best))
                     append(" • ").append(providerLabel(best))
                     if (choices.size > 1) append(" • ").append(choices.size).append(Tr.s(R.string.s_0744a9b))
-                    if (progress != null && progress.positionMs > 1000) {
-                        append(Tr.s(R.string.s_4f2ad2c, formatMinutes(progress.positionMs)))
-                    }
                 },
                 thumbnail = null,
                 progress = progress,
@@ -281,7 +278,7 @@ class DetailActivity : AppCompatActivity() {
         Regex("(2160|1440|1080|720|540|480|360|240)").find(source.quality)?.value?.toIntOrNull() ?: 0
 
     private fun providerLabel(source: RealSource): String =
-        if (source.origin == "next") Tr.s(R.string.s_1452e24) else Tr.s(R.string.s_9a8fa14)
+        if (source.origin == "next") Tr.s(R.string.st_server1) else Tr.s(R.string.st_server2)
 
     private fun playableSources(sources: List<RealSource>): List<RealSource> =
         sources.filter { it.url.isNotBlank() && !it.quality.contains("تیزر") && !it.url.contains("tizer") }
@@ -305,12 +302,9 @@ class DetailActivity : AppCompatActivity() {
                         title = episode.title.ifBlank { Tr.s(R.string.s_a7d400f, index + 1) },
                         subtitle = buildString {
                             append(Tr.s(R.string.s_a7d400f, index + 1))
-                            if (!episode.duration.isNullOrBlank()) append(" • ${episode.duration}")
                             append(" • ${qualityLabel(best)}")
-                            append(" • ${providerLabel(best)}")
-                            if (choices.size > 1) append(Tr.s(R.string.s_be79bf9, choices.size))
                         },
-                        thumbnail = episode.image.takeIf { it.isNotBlank() } ?: mediaItem?.let { m -> m.cover.ifBlank { m.image }.takeIf { it.isNotBlank() } },
+                        thumbnail = null,
                         progress = progress,
                         episodeIndex = index,
                         sources = choices
@@ -414,7 +408,8 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun shareMedia(media: RealMedia) {
-        val text = Tr.s(R.string.s_12c5f8f, media.title)
+        val link = "${com.hnn.bisnor.data.repository.SharedPlaylistImporter.WORKER}/t/${android.net.Uri.encode(media.title)}"
+        val text = Tr.s(R.string.s_12c5f8f, media.title, link)
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, media.title)
@@ -658,7 +653,7 @@ class DetailActivity : AppCompatActivity() {
                     } else {
                         b.tvLinkResumeBadge.visibility = View.VISIBLE
                         b.tvLinkResumeBadge.text =
-                            Tr.s(R.string.resume_from, formatMinutes(progress.positionMs), progress.progressPercent)
+                            Tr.s(R.string.resume_short, formatMinutes(progress.positionMs))
                         b.tvLinkResumeBadge.setTextColor(getColor(R.color.primary))
                         b.imgLinkWatched.visibility = View.GONE
                         b.progressLink.visibility = View.VISIBLE
@@ -674,23 +669,29 @@ class DetailActivity : AppCompatActivity() {
                 b.root.setOnClickListener { play(row) }
                 // Long-press copies the direct link so it can be pasted into ADM / any download manager.
                 val copyLink = View.OnLongClickListener {
-                    val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    cm.setPrimaryClip(android.content.ClipData.newPlainText("link", row.source.url))
-                    android.widget.Toast.makeText(this@DetailActivity, Tr.s(R.string.s_0e2a1c3), android.widget.Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        val direct = runCatching { com.hnn.bisnor.data.repository.NextMovieRepository.playableUrl(row.source.url) }.getOrDefault(row.source.url)
+                        val cm = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("link", direct))
+                        android.widget.Toast.makeText(this@DetailActivity, Tr.s(R.string.s_0e2a1c3), android.widget.Toast.LENGTH_SHORT).show()
+                    }
                     true
                 }
                 b.root.setOnLongClickListener(copyLink)
                 b.btnLinkDownload.setOnLongClickListener(copyLink)
                 b.btnLinkDownload.setOnClickListener {
                     val title = "${mediaItem?.title ?: "Bisnor"} - ${row.title}"
-                    DownloadHelper.chooseAndDownload(this@DetailActivity, title, row.source.url) {
-                        pendingDownload = title to row.source.url
-                        try {
-                            pickDownloadFolder.launch(DownloadHelper.lastFolder(this@DetailActivity)?.let { android.net.Uri.parse(it) })
-                        } catch (_: android.content.ActivityNotFoundException) {
-                            // Some TVs ship without the system folder picker.
-                            pendingDownload = null
-                            DownloadHelper.downloadVideo(this@DetailActivity, title, row.source.url)
+                    lifecycleScope.launch {
+                        val direct = runCatching { com.hnn.bisnor.data.repository.NextMovieRepository.playableUrl(row.source.url) }.getOrDefault(row.source.url)
+                        DownloadHelper.chooseAndDownload(this@DetailActivity, title, direct) {
+                            pendingDownload = title to direct
+                            try {
+                                pickDownloadFolder.launch(DownloadHelper.lastFolder(this@DetailActivity)?.let { android.net.Uri.parse(it) })
+                            } catch (_: android.content.ActivityNotFoundException) {
+                                // Some TVs ship without the system folder picker.
+                                pendingDownload = null
+                                DownloadHelper.downloadVideo(this@DetailActivity, title, direct)
+                            }
                         }
                     }
                 }

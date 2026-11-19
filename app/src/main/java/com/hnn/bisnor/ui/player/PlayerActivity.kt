@@ -416,15 +416,13 @@ class PlayerActivity : AppCompatActivity() {
             Toast.makeText(this, Tr.s(R.string.s_bbb1319), Toast.LENGTH_SHORT).show()
             return
         }
-        val labels = sourceList.map { "${qualityLabel(it)} • ${providerLabel(it)}" }.toTypedArray()
-        val checked = sourceList.indexOfFirst { it.url == (currentSource?.url ?: videoUrl) }
-        MaterialAlertDialogBuilder(this)
-            .setTitle(Tr.s(R.string.s_2716945))
-            .setSingleChoiceItems(labels, checked) { dialog, which ->
-                dialog.dismiss()
-                switchSource(sourceList[which])
-            }
-            .show()
+        val activeUrl = currentSource?.url ?: videoUrl
+        val ordered = sourceList.sortedWith(compareByDescending<RealSource> { qualityRank(it) }.thenBy { providerLabel(it) })
+        val actions = ordered.map { src ->
+            val mark = if (src.url == activeUrl) "✓  " else ""
+            com.hnn.bisnor.util.ActionSheet.Action(R.drawable.ic_play, "$mark${qualityLabel(src)} · ${providerLabel(src)}") { switchSource(src) }
+        }
+        com.hnn.bisnor.util.ActionSheet.show(this, title = Tr.s(R.string.s_2716945), subtitle = null, actions = actions)
     }
 
     private fun switchSource(source: RealSource) {
@@ -462,7 +460,7 @@ class PlayerActivity : AppCompatActivity() {
         Regex("(2160|1440|1080|720|540|480|360|240)").find(source.quality)?.value?.toIntOrNull() ?: 0
 
     private fun providerLabel(source: RealSource): String =
-        if (source.origin == "next") Tr.s(R.string.s_1452e24) else Tr.s(R.string.s_9a8fa14)
+        if (source.origin == "next") Tr.s(R.string.st_server1) else Tr.s(R.string.st_server2)
 
     private fun applySubtitleStyle() {
         val prefs = getSharedPreferences("bisnor_subtitles", MODE_PRIVATE)
@@ -750,6 +748,14 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun initializePlayer(url: String) {
+        if (url.isEmpty()) { startPlayback(url); return }
+        lifecycleScope.launch {
+            val ready = runCatching { com.hnn.bisnor.data.repository.NextMovieRepository.playableUrl(url) }.getOrDefault(url)
+            if (!isFinishing && !isDestroyed) startPlayback(ready)
+        }
+    }
+
+    private fun startPlayback(url: String) {
         if (url.isEmpty()) {
             Toast.makeText(this, Tr.s(R.string.s_91f34a3), Toast.LENGTH_SHORT).show()
             finish()

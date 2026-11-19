@@ -117,7 +117,8 @@
     <string name="s_41fb5da">از واچ‌لیست حذف شد</string>
     <string name="s_7d1afff">به «%1$s» اضافه شد</string>
     <string name="s_6b8d25b">قبلاً در این لیست بود</string>
-    <string name="s_12c5f8f">«%1$s» را در بیسنور ببینید.\nhttps://bisnor.app</string>
+    <string name="s_12c5f8f">«%1$s» را در بیسنور ببینید.
+%2$s</string>
     <string name="s_06b5d81">اشتراک‌گذاری</string>
     <string name="s_cd99a49">بدون امتیاز</string>
     <string name="s_264f61d">نامشخص</string>
@@ -642,4 +643,7 @@
     <string name="dl_section_active">در حال دریافت</string>
     <string name="dl_section_done">دانلود شده</string>
     <string name="dl_empty_hint">از صفحه هر فیلم یا قسمت، دکمه دانلود را بزن تا اینجا ببینی.</string>
+    <string name="srv_row">سرورها</string>
+    <string name="srv_row_desc">انتخاب خودکار یا دستی سرور پخش</string>
+    <string name="resume_short">تا %1$s</string>
 </resources>

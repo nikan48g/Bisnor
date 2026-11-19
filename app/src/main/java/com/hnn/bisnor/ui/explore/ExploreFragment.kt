@@ -40,6 +40,8 @@ class ExploreFragment : Fragment() {
     private lateinit var adapter: RealMediaAdapter
     private lateinit var historyManager: PlaybackHistoryManager
     private var searchJob: Job? = null
+    private var performJob: Job? = null
+    private var searchSeq = 0
     private var allLoaded = listOf<RealMedia>()
 
     // Filter state — every option maps to a real catalogue field.
@@ -71,6 +73,7 @@ class ExploreFragment : Fragment() {
             GridLayoutManager(requireContext(), resources.getInteger(R.integer.grid_columns_count))
         binding.recyclerSearchResults.adapter = adapter
         binding.recyclerSearchResults.itemAnimator = null
+        com.hnn.bisnor.util.HeaderAutoHide.attach(binding.root as android.view.ViewGroup, binding.recyclerSearchResults.parent as android.view.View, listOf(binding.recyclerSearchResults))
 
         binding.etSearch.addTextChangedListener { text ->
             val q = text?.toString()?.trim() ?: ""
@@ -150,9 +153,13 @@ class ExploreFragment : Fragment() {
         if (_binding == null) return
         binding.progressSearch.visibility = View.VISIBLE
         binding.layoutEmptyResults.visibility = View.GONE
-        lifecycleScope.launch {
+        // Only the latest search may publish: a slow default-catalog load must never
+        // overwrite the results of a query typed after it.
+        val seq = ++searchSeq
+        performJob?.cancel()
+        performJob = lifecycleScope.launch {
             val list = runCatching { RealMediaRepository.search(query) }.getOrDefault(emptyList())
-            if (_binding == null) return@launch
+            if (_binding == null || seq != searchSeq) return@launch
             binding.progressSearch.visibility = View.GONE
             allLoaded = list
             filterList()

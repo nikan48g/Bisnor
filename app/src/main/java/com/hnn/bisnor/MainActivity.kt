@@ -348,7 +348,11 @@ class MainActivity : AppCompatActivity() {
                 val path = uri.path ?: ""
                 val isPlaylistLink = path.contains("playlist") || host.contains("playlist") ||
                     path.trimEnd('/') == "/import" || path.startsWith("/s/")
-                if (isPlaylistLink) {
+                if (host.contains("workers.dev") && path.startsWith("/t/")) {
+                    // Shared title: open it in Explore by name.
+                    val title = android.net.Uri.decode(path.removePrefix("/t/")).trim()
+                    if (title.isNotEmpty()) selectExploreTab(title, "all")
+                } else if (isPlaylistLink) {
                     lifecycleScope.launch {
                         val payload = com.hnn.bisnor.data.repository.SharedPlaylistImporter.resolve(uri.toString())
                         if (payload == null) {

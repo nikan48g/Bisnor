@@ -734,30 +734,17 @@ class PlayerActivity : AppCompatActivity() {
             PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED
         ) || errorMsg.contains("Source", ignoreCase = true) || errorMsg.contains("Response code", ignoreCase = true)
 
-        val detailText = if (isNetworkOrSource) {
-            Tr.s(R.string.s_2081da3) +
-            Tr.s(R.string.s_888dc01) +
-            Tr.s(R.string.s_b874c29) +
-            Tr.s(R.string.s_9af3e6f) +
-            Tr.s(R.string.s_66a2171) +
-            Tr.s(R.string.s_8e5bc92)
-        } else {
-            Tr.s(R.string.s_611faf8, errorMsg)
-        }
+        val detailText = if (isNetworkOrSource) Tr.s(R.string.err_net_msg) else Tr.s(R.string.err_play_msg, errorMsg)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle(Tr.s(R.string.s_594736a))
+            .setTitle(Tr.s(R.string.err_title))
             .setMessage(detailText)
-            .setPositiveButton(Tr.s(R.string.s_cdbaf17)) { _, _ ->
+            .setPositiveButton(Tr.s(R.string.err_retry)) { _, _ -> initializePlayer(videoUrl) }
+            .setNeutralButton(Tr.s(R.string.err_other_player)) { _, _ ->
                 openWithExternalPlayer()
                 finish()
             }
-            .setNeutralButton(Tr.s(R.string.s_829db61)) { _, _ ->
-                initializePlayer(videoUrl)
-            }
-            .setNegativeButton(Tr.s(R.string.s_954124e)) { _, _ ->
-                copyVideoUrl()
-            }
+            .setNegativeButton(Tr.s(R.string.err_copy)) { _, _ -> copyVideoUrl() }
             .setCancelable(true)
             .show()
     }

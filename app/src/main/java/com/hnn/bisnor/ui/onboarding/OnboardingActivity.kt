@@ -10,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.button.MaterialButton
 import com.hnn.bisnor.BuildConfig
 import com.hnn.bisnor.MainActivity
@@ -27,8 +26,8 @@ class OnboardingActivity : AppCompatActivity() {
     private val dp get() = resources.displayMetrics.density
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
+        ThemeHelper.applyTheme(this)
         step = savedInstanceState?.getInt("step") ?: 0
         val scroll = ScrollView(this).apply {
             setBackgroundColor(getColor(R.color.background)); isFillViewport = true
@@ -104,14 +103,7 @@ class OnboardingActivity : AppCompatActivity() {
                     Triple("light", R.string.theme_light, R.string.theme_light_desc),
                     Triple("dark", R.string.theme_dark, R.string.theme_dark_desc)
                 )) content.addView(option(t, d, cur == mode) {
-                    if (cur != mode) {
-                        history.themeMode = mode
-                        AppCompatDelegate.setDefaultNightMode(when (mode) {
-                            "light" -> AppCompatDelegate.MODE_NIGHT_NO
-                            "dark" -> AppCompatDelegate.MODE_NIGHT_YES
-                            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                        })
-                    }
+                    if (cur != mode) { history.themeMode = mode; render() }
                 })
             }
         }
@@ -135,7 +127,12 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun finishOnboarding() {
         AppPrefs.setOnboardedVersion(this, BuildConfig.VERSION_NAME)
-        val next = intent.getParcelableExtra<Intent>("next") ?: Intent(this, MainActivity::class.java)
+        ThemeHelper.initAppTheme(this)
+        // A fresh, explicit intent: re-sending the original MAIN/LAUNCHER intent would just
+        // bring the (finished) old task to the front and close the app.
+        val next = Intent(this, MainActivity::class.java).apply {
+            intent.getStringExtra("next_data")?.let { data = android.net.Uri.parse(it); action = Intent.ACTION_VIEW }
+        }
         startActivity(next)
         finish()
     }

@@ -56,6 +56,7 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupServerCard()
         viewLifecycleOwner.lifecycleScope.launch { loadSocialLinks() }
         authManager = AuthManager(requireContext())
         historyManager = PlaybackHistoryManager(requireContext())
@@ -289,6 +290,37 @@ class ProfileFragment : Fragment() {
             }
             .setNegativeButton(Tr.s(R.string.s_fa88277), null)
             .show()
+    }
+
+    private fun setupServerCard() {
+        val sp = com.hnn.bisnor.data.repository.SourcePreferences
+        val box = binding.serverOptions
+        fun render() {
+            binding.switchServerAuto.setOnCheckedChangeListener(null)
+            binding.switchServerAuto.isChecked = sp.auto
+            binding.tvServerHint.visibility = if (sp.auto) View.VISIBLE else View.GONE
+            box.removeAllViews()
+            val dp = resources.displayMetrics.density
+            val items = listOf(
+                sp.NEXT to R.string.srv_1, sp.IRANFLIX to R.string.srv_2, sp.BOTH to R.string.srv_both
+            )
+            for ((mode, label) in items) {
+                val selected = sp.manualMode == mode
+                box.addView(android.widget.TextView(requireContext()).apply {
+                    setText(label)
+                    setTextAppearance(R.style.TextAppearance_Bisnor_Body)
+                    val v = (14 * dp).toInt(); setPadding(v, v, v, v)
+                    setBackgroundResource(R.drawable.bg_onb_option)
+                    isSelected = selected && !sp.auto
+                    alpha = if (sp.auto) 0.45f else 1f
+                    isEnabled = !sp.auto; isFocusable = !sp.auto; isClickable = !sp.auto
+                    layoutParams = android.widget.LinearLayout.LayoutParams(-1, -2).apply { topMargin = (8 * dp).toInt() }
+                    setOnClickListener { sp.setMode(mode); render() }
+                })
+            }
+            binding.switchServerAuto.setOnCheckedChangeListener { _, on -> sp.setAuto(on); render() }
+        }
+        render()
     }
 
     private fun toPersianDigits(value: String): String {

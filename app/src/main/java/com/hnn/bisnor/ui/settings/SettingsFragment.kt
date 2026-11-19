@@ -93,24 +93,6 @@ class SettingsFragment : Fragment() {
             if (f != com.hnn.bisnor.util.AppPrefs.font(ctx)) { com.hnn.bisnor.util.AppPrefs.setFont(ctx, f); requireActivity().recreate() }
         }
 
-        // Content source (Next Movie / IranFlix / both)
-        when (SourcePreferences.mode) {
-            SourcePreferences.IRANFLIX -> binding.chipSourceIranflix.isChecked = true
-            SourcePreferences.BOTH -> binding.chipSourceBoth.isChecked = true
-            else -> binding.chipSourceNext.isChecked = true
-        }
-        binding.chipGroupSources.setOnCheckedStateChangeListener { _, checkedIds ->
-            val newMode = when (checkedIds.firstOrNull()) {
-                R.id.chip_source_iranflix -> SourcePreferences.IRANFLIX
-                R.id.chip_source_both -> SourcePreferences.BOTH
-                else -> SourcePreferences.NEXT
-            }
-            if (newMode != SourcePreferences.mode) {
-                SourcePreferences.setMode(newMode)
-                requireActivity().recreate()
-            }
-        }
-
         // External Player Selector
         updatePlayerLabel()
         binding.btnSettingPlayerChoice.setOnClickListener {

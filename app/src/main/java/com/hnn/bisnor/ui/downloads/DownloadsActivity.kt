@@ -82,6 +82,8 @@ class DownloadsActivity : AppCompatActivity() {
         }
     }
 
+    private val expandedParts = mutableSetOf<Long>()
+
     inner class DownloadAdapter : RecyclerView.Adapter<DownloadAdapter.Holder>() {
 
         inner class Holder(val b: ItemDownloadFileBinding) : RecyclerView.ViewHolder(b.root)
@@ -145,6 +147,8 @@ class DownloadsActivity : AppCompatActivity() {
                 }
             }
 
+            bindParts(holder, item)
+
             holder.b.btnDeleteDownload.setOnClickListener {
                 MaterialAlertDialogBuilder(this@DownloadsActivity)
                     .setTitle(Tr.s(R.string.s_b5fb436))
@@ -164,6 +168,60 @@ class DownloadsActivity : AppCompatActivity() {
                     putExtra("video_url", item.filePath.ifEmpty { item.fileUri })
                 }
                 startActivity(intent)
+            }
+        }
+
+        private fun bindParts(holder: Holder, item: com.hnn.bisnor.data.repository.DownloadedFile) {
+            val done = SegmentedDownloadManager.getTask(item.id)?.partDone
+            val total = SegmentedDownloadManager.getTask(item.id)?.partTotal
+            val show = item.status == SegmentedTask.STATUS_RUNNING && item.isSegmented && done != null && total != null
+            holder.b.btnToggleParts.visibility = if (show) View.VISIBLE else View.GONE
+            if (!show) { holder.b.layoutParts.visibility = View.GONE; return }
+            val open = item.id in expandedParts
+            holder.b.btnToggleParts.text = Tr.s(if (open) R.string.dl_parts_hide else R.string.dl_parts_show)
+            holder.b.btnToggleParts.setOnClickListener {
+                if (!expandedParts.add(item.id)) expandedParts.remove(item.id)
+                notifyItemChanged(holder.bindingAdapterPosition)
+            }
+            holder.b.layoutParts.visibility = if (open) View.VISIBLE else View.GONE
+            if (!open) return
+            val box = holder.b.layoutParts
+            val dp = resources.displayMetrics.density
+            if (box.childCount != 9) {
+                box.removeAllViews()
+                box.addView(android.widget.TextView(box.context).apply {
+                    text = Tr.s(R.string.dl_parts_note); textSize = 11f
+                    setTextColor(getColor(R.color.on_surface_variant))
+                })
+                for (i in 0 until 8) {
+                    val row = android.widget.LinearLayout(box.context).apply {
+                        orientation = android.widget.LinearLayout.HORIZONTAL
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                        layoutParams = android.widget.LinearLayout.LayoutParams(-1, -2).apply { topMargin = (6 * dp).toInt() }
+                    }
+                    row.addView(android.widget.TextView(box.context).apply {
+                        text = Tr.s(R.string.dl_part_n, i + 1); textSize = 11f
+                        setTextColor(getColor(R.color.on_surface_variant))
+                        layoutParams = android.widget.LinearLayout.LayoutParams((54 * dp).toInt(), -2)
+                    })
+                    row.addView(com.google.android.material.progressindicator.LinearProgressIndicator(box.context).apply {
+                        max = 100; trackThickness = (5 * dp).toInt(); trackCornerRadius = (3 * dp).toInt()
+                        setIndicatorColor(getColor(R.color.primary)); trackColor = getColor(R.color.surface_container_high)
+                        layoutParams = android.widget.LinearLayout.LayoutParams(0, -2, 1f)
+                    })
+                    row.addView(android.widget.TextView(box.context).apply {
+                        textSize = 11f; gravity = android.view.Gravity.END
+                        setTextColor(getColor(R.color.on_surface))
+                        layoutParams = android.widget.LinearLayout.LayoutParams((40 * dp).toInt(), -2)
+                    })
+                    box.addView(row)
+                }
+            }
+            for (i in 0 until 8) {
+                val row = box.getChildAt(i + 1) as android.widget.LinearLayout
+                val pct = if (total!![i] > 0) (done!!.get(i) * 100 / total[i]).toInt().coerceIn(0, 100) else 0
+                (row.getChildAt(1) as com.google.android.material.progressindicator.LinearProgressIndicator).progress = pct
+                (row.getChildAt(2) as android.widget.TextView).text = "$pct%"
             }
         }
 

@@ -153,12 +153,13 @@ class MainActivity : AppCompatActivity() {
         ThemeHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         if (com.hnn.bisnor.util.AppPrefs.onboardedVersion(this) != BuildConfig.VERSION_NAME) {
-            startActivity(Intent(this, com.hnn.bisnor.ui.onboarding.OnboardingActivity::class.java).putExtra("next", Intent(intent)))
+            startActivity(Intent(this, com.hnn.bisnor.ui.onboarding.OnboardingActivity::class.java).putExtra("next_data", intent.dataString))
             finish()
             return
         }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        com.hnn.bisnor.ui.startup.StartupOverlay.show(this, binding.root as android.view.ViewGroup, listOf(binding.navGlass))
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

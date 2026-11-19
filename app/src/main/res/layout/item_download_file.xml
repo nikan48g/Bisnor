@@ -86,6 +86,27 @@
                 app:trackCornerRadius="3dp" />
 
             <TextView
+                android:id="@+id/btn_toggle_parts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_soft_pill"
+                android:fontFamily="?attr/appFontMedium"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="5dp"
+                android:textColor="@color/primary"
+                android:textSize="11.5sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/layout_parts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/tv_download_progress_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

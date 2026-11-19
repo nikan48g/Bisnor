@@ -2712,7 +2712,7 @@ class BisnorApp {
         if (profileLogoutDivider) profileLogoutDivider.style.display = isLoggedIn ? "block" : "none";
 
         const version = document.getElementById("profile-version");
-        if (version) version.textContent = "v5.4.0";
+        if (version) version.textContent = "v5.5.0";
 
         this.renderAnalytics();
         this.renderHeatmap();

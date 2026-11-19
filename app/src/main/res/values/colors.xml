@@ -6,16 +6,16 @@
          ============================================================ -->
 
     <!-- Brand / accent -->
-    <color name="primary">#C25E00</color>
+    <color name="primary">#0A66E0</color>
     <color name="on_primary">#FFFFFF</color>
-    <color name="primary_container">#FFE0C2</color>
-    <color name="on_primary_container">#2A1500</color>
+    <color name="primary_container">#D6E8FF</color>
+    <color name="on_primary_container">#001B3D</color>
 
     <!-- Secondary (muted warm neutral, used for support text/icon accents) -->
-    <color name="secondary">#7A5A3A</color>
+    <color name="secondary">#3A5A7A</color>
     <color name="on_secondary">#FFFFFF</color>
-    <color name="secondary_container">#F4E3D1</color>
-    <color name="on_secondary_container">#2A1500</color>
+    <color name="secondary_container">#D9E6F4</color>
+    <color name="on_secondary_container">#001B3D</color>
 
     <!-- Tertiary (age ratings / caution) -->
     <color name="tertiary">#9C3B2E</color>
@@ -70,10 +70,10 @@
 
     <!-- Activity heatmap scale (0 = no activity) -->
     <color name="heat_0">#E5E5EA</color>
-    <color name="heat_1">#FFD9B0</color>
-    <color name="heat_2">#F7AC5C</color>
-    <color name="heat_3">#E07A12</color>
-    <color name="heat_4">#A94D00</color>
+    <color name="heat_1">#CFE3FF</color>
+    <color name="heat_2">#7DB6FF</color>
+    <color name="heat_3">#2F86F0</color>
+    <color name="heat_4">#0A4FB0</color>
     <!-- Liquid glass (light): frosted milk over a saturated blur -->
     <color name="lg_tint">#5CF6F4F2</color>
     <color name="lg_sheen">#66FFFFFF</color>

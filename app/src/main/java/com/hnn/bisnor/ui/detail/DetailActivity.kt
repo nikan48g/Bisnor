@@ -310,7 +310,7 @@ class DetailActivity : AppCompatActivity() {
                             append(" • ${providerLabel(best)}")
                             if (choices.size > 1) append(Tr.s(R.string.s_be79bf9, choices.size))
                         },
-                        thumbnail = episode.image.takeIf { it.isNotBlank() },
+                        thumbnail = episode.image.takeIf { it.isNotBlank() } ?: mediaItem?.let { m -> m.cover.ifBlank { m.image }.takeIf { it.isNotBlank() } },
                         progress = progress,
                         episodeIndex = index,
                         sources = choices
@@ -598,12 +598,13 @@ class DetailActivity : AppCompatActivity() {
                 b.layoutHeaderPeople.visibility = View.VISIBLE
                 val rowAdapter = peopleAdapter ?: PersonRowAdapter(people) { person ->
                     openPerson(person)
-                }.also {
-                    peopleAdapter = it
+                }.also { peopleAdapter = it }
+                // The header view is recreated when the list re-binds, so attach the adapter every time.
+                if (b.recyclerHeaderPeople.adapter !== rowAdapter) {
                     b.recyclerHeaderPeople.layoutManager = LinearLayoutManager(
                         this@DetailActivity, RecyclerView.HORIZONTAL, false
                     )
-                    b.recyclerHeaderPeople.adapter = it
+                    b.recyclerHeaderPeople.adapter = rowAdapter
                 }
                 rowAdapter.updateData(people)
             }

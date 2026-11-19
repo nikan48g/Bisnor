@@ -26,5 +26,5 @@ object AppPrefs {
     fun setFont(c: Context, v: String) = p(c).edit().putString("font", v).apply()
 
     fun onboardedVersion(c: Context): String? = p(c).getString("onboarded_version", null)
-    fun setOnboardedVersion(c: Context, v: String) = p(c).edit().putString("onboarded_version", v).apply()
+    fun setOnboardedVersion(c: Context, v: String) { p(c).edit().putString("onboarded_version", v).commit() }
 }

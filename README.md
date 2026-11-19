@@ -20,7 +20,6 @@
 <p align="center">
   <img src="docs/screenshots/home.png" width="210" alt="صفحه اصلی">
   <img src="docs/screenshots/explore.png" width="210" alt="کشف و جست‌وجو">
-  <img src="docs/screenshots/detail.png" width="210" alt="جزئیات فیلم">
   <img src="docs/screenshots/episodes.png" width="210" alt="قسمت‌های سریال">
 </p>
 

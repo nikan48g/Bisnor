@@ -639,4 +639,7 @@
     <string name="off_tip_1">وای‌فای یا داده‌ی همراه را روشن کن</string>
     <string name="off_tip_2">اگر فیلترشکن داری، قطع و وصلش کن</string>
     <string name="off_tip_3">چند ثانیه صبر کن و دوباره تلاش کن</string>
+    <string name="dl_section_active">در حال دریافت</string>
+    <string name="dl_section_done">دانلود شده</string>
+    <string name="dl_empty_hint">از صفحه هر فیلم یا قسمت، دکمه دانلود را بزن تا اینجا ببینی.</string>
 </resources>

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:orientation="vertical"
-    android:paddingTop="14dp">
+    android:paddingTop="8dp">
 
     <!-- Header -->
     <LinearLayout
@@ -28,12 +28,13 @@
                 android:maxLines="1"
                 android:text="@string/s_59b07d4"
                 android:textColor="@color/on_surface"
-                android:textSize="32sp"
-                app:autoSizeMaxTextSize="32sp"
+                android:textSize="24sp"
+                app:autoSizeMaxTextSize="24sp"
                 app:autoSizeMinTextSize="20sp"
                 app:autoSizeTextType="uniform" />
 
             <TextView
+                android:visibility="gone"
                 android:id="@+id/tv_library_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -62,7 +63,7 @@
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:layout_marginHorizontal="18dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/bg_search_pill"
         android:gravity="center_vertical"
         android:orientation="horizontal"

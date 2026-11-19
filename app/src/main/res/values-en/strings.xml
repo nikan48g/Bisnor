@@ -639,4 +639,7 @@
     <string name="off_tip_1">Turn on Wi-Fi or mobile data</string>
     <string name="off_tip_2">If you use a VPN, toggle it off and on</string>
     <string name="off_tip_3">Wait a few seconds and try again</string>
+    <string name="dl_section_active">In progress</string>
+    <string name="dl_section_done">Downloaded</string>
+    <string name="dl_empty_hint">Tap Download on any movie or episode and it shows up here.</string>
 </resources>

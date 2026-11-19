@@ -26,6 +26,7 @@ class DownloadsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDownloadsBinding
     private var downloadsList = listOf<DownloadedFile>()
+    private var rows: List<Any> = emptyList()
     private lateinit var adapter: DownloadAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,6 +69,11 @@ class DownloadsActivity : AppCompatActivity() {
 
     private fun loadDownloads(silent: Boolean = false) {
         downloadsList = LocalDownloadManager.getDownloadedVideos(this)
+        val (done, active) = downloadsList.partition { it.isDownloaded }
+        rows = buildList {
+            if (active.isNotEmpty()) { add(Tr.s(R.string.dl_section_active)); addAll(active) }
+            if (done.isNotEmpty()) { add(Tr.s(R.string.dl_section_done)); addAll(done) }
+        }
         adapter.notifyDataSetChanged()
         binding.tvEmptyDownloads.visibility = if (downloadsList.isEmpty()) View.VISIBLE else View.GONE
         binding.cardStorageSummary.visibility = if (downloadsList.isEmpty()) View.GONE else View.VISIBLE
@@ -84,17 +90,31 @@ class DownloadsActivity : AppCompatActivity() {
 
     private val expandedParts = mutableSetOf<Long>()
 
-    inner class DownloadAdapter : RecyclerView.Adapter<DownloadAdapter.Holder>() {
+    inner class DownloadAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         inner class Holder(val b: ItemDownloadFileBinding) : RecyclerView.ViewHolder(b.root)
+        inner class HeaderHolder(val t: android.widget.TextView) : RecyclerView.ViewHolder(t)
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+        override fun getItemViewType(position: Int) = if (rows[position] is String) 0 else 1
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            if (viewType == 0) {
+                val d = resources.displayMetrics.density
+                return HeaderHolder(android.widget.TextView(parent.context).apply {
+                    layoutParams = RecyclerView.LayoutParams(-1, -2)
+                    setPadding((22 * d).toInt(), (18 * d).toInt(), (22 * d).toInt(), (4 * d).toInt())
+                    setTextAppearance(R.style.TextAppearance_Bisnor_Label)
+                    setTextColor(getColor(R.color.primary))
+                })
+            }
             val b = ItemDownloadFileBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             return Holder(b)
         }
 
-        override fun onBindViewHolder(holder: Holder, position: Int) {
-            val item = downloadsList[position]
+        override fun onBindViewHolder(vh: RecyclerView.ViewHolder, position: Int) {
+            if (vh is HeaderHolder) { vh.t.text = rows[position] as String; return }
+            val holder = vh as Holder
+            val item = rows[position] as DownloadedFile
             holder.b.tvDownloadTitle.text = item.title
 
             when {
@@ -225,6 +245,6 @@ class DownloadsActivity : AppCompatActivity() {
             }
         }
 
-        override fun getItemCount(): Int = downloadsList.size
+        override fun getItemCount(): Int = rows.size
     }
 }

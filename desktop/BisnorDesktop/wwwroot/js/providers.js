@@ -148,7 +148,7 @@
                                 headers: { "Content-Type": "application/json" },
                                 body: "{}",
                                 signal: typeof AbortSignal !== "undefined" && AbortSignal.timeout
-                                    ? AbortSignal.timeout(15000)
+                                    ? AbortSignal.timeout(7000)
                                     : undefined
                             });
                             if (response.ok) {
@@ -184,7 +184,7 @@
                     headers,
                     body: options.body === undefined ? undefined : JSON.stringify(options.body),
                     signal: typeof AbortSignal !== "undefined" && AbortSignal.timeout
-                        ? AbortSignal.timeout(20000)
+                        ? AbortSignal.timeout(15000)
                         : undefined
                 });
                 if (response.status === 401 && !retried) {

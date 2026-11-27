@@ -91,6 +91,11 @@ class BisnorApp {
         this.setupEventListeners();
         this.loadProfile();
         this.loadSettings();
+        // Keep the session alive across restarts and long idle periods.
+        window.supabaseAuth.ensureSession().then(ok => { if (ok) this.loadProfile(); }).catch(() => {});
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) window.supabaseAuth.ensureSession().catch(() => {});
+        });
         this.renderHomeTab();
         this.renderExploreTab();
         this.renderFavoritesTab();
@@ -199,7 +204,7 @@ class BisnorApp {
         text("platform-brand-badge", "نسخه وب • PWA برای iOS");
         text("downloads-setting-title", "مدیریت دانلودهای مرورگر");
         text("about-platform-title", "نسخه وب (Bisnor PWA)");
-        text("about-version", "نسخه ۵.۴.۰ • نصب‌پذیر روی iOS، اندروید و ویندوز");
+        text("about-version", "نسخه 5.5.0 • نصب‌پذیر روی iOS، اندروید و ویندوز");
         text("detail-external-player-label", "پخش با VLC");
         text("player-error-desc", "این فرمت در مرورگر فعلی قابل کدگشایی نیست. می‌توانید فایل را دانلود کنید یا کیفیت دیگری را انتخاب کنید.");
     }
@@ -417,6 +422,39 @@ class BisnorApp {
 
     // --- Event Listeners Setup ---
     setupEventListeners() {
+        // Floating header takes glass only after the page scrolls.
+        const mainContent = document.getElementById("main-content");
+        const appHeader = document.querySelector(".app-header");
+        if (mainContent && appHeader) {
+            const syncHeader = () => appHeader.classList.toggle("is-scrolled", mainContent.scrollTop > 40);
+            mainContent.addEventListener("scroll", syncHeader, { passive: true });
+            syncHeader();
+        }
+
+        // Manual refresh: bypass the short-lived endpoint cache and repaint from live data.
+        const refreshBtn = document.getElementById("btn-refresh-catalog");
+        if (refreshBtn) {
+            refreshBtn.addEventListener("click", async () => {
+                if (refreshBtn.disabled) return;
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add("spinning");
+                try {
+                    const items = await window.mediaService.refreshCatalog();
+                    this.renderHomeTab();
+                    this.renderExploreTab();
+                    this.renderForYou();
+                    this.updateHeroCard?.(window.mediaService.getHeroFeaturedSync());
+                    this.startHeroRotation();
+                    this.showAppToast(items && items.length ? "کاتالوگ با داده‌ی تازه به‌روز شد" : "داده‌ای دریافت نشد؛ اتصال را بررسی کن");
+                } catch (_) {
+                    this.showAppToast("به‌روزرسانی ناموفق بود؛ اتصال یا فیلترشکن را بررسی کن");
+                } finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove("spinning");
+                }
+            });
+        }
+
         // Explore search input
         const searchInput = document.getElementById("input-explore-search");
         const clearBtn = document.getElementById("btn-clear-search");
@@ -916,6 +954,8 @@ class BisnorApp {
             }
         };
 
+        this.updateHeroCard = updateHero;
+
         const renderRow = (rowId, items) => {
             const row = document.getElementById(rowId);
             if (row && Array.isArray(items) && items.length > 0) {
@@ -955,10 +995,36 @@ class BisnorApp {
             })
         ]).then(() => {
             this.renderForYou();
+            this.startHeroRotation();
             console.log("[BisnorMedia] All home sections synchronized with live Iranflix servers.");
         }).catch(err => {
             console.warn("[BisnorMedia] Live sync notice:", err);
         });
+    }
+
+    startHeroRotation() {
+        clearInterval(this.heroRotateTimer);
+        const pool = window.mediaService.getHeroPool ? window.mediaService.getHeroPool() : [];
+        if (pool.length < 2 || typeof this.updateHeroCard !== "function") return;
+        let index = 0;
+        this.heroRotateTimer = setInterval(() => {
+            if (this.currentTab !== "home") return;
+            index = (index + 1) % pool.length;
+            this.updateHeroCard(pool[index]);
+        }, 8000);
+    }
+
+    showAppToast(message) {
+        const toast = document.getElementById("app-toast");
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add("show");
+        toast.style.display = "block";
+        clearTimeout(this.appToastTimer);
+        this.appToastTimer = setTimeout(() => {
+            toast.classList.remove("show");
+            toast.style.display = "none";
+        }, 3200);
     }
 
     renderForYou() {
@@ -1048,23 +1114,33 @@ class BisnorApp {
         const row = document.getElementById("row-explore-people");
         if (!section || !row) return;
         row.replaceChildren();
-        const normalized = query.trim().toLocaleLowerCase();
+        const normalized = query.trim();
         if (normalized.length < 2) {
             section.style.display = "none";
             return;
         }
+        // A persistent local credit index answers immediately; the live responses are
+        // already registered there by the data service.
         const seen = new Set();
-        const people = items.flatMap(item => item.people || []).filter(person => {
-            const key = `${person.name.toLocaleLowerCase()}|${person.role || ""}`;
-            if (!person.name.toLocaleLowerCase().includes(normalized) || seen.has(key)) return false;
+        const people = [];
+        const consider = person => {
+            if (!person || !person.name) return;
+            const key = String(person.name).toLocaleLowerCase();
+            if (seen.has(key)) return;
             seen.add(key);
-            return true;
-        }).slice(0, 12);
-        people.forEach(person => row.appendChild(this.createPersonCard(person)));
-        section.style.display = people.length ? "block" : "none";
+            people.push(person);
+        };
+        if (window.bisnorPeople) window.bisnorPeople.search(normalized, 10).forEach(consider);
+        (items || []).flatMap(item => item.people || []).forEach(consider);
+        if (!people.length) {
+            section.style.display = "none";
+            return;
+        }
+        people.slice(0, 10).forEach(person => row.appendChild(this.createPersonCard(person)));
+        section.style.display = "block";
     }
 
-    createPersonCard(person) {
+    createPersonCard(person, sourceMedia = null) {
         const roleLabels = { actor: "بازیگر", director: "کارگردان", writer: "نویسنده" };
         const button = document.createElement("button");
         button.type = "button";
@@ -1081,11 +1157,11 @@ class BisnorApp {
         role.textContent = roleLabels[person.role] || "عامل";
         const name = document.createElement("strong");
         name.textContent = person.name;
-        button.append(photo, role, name);
+        button.append(photo, name);
         button.addEventListener("click", event => {
             event.preventDefault();
             event.stopPropagation();
-            this.openPersonProfile(person);
+            this.openPersonProfile(person, sourceMedia);
         });
         return button;
     }
@@ -1102,6 +1178,7 @@ class BisnorApp {
         }
         this.activeMedia = media;
         this.rememberMedia(media);
+        if (window.bisnorPeople) window.bisnorPeople.remember(media);
         if (!media.__hydrated && window.mediaService.hydrateMedia) {
             window.mediaService.hydrateMedia(media).then(full => {
                 if (full && this.activeMedia === media) this.openDetailModal(full);
@@ -1205,23 +1282,27 @@ class BisnorApp {
             section.style.display = "none";
             return;
         }
-        valid.forEach(person => row.appendChild(this.createPersonCard(person)));
+        valid.forEach(person => row.appendChild(this.createPersonCard(person, this.activeMedia)));
         section.style.display = "block";
     }
 
-    async openPersonProfile(person) {
+    async openPersonProfile(person, sourceMedia) {
         this.activePerson = person;
         this.taste.people[person.name] = (this.taste.people[person.name] || 0) + 1;
         this.saveTaste();
         const modal = document.getElementById("modal-person");
         if (!modal) return;
         const labels = { actor: "بازیگر", director: "کارگردان", writer: "نویسنده" };
-        document.getElementById("person-profile-name").textContent = person.name;
-        document.getElementById("person-profile-role").textContent = labels[person.role] || "عامل";
+        const known = window.bisnorPeople ? (window.bisnorPeople.entry(person.name) || {}) : {};
+        document.getElementById("person-profile-name").textContent = person.name || known.name || "";
+        const roleText = labels[person.role || known.role] || "عامل";
+        const character = person.character || known.character || "";
+        document.getElementById("person-profile-role").textContent = character ? `${roleText} • ${character}` : roleText;
         const photo = document.getElementById("person-profile-photo");
-        photo.textContent = person.name.slice(0, 1);
-        photo.style.backgroundImage = person.photo ? `url("${person.photo.replace(/"/g, "%22")}")` : "";
-        if (!person.photo) window.mediaService.resolvePersonPhoto(person).then(url => {
+        photo.textContent = (person.name || "?").slice(0, 1);
+        const photoUrl = person.photo || known.photo || "";
+        photo.style.backgroundImage = photoUrl ? `url("${photoUrl.replace(/"/g, "%22")}")` : "";
+        if (!photoUrl) window.mediaService.resolvePersonPhoto(person).then(url => {
             if (url && this.activePerson === person) photo.style.backgroundImage = `url("${url.replace(/"/g, "%22")}")`;
         });
         this.updatePersonFollowButton();
@@ -1230,12 +1311,50 @@ class BisnorApp {
         const empty = document.getElementById("person-profile-empty");
         credits.replaceChildren();
         empty.style.display = "none";
-        const catalog = await window.mediaService.getExploreCatalog();
+        empty.textContent = "در حال یافتن آثار…";
+        empty.style.display = "block";
+
+        // Local credits first: the film this person was opened from must always be
+        // present, even when the provider search returns nothing.
+        const localWorks = window.bisnorPeople ? window.bisnorPeople.works(person.name) : [];
+        const immediate = [];
+        const seen = new Set();
+        [sourceMedia, ...localWorks].forEach(item => {
+            if (!item || item.id === undefined || seen.has(String(item.id))) return;
+            seen.add(String(item.id));
+            immediate.push(item);
+        });
         if (this.activePerson !== person) return;
-        const personName = person.name.toLocaleLowerCase();
-        const matches = catalog.filter(item => (item.people || []).some(candidate => candidate.name.toLocaleLowerCase() === personName));
-        credits.replaceChildren(...matches.map(item => this.createMediaCard(item)));
-        empty.style.display = matches.length ? "none" : "block";
+        if (immediate.length) {
+            credits.replaceChildren(...immediate.map(item => this.createMediaCard(item)));
+            empty.style.display = "none";
+        }
+
+        // Then the live catalogue, matched on people and on the synopsis.
+        let catalog = [];
+        try {
+            catalog = await window.mediaService.getExploreCatalog();
+        } catch (_) {
+            catalog = [];
+        }
+        if (this.activePerson !== person) return;
+        const names = [person.name, person.nameFa, known.name, known.nameFa].filter(Boolean).map(value => value.toLocaleLowerCase());
+        const matches = (catalog || []).filter(item => {
+            const creditsList = item.people || [];
+            if (creditsList.some(candidate => names.includes(String(candidate.name || "").toLocaleLowerCase()) ||
+                names.includes(String(candidate.nameFa || "").toLocaleLowerCase()))) return true;
+            const description = String(item.description || "").toLocaleLowerCase();
+            return names.some(name => name && description.includes(name));
+        });
+        if (window.bisnorPeople) window.bisnorPeople.rememberAll(matches);
+        matches.forEach(item => {
+            if (seen.has(String(item.id))) return;
+            seen.add(String(item.id));
+            immediate.push(item);
+        });
+        credits.replaceChildren(...immediate.map(item => this.createMediaCard(item)));
+        empty.textContent = "برای این شخص در منابع فعلی اثری پیدا نشد.";
+        empty.style.display = immediate.length ? "none" : "block";
     }
 
     closePersonProfile() {

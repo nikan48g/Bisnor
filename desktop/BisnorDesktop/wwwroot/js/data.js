@@ -195,6 +195,13 @@ class MediaDataService {
         return fallback;
     }
 
+    withTimeout(promise, ms) {
+        return Promise.race([
+            Promise.resolve(promise).catch(() => null),
+            new Promise(resolve => setTimeout(() => resolve(null), ms))
+        ]);
+    }
+
     dedupeSources(sources) {
         const seen = new Set();
         return (sources || []).filter(source => {
@@ -267,13 +274,13 @@ class MediaDataService {
 
         try {
             if (media.type === "serie") {
-                const details = await this.next.details(nextId);
+                const details = await this.withTimeout(this.next.details(nextId), 6000);
                 if (details) this.applyNextDetails(media, details);
                 return media;
             }
             const [details, links] = await Promise.all([
-                this.next.details(nextId),
-                this.next.links(nextId)
+                this.withTimeout(this.next.details(nextId), 6000),
+                this.withTimeout(this.next.links(nextId), 8000)
             ]);
             if (details) this.applyNextDetails(media, details);
             const nextSources = ((links && links.movie_links) || [])
@@ -298,6 +305,49 @@ class MediaDataService {
         if (!media.country || !media.country.length) {
             media.country = (details.countries || []).map(country => ({ id: country.id || 0, title: (country.title || "").trim() })).filter(country => country.title);
         }
+        // Next details carry the star id, Persian name and portrait that list payloads
+        // omit; they are what the people rail and the person dialog need.
+        const credits = [];
+        const addCredit = (entry, role) => {
+            if (!entry) return;
+            const name = String(entry.name || "").trim();
+            const nameFa = String(entry.name_fa || "").trim();
+            if (!name && !nameFa) return;
+            const existing = credits.find(person => person.role === role && String(person.name).toLocaleLowerCase() === name.toLocaleLowerCase());
+            const photo = String(entry.image || "").trim();
+            const credit = {
+                name,
+                role,
+                photo: /^https?:\/\//i.test(photo) ? photo : "",
+                nameFa,
+                character: String(entry.character || "").trim(),
+                personId: Number(entry.id) || 0
+            };
+            if (existing) {
+                existing.photo = existing.photo || credit.photo;
+                existing.nameFa = existing.nameFa || credit.nameFa;
+                existing.character = existing.character || credit.character;
+                existing.personId = existing.personId || credit.personId;
+            } else {
+                credits.push(credit);
+            }
+        };
+        (details.cast || []).slice(0, 20).forEach(entry => addCredit(entry, "actor"));
+        (details.crew || []).forEach(entry => {
+            const job = String(entry.job || "").toLocaleLowerCase();
+            if (job === "director") addCredit(entry, "director");
+            else if (["writer", "screenplay", "story"].includes(job)) addCredit(entry, "writer");
+        });
+        if (credits.length) {
+            const merged = Array.isArray(media.people) ? media.people.slice() : [];
+            credits.forEach(credit => {
+                const index = merged.findIndex(person => person.role === credit.role && String(person.name).toLocaleLowerCase() === String(credit.name).toLocaleLowerCase());
+                if (index >= 0) merged[index] = { ...merged[index], ...Object.fromEntries(Object.entries(credit).filter(([, value]) => value)) };
+                else merged.push(credit);
+            });
+            media.people = merged.slice(0, 30);
+        }
+        if (window.bisnorPeople) window.bisnorPeople.remember(media);
     }
 
     async fetchNextSeasons(nextId) {
@@ -455,6 +505,20 @@ class MediaDataService {
             } catch (_) {}
         }
 
+        // Static hosts (file://, localhost previews, GitHub Pages) have no /api route.
+        // The public Bisnor worker exposes the allowlisted catalogue endpoints with
+        // CORS, so use it before trying the providers directly.
+        if (!window.chrome?.webview && !/workers\.dev$/i.test(window.location.hostname)) {
+            try {
+                const fallbackBase = "https://bisnor-pwa.drive-storage-hnn.workers.dev";
+                const workerResponse = await fetch(`${fallbackBase}${normalizedPath}`, {
+                    headers: { "Accept": "application/json" },
+                    signal: (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") ? AbortSignal.timeout(12000) : undefined
+                });
+                if (workerResponse.ok) return await workerResponse.json();
+            } catch (_) {}
+        }
+
         // A public CORS proxy is not a reliable production dependency.  `catalogProxyUrl`
         // can be set by the site owner to a small HTTPS proxy on the Bisnor domain.  Keep
         // the direct attempt below for providers which later enable CORS.
@@ -535,7 +599,7 @@ class MediaDataService {
         const img = raw.image || "";
         const cover = raw.cover || img;
 
-        return {
+        const media = {
             id: raw.id,
             type: raw.type === "serie" ? "serie" : "movie",
             title: title,
@@ -554,6 +618,8 @@ class MediaDataService {
             // labels Android understands as a graceful live-data fallback.
             people: this.extractPeople(raw, desc)
         };
+        if (window.bisnorPeople) window.bisnorPeople.remember(media);
+        return media;
     }
 
     extractPeople(raw, description) {
@@ -666,7 +732,9 @@ class MediaDataService {
     }
 
     async getLatestMovies(page = 0) {
-        return this.combine("movie", page, () => this.getIranflixLatest(page));
+        const items = await this.combine("movie", page, () => this.getIranflixLatest(page));
+        if (page === 0) this.latestPool = items.slice();
+        return items;
     }
 
     async getPopularSeries(page = 0) {
@@ -674,7 +742,9 @@ class MediaDataService {
     }
 
     async getTopImdb(page = 0) {
-        return this.combine("top", page, () => this.getIranflixTopImdb(page));
+        const items = await this.combine("top", page, () => this.getIranflixTopImdb(page));
+        if (page === 0) this.topPool = items.slice();
+        return items;
     }
 
     async getAnimations() {
@@ -868,12 +938,57 @@ class MediaDataService {
         });
     }
 
+    getHeroPool() {
+        if (this.heroPool && this.heroPool.length) return this.heroPool.slice();
+        return this.buildHeroPool();
+    }
+
+    /** Newest first, then best-rated, alternating – the same contract as Android. */
+    buildHeroPool() {
+        const hasArt = item => item && (item.cover || item.image);
+        const newest = (this.latestPool || []).filter(hasArt);
+        const popular = (this.topPool || []).slice()
+            .sort((a, b) => (Number(b.imdb) || 0) - (Number(a.imdb) || 0))
+            .filter(hasArt);
+        const hero = [];
+        const seen = new Set();
+        for (let i = 0; i < 6 && (i < newest.length || i < popular.length); i += 1) {
+            [newest[i], popular[i]].forEach(item => {
+                if (!item || hero.length >= 6) return;
+                const key = String(item.id);
+                if (seen.has(key)) return;
+                seen.add(key);
+                hero.push(item);
+            });
+        }
+        if (!hero.length && this.catalog.length) hero.push(this.catalog[0]);
+        this.heroPool = hero;
+        return hero;
+    }
+
     getHeroFeaturedSync() {
-        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : null;
+        const pool = this.getHeroPool();
+        return pool.length ? pool[0] : null;
     }
 
     async getHeroFeatured() {
-        return (this.catalog && this.catalog.length > 0) ? this.catalog[0] : null;
+        const pool = this.getHeroPool();
+        return pool.length ? pool[0] : null;
+    }
+
+    /** Manual refresh: drop every short-lived cache and ask the servers again. */
+    async refreshCatalog() {
+        this.endpointCache.clear();
+        this.inFlightRequests.clear();
+        this.nmListCache.clear();
+        this.exploreLoaded = false;
+        this.exploreLoadPromise = null;
+        this.heroPool = null;
+        this.latestPool = [];
+        this.topPool = [];
+        const items = await this.getExploreCatalog();
+        this.saveCatalogCache();
+        return items;
     }
 }
 

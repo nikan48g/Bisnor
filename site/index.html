@@ -1051,10 +1051,10 @@ img, video { max-width: 100%; height: auto; }
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 
                 <!-- Windows Download Card -->
-                <div class="reveal-item delay-200 apple-glass apple-glass-interactive rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden active" style="order:3">
+                <div class="reveal-item delay-200 apple-glass apple-glass-interactive rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden active">
                     <div>
                         <div class="flex items-start justify-between gap-4 mb-6">
                             <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
@@ -1103,8 +1103,49 @@ img, video { max-width: 100%; height: auto; }
                     </div>
                 </div>
 
-                <!-- Android Download Card -->
-                <div class="reveal-item apple-glass apple-glass-interactive rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden active" style="order:1">
+                <!-- Linux Download Card -->
+            <div class="reveal-item apple-glass apple-glass-interactive rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden active">
+                <div>
+                    <div class="flex items-start justify-between gap-4 mb-6">
+                        <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                            <svg class="w-8 h-8 text-white fill-current" viewBox="0 0 24 24">
+                                <path d="M12 2c-1.9 0-3.2 1.6-3.2 3.7 0 1.1.3 2 .3 2.9 0 .9-.8 2.1-1.6 3.6-.8 1.6-1.7 3.3-1.7 4.9 0 1.4.7 2.5 1.7 3.2-.3.5-.6 1.1-.6 1.6 0 1.1.9 1.9 2.1 1.9.8 0 1.5-.4 1.9-1 .4.2.8.3 1.1.3s.7-.1 1.1-.3c.4.6 1.1 1 1.9 1 1.2 0 2.1-.8 2.1-1.9 0-.5-.2-1.1-.6-1.6 1-.7 1.7-1.8 1.7-3.2 0-1.6-.9-3.3-1.7-4.9-.8-1.5-1.6-2.7-1.6-3.6 0-.9.3-1.8.3-2.9C15.2 3.6 13.9 2 12 2zm-1.4 3.1c.4 0 .7.4.7.9s-.3.9-.7.9-.7-.4-.7-.9.3-.9.7-.9zm2.8 0c.4 0 .7.4.7.9s-.3.9-.7.9-.7-.4-.7-.9.3-.9.7-.9zM12 7.2c.8 0 1.6.9 1.6 1.8 0 .6-.7 1.3-1.6 1.3s-1.6-.7-1.6-1.3c0-.9.8-1.8 1.6-1.8z"/>
+                            </svg>
+                        </div>
+                        <span id="linux-version-tag" class="apple-pill px-3.5 py-1 rounded-full text-xs font-mono font-semibold text-white">v5.5.0</span>
+                    </div>
+
+                    <h3 class="text-2xl font-extrabold text-white mb-2">نسخه لینوکس</h3>
+                    <p class="text-sm text-white/65 leading-relaxed mb-6">
+                        بسته‌ی سبک وب/دسکتاپ برای توزیع‌های لینوکس؛ همان رابط شیشه‌ای و همان کاتالوگ زنده، بدون نصب وابستگی سنگین.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-3 mb-8">
+                        <div class="apple-pill rounded-xl p-3">
+                            <span class="block text-[11px] text-white/50 mb-0.5">بسته</span>
+                            <span id="linux-filename" class="font-mono text-xs text-white truncate block">Bisnor-Linux-5.5.0.tar.gz</span>
+                        </div>
+                        <div class="apple-pill rounded-xl p-3">
+                            <span class="block text-[11px] text-white/50 mb-0.5">حداقل glibc</span>
+                            <span class="font-mono text-xs text-white block">2.31+ (x86_64)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a id="linux-download-btn" href="https://github.com/nikan48g/Bisnor/releases/latest" target="_blank" rel="noopener noreferrer" class="flex-1 apple-btn-primary py-4 px-6 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-3">
+                        <svg class="w-5 h-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>دانلود نسخه لینوکس</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Android Download Card -->
+                <div class="reveal-item apple-glass apple-glass-interactive rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden active">
                     <div>
                         <div class="flex items-start justify-between gap-4 mb-6">
                             <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
@@ -1154,7 +1195,7 @@ img, video { max-width: 100%; height: auto; }
                 </div>
 
                 <!-- Web / PWA Card -->
-                <div class="reveal-item delay-100 apple-glass apple-glass-interactive rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden active" style="order:2">
+                <div class="reveal-item delay-100 apple-glass apple-glass-interactive rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden active">
                     <div>
                         <div class="flex items-start justify-between gap-4 mb-6">
                             <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
@@ -1399,4 +1440,35 @@ img, video { max-width: 100%; height: auto; }
 
     
 
+    <script>
+    // Versions and asset names come from the latest GitHub release, never hardcoded.
+    (async () => {
+        try {
+            const response = await fetch("https://api.github.com/repos/nikan48g/Bisnor/releases/latest", {
+                headers: { Accept: "application/vnd.github+json" }
+            });
+            if (!response.ok) return;
+            const release = await response.json();
+            const version = String(release.tag_name || "").replace(/^v/i, "") || "5.5.0";
+            const assets = Array.isArray(release.assets) ? release.assets : [];
+            const assetFor = pattern => assets.find(asset => pattern.test(asset.name));
+
+            const apply = (tagId, fileId, buttonId, pattern, tagText) => {
+                const asset = assetFor(pattern);
+                const tag = document.getElementById(tagId);
+                const file = document.getElementById(fileId);
+                const button = document.getElementById(buttonId);
+                if (tag) tag.textContent = tagText || `v${version}`;
+                if (file) file.textContent = asset ? asset.name : file.textContent;
+                if (button && asset && asset.browser_download_url) button.href = asset.browser_download_url;
+            };
+
+            apply("win-version-tag", "win-filename", "win-download-btn", /win.*\.exe$/i, `v${version} Stable`);
+            apply("android-version-tag", "android-filename", "android-download-btn", /universal\.apk$/i, `نسخهٔ اصلی • v${version}`);
+            apply("linux-version-tag", "linux-filename", "linux-download-btn", /linux.*\.(tar\.gz|appimage|deb)$/i, `v${version}`);
+        } catch (_) {
+            // Keep the static fallback when the API is unreachable.
+        }
+    })();
+    </script>
 </body></html>

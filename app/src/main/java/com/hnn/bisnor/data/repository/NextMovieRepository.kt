@@ -11,6 +11,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -34,8 +35,9 @@ object NextMovieRepository {
     private val JSON = "application/json".toMediaType()
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
+        .connectTimeout(7, TimeUnit.SECONDS)
+        .readTimeout(12, TimeUnit.SECONDS)
+        .callTimeout(15, TimeUnit.SECONDS)
         .build()
 
     /** Redirect-chain prober: every hop inspected on its own, no automatic following. */
@@ -44,6 +46,7 @@ object NextMovieRepository {
         .followSslRedirects(false)
         .connectTimeout(6, TimeUnit.SECONDS)
         .readTimeout(6, TimeUnit.SECONDS)
+        .callTimeout(8, TimeUnit.SECONDS)
         .build()
 
     @Volatile
@@ -158,14 +161,17 @@ object NextMovieRepository {
         root.optJSONArray("movie_links")?.let { rewriteLinks(it) }
     }
 
-    private val resolvedUrls = java.util.concurrent.ConcurrentHashMap<String, String>()
+    /** Resolved hops expire so a moved CDN node is picked up again after ten minutes. */
+    private data class ResolvedUrl(val url: String, val at: Long)
+    private val resolvedUrls = java.util.concurrent.ConcurrentHashMap<String, ResolvedUrl>()
+    private const val RESOLVED_TTL_MS = 10L * 60 * 1000
 
-    /** Final, directly streamable address of [url] (cached; non-CDN addresses pass through). */
+    /** Final, directly streamable address of [url] (cached briefly; non-CDN addresses pass through). */
     suspend fun playableUrl(url: String): String {
         if (!url.startsWith("http")) return url
-        resolvedUrls[url]?.let { return it }
-        val resolved = resolveStreamUrl(url)
-        resolvedUrls[url] = resolved
+        resolvedUrls[url]?.let { if (System.currentTimeMillis() - it.at <= RESOLVED_TTL_MS) return it.url }
+        val resolved = withTimeoutOrNull(6_000) { resolveStreamUrl(url) } ?: url
+        resolvedUrls[url] = ResolvedUrl(resolved, System.currentTimeMillis())
         return resolved
     }
 

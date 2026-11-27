@@ -78,6 +78,10 @@ class ExploreFragment : Fragment() {
         binding.etSearch.addTextChangedListener { text ->
             val q = text?.toString()?.trim() ?: ""
             binding.btnClearSearch.visibility = if (q.isNotEmpty()) View.VISIBLE else View.GONE
+            // Local matches are painted on the same keystroke; the network gets a debounce.
+            ++searchSeq
+            performJob?.cancel()
+            showLocalResults(q)
             searchJob?.cancel()
             searchJob = lifecycleScope.launch {
                 delay(350)
@@ -143,6 +147,14 @@ class ExploreFragment : Fragment() {
                 putString("search_scope", scope)
             }
         }
+    }
+
+    private fun showLocalResults(query: String) {
+        if (_binding == null || query.isBlank()) return
+        val local = runCatching { RealMediaRepository.localSearch(query) }.getOrDefault(emptyList())
+        if (local.isEmpty()) return
+        allLoaded = local
+        filterList()
     }
 
     private fun performSearch(query: String) {

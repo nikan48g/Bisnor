@@ -175,7 +175,7 @@ class HomeFragment : Fragment() {
                 }
             }
 
-            val catalog = runCatching { RealMediaRepository.getHomeCatalog() }
+            val catalog = runCatching { RealMediaRepository.getHomeCatalog(forceRefresh = userInitiated) }
                 .getOrElse {
                     RealMediaRepository.HomeCatalog(emptyList(), emptyList(), false, true)
                 }

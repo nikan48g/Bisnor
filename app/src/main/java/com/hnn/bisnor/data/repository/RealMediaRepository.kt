@@ -56,8 +56,9 @@ object RealMediaRepository {
     }
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
+        .connectTimeout(7, TimeUnit.SECONDS)
+        .readTimeout(12, TimeUnit.SECONDS)
+        .callTimeout(15, TimeUnit.SECONDS)
         .build()
 
     private val gson = Gson()
@@ -103,20 +104,39 @@ object RealMediaRepository {
     /**
      * Fetches a path from the fastest mirror that answers. Mirrors are raced with a
      * short stagger so one slow/dead host no longer serialises every catalogue page.
+     *
+     * The mirror that wins is remembered and tried first next time, the number of
+     * in-flight mirror requests is capped, and the whole race is bounded so the home
+     * screen never waits a full minute on a bad network.
      */
     private suspend fun fetch(path: String): FetchResult = coroutineScope {
         val winner = CompletableDeferred<FetchResult>()
-        val jobs = SERVERS.mapIndexed { index, server ->
+        val preferred = preferredServer
+        val order = (0 until SERVERS.size).sortedBy { if (it == preferred) 0 else it + 1 }
+        // Once one mirror has answered, two racers are enough: that halves the sockets the
+        // home feed opens on a slow connection without losing the fast fallback.
+        val racers = if (hasWorkingMirror) order.take(2) else order
+        val jobs = racers.mapIndexed { slot, serverIndex ->
             launch(Dispatchers.IO) {
-                if (index > 0) delay(index * 400L)
-                val result = fetchFrom(server, path)
-                if (result.body != null) winner.complete(result)
+                if (slot > 0) delay(slot * 250L)
+                val result = fetchFrom(SERVERS[serverIndex], path)
+                if (result.body != null) {
+                    preferredServer = serverIndex
+                    hasWorkingMirror = true
+                    winner.complete(result)
+                }
             }
         }
-        val result = withTimeoutOrNull(25_000) { winner.await() } ?: FetchResult(null, true)
+        val result = withTimeoutOrNull(12_000) { winner.await() } ?: FetchResult(null, true)
         jobs.forEach { it.cancel() }
         result
     }
+
+    @Volatile
+    private var preferredServer = 0
+
+    @Volatile
+    private var hasWorkingMirror = false
 
     private fun fetchFrom(server: String, path: String): FetchResult {
         return try {
@@ -158,11 +178,19 @@ object RealMediaRepository {
         }
     }
 
-    /** Network fetch with an in-memory hot cache and a real, previously-fetched disk fallback. */
-    private suspend fun cachedList(path: String, cacheKey: String): Pair<List<RealMedia>, Boolean> {
+    /**
+     * Network fetch with an in-memory hot cache and a real, previously-fetched disk fallback.
+     *
+     * [force] skips the in-memory cache so a pull-to-refresh really asks the servers again.
+     * A fallback to older data is never written into the memory cache: otherwise one failed
+     * refresh would keep serving the stale list for another five minutes.
+     */
+    private suspend fun cachedList(path: String, cacheKey: String, force: Boolean = false): Pair<List<RealMedia>, Boolean> {
         val now = System.currentTimeMillis()
-        memoryLists[cacheKey]?.let { entry ->
-            if (now - entry.at <= MEMORY_TTL_MS) return entry.data to false
+        if (!force) {
+            memoryLists[cacheKey]?.let { entry ->
+                if (now - entry.at <= MEMORY_TTL_MS) return entry.data to false
+            }
         }
 
         val result = fetch(path)
@@ -170,26 +198,33 @@ object RealMediaRepository {
         if (!fresh.isNullOrEmpty()) {
             memoryLists[cacheKey] = MemoryEntry(fresh, now)
             writeCache(cacheKey, fresh)
+            cacheFallbacks.remove(cacheKey)
             return fresh to false
         }
         val cached = readCache<List<RealMedia>>(cacheKey)
         if (!cached.isNullOrEmpty()) {
-            memoryLists[cacheKey] = MemoryEntry(cached, now)
+            cacheFallbacks[cacheKey] = now
             return cached to true
         }
+        cacheFallbacks.remove(cacheKey)
         return emptyList<RealMedia>() to result.failed
     }
 
-    private suspend fun fetchList(path: String, cacheKey: String): List<RealMedia> =
-        cachedList(path, cacheKey).first
+    /** Cache keys that had to fall back to older disk data, with the time of the fallback. */
+    private val cacheFallbacks = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    private suspend fun fetchList(path: String, cacheKey: String, force: Boolean = false): List<RealMedia> =
+        cachedList(path, cacheKey, force).first
 
     // ---------------------------------------------------------------- catalogue
 
     /** Next Movie list with the same memory+disk caching contract as IranFlix lists. */
-    private suspend fun nextList(cacheKey: String, loader: suspend () -> List<RealMedia>): List<RealMedia> {
+    private suspend fun nextList(cacheKey: String, force: Boolean = false, loader: suspend () -> List<RealMedia>): List<RealMedia> {
         val now = System.currentTimeMillis()
-        memoryLists[cacheKey]?.let { entry ->
-            if (now - entry.at <= MEMORY_TTL_MS) return entry.data
+        if (!force) {
+            memoryLists[cacheKey]?.let { entry ->
+                if (now - entry.at <= MEMORY_TTL_MS) return entry.data
+            }
         }
         val fresh = try {
             loader()
@@ -199,10 +234,11 @@ object RealMediaRepository {
         if (fresh.isNotEmpty()) {
             memoryLists[cacheKey] = MemoryEntry(fresh, now)
             writeCache(cacheKey, fresh)
+            cacheFallbacks.remove(cacheKey)
             return fresh
         }
         val cached = readCache<List<RealMedia>>(cacheKey) ?: emptyList()
-        if (cached.isNotEmpty()) memoryLists[cacheKey] = MemoryEntry(cached, now)
+        if (cached.isNotEmpty()) cacheFallbacks[cacheKey] = now
         return cached
     }
 
@@ -235,48 +271,48 @@ object RealMediaRepository {
         return mergeCollections(iranflix, nextItems)
     }
 
-    private suspend fun nextMovies(page: Int): List<RealMedia> =
-        nextList("nm_movies_${page}") {
+    private suspend fun nextMovies(page: Int, force: Boolean = false): List<RealMedia> =
+        nextList("nm_movies_${page}", force) {
             NextMovieRepository.toMediaList(NextMovieRepository.browse(type = "movie", page = page))
         }
 
-    private suspend fun nextSeries(page: Int): List<RealMedia> =
-        nextList("nm_series_${page}") {
+    private suspend fun nextSeries(page: Int, force: Boolean = false): List<RealMedia> =
+        nextList("nm_series_${page}", force) {
             NextMovieRepository.toMediaList(NextMovieRepository.browse(type = "series", page = page))
         }
 
-    private suspend fun nextTopRated(): List<RealMedia> =
-        nextList("nm_top") {
+    private suspend fun nextTopRated(force: Boolean = false): List<RealMedia> =
+        nextList("nm_top", force) {
             NextMovieRepository.toMediaList(NextMovieRepository.browse(sortKey = "imdb_rating"))
                 .filter { it.imdb > 0 && it.imdb < 9.9 }
         }
 
-    private suspend fun nextByGenre(vararg words: String): List<RealMedia> {
+    private suspend fun nextByGenre(force: Boolean, vararg words: String): List<RealMedia> {
         val genreId = NextMovieRepository.genreId(*words)
         if (genreId <= 0) return emptyList()
-        return nextList("nm_genre_${genreId}") {
+        return nextList("nm_genre_${genreId}", force) {
             NextMovieRepository.toMediaList(NextMovieRepository.browse(genreIds = listOf(genreId)))
         }
     }
 
-    suspend fun getLatestMovies(page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/movie/by/filtres/0/created/${page}/${API_KEY}/", "movies_created_${page}") },
-        { nextMovies(page + 1) }
+    suspend fun getLatestMovies(page: Int = 0, force: Boolean = false): List<RealMedia> = mergeForMode(
+        { fetchList("/api/movie/by/filtres/0/created/${page}/${API_KEY}/", "movies_created_${page}", force) },
+        { nextMovies(page + 1, force) }
     )
 
-    suspend fun getPopularSeries(page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/serie/by/filtres/0/created/${page}/${API_KEY}/", "series_created_${page}") },
-        { nextSeries(page + 1) }
+    suspend fun getPopularSeries(page: Int = 0, force: Boolean = false): List<RealMedia> = mergeForMode(
+        { fetchList("/api/serie/by/filtres/0/created/${page}/${API_KEY}/", "series_created_${page}", force) },
+        { nextSeries(page + 1, force) }
     )
 
-    suspend fun getTopImdbMovies(page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/movie/by/filtres/0/imdb/${page}/${API_KEY}/", "movies_imdb_${page}") },
-        { if (page == 0) nextTopRated() else emptyList() }
+    suspend fun getTopImdbMovies(page: Int = 0, force: Boolean = false): List<RealMedia> = mergeForMode(
+        { fetchList("/api/movie/by/filtres/0/imdb/${page}/${API_KEY}/", "movies_imdb_${page}", force) },
+        { if (page == 0) nextTopRated(force) else emptyList() }
     )
 
-    suspend fun getMoviesByGenre(genreId: Int, page: Int = 0): List<RealMedia> = mergeForMode(
-        { fetchList("/api/movie/by/filtres/${genreId}/created/${page}/${API_KEY}/", "movies_genre_${genreId}_${page}") },
-        { if (page == 0) nextByGenre(*genreWords(genreId)) else emptyList() }
+    suspend fun getMoviesByGenre(genreId: Int, page: Int = 0, force: Boolean = false): List<RealMedia> = mergeForMode(
+        { fetchList("/api/movie/by/filtres/${genreId}/created/${page}/${API_KEY}/", "movies_genre_${genreId}_${page}", force) },
+        { if (page == 0) nextByGenre(force, *genreWords(genreId)) else emptyList() }
     )
 
     private fun genreWords(genreId: Int): Array<String> = when (genreId) {
@@ -338,24 +374,24 @@ object RealMediaRepository {
      * Builds the home experience exclusively from live endpoints.
      *
      * Selection logic (documented and deterministic):
-     *  - Hero: highest-rated movies from the real IMDb-sorted endpoint (fallback: newest).
+     *  - Hero: newest titles interleaved with the highest-rated ones, newest first, so a
+     *    freshly added film is always on the first banner slide and stays in the rotation.
      *  - Rows: labelled after the endpoint that produced them.
      * No title is invented, reshuffled into a fake "personalised" list, or duplicated.
      */
-    suspend fun getHomeCatalog(): HomeCatalog = coroutineScope {
-        val latest = async { getLatestMovies(0) }
-        val latestPage = async { getLatestMovies(1) }
-        val series = async { getPopularSeries(0) }
-        val seriesPage = async { getPopularSeries(1) }
-        val top = async { getTopImdbMovies(0) }
-        val anime = async { getMoviesByGenre(Genres.ANIMATION, 0) }
-        val korean = async { getMoviesByGenre(Genres.KOREAN, 0) }
-        val action = async { getMoviesByGenre(Genres.ACTION, 0) }
+    suspend fun getHomeCatalog(forceRefresh: Boolean = false): HomeCatalog = coroutineScope {
+        val started = System.currentTimeMillis()
+        val latest = async { getLatestMovies(0, forceRefresh) }
+        val series = async { getPopularSeries(0, forceRefresh) }
+        val top = async { getTopImdbMovies(0, forceRefresh) }
+        val anime = async { getMoviesByGenre(Genres.ANIMATION, 0, forceRefresh) }
+        val korean = async { getMoviesByGenre(Genres.KOREAN, 0, forceRefresh) }
+        val action = async { getMoviesByGenre(Genres.ACTION, 0, forceRefresh) }
 
-        val latestAll = (latest.await() + latestPage.await()).distinctBy { it.id }
-        val seriesAll = (series.await() + seriesPage.await()).distinctBy { it.id }
+        val latestAll = latest.await().distinctBy { it.id }
+        val seriesAll = series.await().distinctBy { it.id }
 
-        buildCatalog(
+        val catalog = buildCatalog(
             latest = latestAll,
             series = seriesAll,
             topRated = top.await(),
@@ -364,6 +400,8 @@ object RealMediaRepository {
             action = action.await(),
             fromCache = false
         )
+        // A row that silently fell back to older disk data must be reported as cached.
+        catalog.copy(fromCache = cacheFallbacks.values.any { it >= started })
     }
 
     /**
@@ -407,10 +445,31 @@ object RealMediaRepository {
         action: List<RealMedia>,
         fromCache: Boolean
     ): HomeCatalog {
-        val heroPool = (topRated + latest).filter { it.cover.isNotEmpty() || it.image.isNotEmpty() }
-        val hero = heroPool.distinctBy { it.id }.take(6)
+        val newestPool = latest.filter { it.cover.isNotEmpty() || it.image.isNotEmpty() }
+        // Next Movie's imdb sort is not honoured upstream (it returns the newest list), so
+        // order the merged pool by rating here; otherwise "popular" would just repeat "newest".
+        val popularPool = topRated
+            .filter { it.imdb > 0 && (it.cover.isNotEmpty() || it.image.isNotEmpty()) }
+            .sortedByDescending { it.imdb }
+        // Newest first, then the best-rated, alternating so neither source can lock the banner.
+        val hero = ArrayList<RealMedia>(6)
+        val heroIds = HashSet<Int>()
+        var index = 0
+        while (hero.size < 6 && (index < newestPool.size || index < popularPool.size)) {
+            if (index < newestPool.size) {
+                val item = newestPool[index]
+                if (heroIds.add(item.id)) hero.add(item)
+            }
+            if (hero.size < 6 && index < popularPool.size) {
+                val item = popularPool[index]
+                if (heroIds.add(item.id)) hero.add(item)
+            }
+            index++
+        }
 
-        val seen = hero.map { it.id }.toMutableSet()
+        // Rows de-duplicate between themselves only: the newest row keeps every new title
+        // even when the same title also rotates in the hero banner.
+        val seen = HashSet<Int>()
         fun row(title: String, source: List<RealMedia>): HomeRow? {
             val items = source.filter { seen.add(it.id) && (it.image.isNotEmpty() || it.cover.isNotEmpty()) }
             return if (items.isEmpty()) null else HomeRow(title, items.take(40))
@@ -429,37 +488,21 @@ object RealMediaRepository {
 
     // ---------------------------------------------------------------- search
 
-    suspend fun search(query: String): List<RealMedia> = withContext(Dispatchers.IO) {
+    /**
+     * Instant, network-free search over the catalogue already in memory. Used while the
+     * user types so a single character shows something without waiting for the servers.
+     */
+    fun localSearch(query: String): List<RealMedia> {
         val q = query.trim()
-        if (q.isEmpty()) return@withContext getExploreCatalog()
+        if (q.isEmpty()) return emptyList()
+        val catalog = synchronized(inMemoryCatalog) { inMemoryCatalog.toList() }
+        if (catalog.isEmpty()) return emptyList()
+        return matchesIn(catalog, q)
+    }
 
-        val useIranflix = SourcePreferences.usesIranflix()
-        val useNext = SourcePreferences.usesNext()
-
-        val remoteIranflix = if (useIranflix) {
-            try {
-                val encoded = URLEncoder.encode(q, StandardCharsets.UTF_8.toString()).replace("+", "%20")
-                val body = fetch("/api/search/${encoded}/${API_KEY}/").body
-                if (body.isNullOrBlank()) emptyList() else {
-                    val jsonObject = JSONObject(body)
-                    parseMediaList(jsonObject.optJSONArray("posters")?.toString() ?: "[]")
-                }
-            } catch (_: Exception) {
-                emptyList()
-            }
-        } else emptyList()
-
-        val remoteNext = if (useNext) {
-            try {
-                NextMovieRepository.toMediaList(NextMovieRepository.search(q))
-            } catch (_: Exception) {
-                emptyList()
-            }
-        } else emptyList()
-
-        val catalog = if (inMemoryCatalog.isNotEmpty()) inMemoryCatalog.toList() else getExploreCatalog()
+    private fun matchesIn(catalog: List<RealMedia>, q: String): List<RealMedia> {
         val qLower = q.lowercase()
-        val localMatches = catalog.filter { item ->
+        return catalog.filter { item ->
             val meta = com.hnn.bisnor.util.MediaMetadataHelper.parse(item.description, item.imdb)
             item.title.lowercase().contains(qLower) ||
                 item.description.lowercase().contains(qLower) ||
@@ -467,16 +510,53 @@ object RealMediaRepository {
                 (meta.actors ?: "").lowercase().contains(qLower) ||
                 item.genres.any { it.title.contains(q, ignoreCase = true) }
         }
+    }
 
-        val iranflixPool = if (useIranflix) {
-            (remoteIranflix + localMatches.filter { it.id > 0 }).distinctBy { it.id }
-        } else emptyList()
-        val nextPool = if (useNext) {
-            val localNext = localMatches.filter { it.provider == "next" && it.nextId > 0 }
-            (remoteNext + localNext).distinctBy { it.nextId }
-        } else emptyList()
+    suspend fun search(query: String): List<RealMedia> = withContext(Dispatchers.IO) {
+        val q = query.trim()
+        if (q.isEmpty()) return@withContext getExploreCatalog()
 
-        mergeCollections(iranflixPool, nextPool)
+        val useIranflix = SourcePreferences.usesIranflix()
+        val useNext = SourcePreferences.usesNext()
+
+        // Both providers are asked at the same time: a slow IranFlix reply must not hold
+        // back Next Movie, and the quick local match is merged without another request.
+        return@withContext coroutineScope {
+            val remoteIranflix = async {
+                if (!useIranflix) emptyList() else try {
+                    val encoded = URLEncoder.encode(q, StandardCharsets.UTF_8.toString()).replace("+", "%20")
+                    val body = fetch("/api/search/${encoded}/${API_KEY}/").body
+                    if (body.isNullOrBlank()) emptyList() else {
+                        val jsonObject = JSONObject(body)
+                        parseMediaList(jsonObject.optJSONArray("posters")?.toString() ?: "[]")
+                    }
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            }
+
+            val remoteNext = async {
+                if (!useNext) emptyList() else try {
+                    NextMovieRepository.toMediaList(NextMovieRepository.search(q))
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            }
+
+            val catalog = synchronized(inMemoryCatalog) { inMemoryCatalog.toList() }
+            val localMatches = matchesIn(catalog, q)
+
+            val iranflixPool = if (useIranflix) {
+                (remoteIranflix.await() + localMatches.filter { it.id > 0 }).distinctBy { it.id }
+            } else emptyList()
+            val nextPool = if (useNext) {
+                val returned = remoteNext.await()
+                val localNext = localMatches.filter { it.provider == "next" && it.nextId > 0 }
+                (returned + localNext).distinctBy { it.nextId }
+            } else emptyList()
+
+            mergeCollections(iranflixPool, nextPool)
+        }
     }
 
     // ---------------------------------------------------------------- series
@@ -542,8 +622,10 @@ object RealMediaRepository {
         val key = "${MediaMatcher.normalizeTitle(item.title)}|${item.isSeries}|${item.year}"
         synchronized(nextMatchCache) { nextMatchCache[key] }?.let { return@withContext it }
         val found = try {
-            val candidates = NextMovieRepository.toMediaList(NextMovieRepository.search(item.title))
-            MediaMatcher.findMatch(candidates, item)?.nextId ?: 0
+            withTimeoutOrNull(6_000) {
+                val candidates = NextMovieRepository.toMediaList(NextMovieRepository.search(item.title))
+                MediaMatcher.findMatch(candidates, item)?.nextId ?: 0
+            } ?: 0
         } catch (_: Exception) {
             0
         }
@@ -558,7 +640,7 @@ object RealMediaRepository {
         if (!SourcePreferences.usesNext()) return@withContext item
         var resolved = item
         if (resolved.nextId <= 0) {
-            val nextId = resolveNextId(resolved)
+            val nextId = withTimeoutOrNull(7_000) { resolveNextId(resolved) } ?: 0
             if (nextId <= 0) return@withContext item
             resolved = resolved.copy(
                 nextId = nextId,
@@ -567,14 +649,14 @@ object RealMediaRepository {
             )
         }
         val details = try {
-            NextMovieRepository.details(resolved.nextId)
+            withTimeoutOrNull(6_000) { NextMovieRepository.details(resolved.nextId) }
         } catch (_: Exception) {
             null
         }
         var result = NextMovieRepository.applyDetails(resolved, details)
         if (!resolved.isSeries) {
             val links = try {
-                NextMovieRepository.links(resolved.nextId)
+                withTimeoutOrNull(8_000) { NextMovieRepository.links(resolved.nextId) }
             } catch (_: Exception) {
                 null
             }

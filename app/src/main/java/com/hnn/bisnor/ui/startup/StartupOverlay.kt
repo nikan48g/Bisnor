@@ -84,12 +84,20 @@ object StartupOverlay {
             col.addView(bar)
             activity.lifecycleScope.launch {
                 val started = System.currentTimeMillis()
-                val r = withTimeoutOrNull(7000) { ServerHealth.check(activity) }
-                    ?: ServerHealth.Result(true, false, false)
+                val r = withTimeoutOrNull(10_000) { ServerHealth.check(activity) }
                 fun mark(i: Int, ok: Boolean) {
                     rows[i].text = (if (ok) "✓  " else "✕  ") + activity.getString(labels[i])
                     rows[i].alpha = 1f
                     rows[i].setTextColor(if (ok) Color.WHITE else Color.parseColor("#FF8A80"))
+                }
+                if (r == null) {
+                    // The probe timed out: that means a slow server, not an offline device.
+                    // The catalogue itself reports a real failure; never block home with a
+                    // false "no connection" screen.
+                    mark(0, true); mark(1, true)
+                    delay(maxOf(0L, 600 - (System.currentTimeMillis() - started)))
+                    close()
+                    return@launch
                 }
                 mark(0, r.network); mark(1, r.anyServer)
                 delay(maxOf(0L, 800 - (System.currentTimeMillis() - started)))

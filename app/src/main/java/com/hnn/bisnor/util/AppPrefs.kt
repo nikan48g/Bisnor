@@ -2,7 +2,6 @@ package com.hnn.bisnor.util
 
 import android.content.Context
 import android.content.SharedPreferences
-import java.util.Locale
 
 /** Look-and-feel choices made in onboarding / settings. */
 object AppPrefs {
@@ -12,8 +11,8 @@ object AppPrefs {
     private fun p(c: Context): SharedPreferences =
         c.applicationContext.getSharedPreferences("bisnor_ui", Context.MODE_PRIVATE)
 
-    fun lang(c: Context): String = p(c).getString("lang", null)
-        ?: if (Locale.getDefault().language == "fa") LANG_FA else LANG_EN
+    /** Persian is the default for a fresh install; Settings can switch to English. */
+    fun lang(c: Context): String = p(c).getString("lang", null) ?: LANG_FA
     fun setLang(c: Context, v: String) = p(c).edit().putString("lang", v).apply()
     fun isRtl(c: Context) = lang(c) == LANG_FA
 

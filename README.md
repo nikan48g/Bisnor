@@ -1,8 +1,6 @@
 <div align="center">
 <img src="banner.webp" alt="Bisnor — home, explore and movie details screenshots" width="100%">
 
-# Bisnor
-
 ### تماشا بدون مرز 💎
 یک کلاینت متن‌باز برای مرور، جستجو و پخش فیلم و سریال، با تمرکز روی تجربه فارسی، رابط سبک و پخش سریع و انعطاف‌پذیر.
 

@@ -1,5 +1,5 @@
 <div align="center">
-<a href="https://github.com/nikan48g/Bisnor"><img src="logo.png" alt="Bisnor Logo" width="140"></a>
+<img src="banner.webp" alt="Bisnor — home, explore and movie details screenshots" width="100%">
 
 # Bisnor
 

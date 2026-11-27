@@ -88,8 +88,6 @@
                     android:host="bisnor.app" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".ui.onboarding.OnboardingActivity" android:exported="false" />
         <activity android:name=".ui.settings.ServersActivity" android:exported="false" />
 
         <activity

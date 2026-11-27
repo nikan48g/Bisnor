@@ -770,11 +770,16 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun openPerson(person: RealPerson) {
+        val source = mediaItem
         startActivity(
             Intent(this, PersonActivity::class.java).apply {
                 putExtra("person_name", person.name)
                 putExtra("person_role", person.role)
                 putExtra("person_photo", person.photo)
+                putExtra("person_name_fa", person.nameFa)
+                putExtra("person_character", person.character)
+                // The film the user came from always belongs to this person's works.
+                if (source != null) putExtra("source_media", source)
             }
         )
     }

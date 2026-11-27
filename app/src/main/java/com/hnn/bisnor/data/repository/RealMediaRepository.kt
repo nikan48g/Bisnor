@@ -668,6 +668,7 @@ object RealMediaRepository {
                 )
             }
         }
+        PersonIndex.remember(result)
         result
     }
 
@@ -781,6 +782,7 @@ object RealMediaRepository {
                 continue
             }
         }
+        PersonIndex.rememberAll(list)
         return list
     }
 

@@ -169,6 +169,52 @@
         </HorizontalScrollView>
     </LinearLayout>
 
+    <!-- People matched by name (actors, directors) -->
+    <LinearLayout
+        android:id="@+id/layout_people_results"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="18dp">
+
+            <TextView
+                android:id="@+id/tv_people_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="?attr/appFontBold"
+                android:text="@string/people_results_title"
+                android:textColor="@color/on_surface"
+                android:textSize="17sp" />
+
+            <TextView
+                android:id="@+id/tv_people_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFamily="?attr/appFontMedium"
+                android:textColor="@color/on_surface_variant"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_people_results"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clipToPadding="false"
+            android:paddingHorizontal="18dp"
+            android:scrollbars="none" />
+    </LinearLayout>
+
     <!-- Result count -->
     <TextView
         android:id="@+id/tv_results_count"

@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import coil.load
 import com.hnn.bisnor.R
 import com.hnn.bisnor.data.model.RealMedia
-import com.hnn.bisnor.data.model.RealPerson
+import com.hnn.bisnor.data.repository.PersonIndex
 import com.hnn.bisnor.data.repository.RealMediaRepository
 import com.hnn.bisnor.databinding.ActivityPersonBinding
 import com.hnn.bisnor.ui.adapter.PersonRowAdapter
@@ -18,6 +18,9 @@ import com.hnn.bisnor.ui.detail.DetailActivity
 import com.hnn.bisnor.util.MediaMetadataHelper
 import com.hnn.bisnor.util.PersonPhotoResolver
 import com.hnn.bisnor.util.ThemeHelper
+import com.hnn.bisnor.util.Tr
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 class PersonActivity : AppCompatActivity() {
@@ -26,6 +29,9 @@ class PersonActivity : AppCompatActivity() {
     private lateinit var adapter: RealMediaAdapter
     private lateinit var personName: String
     private lateinit var personRole: String
+    private var personNameFa: String = ""
+    private var personCharacter: String = ""
+    private var sourceMedia: RealMedia? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.applyTheme(this)
@@ -34,19 +40,24 @@ class PersonActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         personName = intent.getStringExtra("person_name").orEmpty().trim()
+        personNameFa = intent.getStringExtra("person_name_fa").orEmpty().trim()
+        personCharacter = intent.getStringExtra("person_character").orEmpty().trim()
         personRole = intent.getStringExtra("person_role").orEmpty()
-        if (personName.isEmpty()) {
+        sourceMedia = intent.getSerializableExtra("source_media") as? RealMedia
+        if (personName.isEmpty() && personNameFa.isEmpty()) {
             finish()
             return
         }
+        if (personName.isEmpty()) personName = personNameFa
 
         binding.toolbarPerson.setNavigationOnClickListener { finish() }
         binding.tvPersonName.text = personName
-        binding.tvPersonRole.text = PersonRowAdapter.roleLabel(personRole)
+        binding.tvPersonRole.text = subtitle()
 
         val passedPhoto = intent.getStringExtra("person_photo").orEmpty()
-        if (passedPhoto.isNotBlank()) {
-            showPhoto(passedPhoto)
+        val knownPhoto = passedPhoto.ifBlank { PersonIndex.photo(personName) }
+        if (knownPhoto.isNotBlank()) {
+            showPhoto(knownPhoto)
         } else {
             lifecycleScope.launch {
                 val photo = PersonPhotoResolver.resolve(personName)
@@ -61,11 +72,16 @@ class PersonActivity : AppCompatActivity() {
                 }
             )
         }, isGrid = true)
-        binding.recyclerPersonWorks.layoutManager =
-            GridLayoutManager(this, resources.getInteger(R.integer.grid_columns_count))
+        binding.recyclerPersonWorks.layoutManager = GridLayoutManager(this, 2)
         binding.recyclerPersonWorks.adapter = adapter
+        binding.btnPersonRetry.setOnClickListener { loadWorks() }
 
         loadWorks()
+    }
+
+    private fun subtitle(): String {
+        val role = PersonRowAdapter.roleLabel(personRole)
+        return if (personCharacter.isNotBlank()) "$role  •  $personCharacter" else role
     }
 
     private fun showPhoto(url: String) {
@@ -78,23 +94,65 @@ class PersonActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Local credits come first so a film opened a moment ago is never missing. The provider
+     * search then adds anything the index has not seen yet, in both languages.
+     */
     private fun loadWorks() {
-        binding.progressPerson.visibility = View.VISIBLE
+        binding.skeletonPerson.visibility = View.VISIBLE
         binding.layoutPersonEmpty.visibility = View.GONE
+        binding.layoutPersonError.visibility = View.GONE
+        binding.recyclerPersonWorks.visibility = View.INVISIBLE
+
+        val known = PersonIndex.works(personName).ifEmpty { PersonIndex.works(personNameFa) }
+        val immediate = (listOfNotNull(sourceMedia) + known).distinctBy { it.id }
+        if (immediate.isNotEmpty()) publish(immediate)
 
         lifecycleScope.launch {
-            val results = runCatching { RealMediaRepository.search(personName) }.getOrDefault(emptyList())
-            val works = results.filter { item -> features(item, personName) }.distinctBy { it.id }
+            val outcome = runCatching {
+                coroutineScope {
+                    val fa = async {
+                        if (personNameFa.isBlank() || personNameFa == personName) emptyList()
+                        else RealMediaRepository.search(personNameFa)
+                    }
+                    val en = async { RealMediaRepository.search(personName) }
+                    en.await() + fa.await()
+                }
+            }
             if (isFinishing || isDestroyed) return@launch
 
-            binding.progressPerson.visibility = View.GONE
-            adapter.updateData(works)
-            binding.layoutPersonEmpty.visibility = if (works.isEmpty()) View.VISIBLE else View.GONE
+            val results = outcome.getOrNull()
+            if (results == null && immediate.isEmpty()) {
+                showError()
+                return@launch
+            }
+            val names = listOf(personName, personNameFa).filter { it.isNotBlank() }
+            val matched = results.orEmpty().filter { item -> names.any { features(item, it) } }
+            PersonIndex.rememberAll(matched)
+            publish((immediate + matched).distinctBy { it.id })
         }
     }
 
+    private fun publish(works: List<RealMedia>) {
+        if (isFinishing || isDestroyed) return
+        binding.skeletonPerson.visibility = View.GONE
+        binding.layoutPersonError.visibility = View.GONE
+        binding.recyclerPersonWorks.visibility = View.VISIBLE
+        adapter.updateData(works)
+        binding.layoutPersonEmpty.visibility = if (works.isEmpty()) View.VISIBLE else View.GONE
+        binding.tvPersonWorksCount.visibility = if (works.isEmpty()) View.GONE else View.VISIBLE
+        binding.tvPersonWorksCount.text = Tr.s(R.string.person_works_count, works.size)
+    }
+
+    private fun showError() {
+        binding.skeletonPerson.visibility = View.GONE
+        binding.layoutPersonEmpty.visibility = View.GONE
+        binding.recyclerPersonWorks.visibility = View.INVISIBLE
+        binding.layoutPersonError.visibility = View.VISIBLE
+    }
+
     private fun features(item: RealMedia, name: String): Boolean {
-        if (item.people.any { it.name.equals(name, true) }) return true
+        if (item.people.any { it.name.equals(name, true) || it.nameFa.equals(name, true) }) return true
         val meta = MediaMetadataHelper.parse(item.description, item.imdb, isSeries = item.isSeries)
         if (meta.director?.contains(name, ignoreCase = true) == true) return true
         if (meta.actors?.contains(name, ignoreCase = true) == true) return true

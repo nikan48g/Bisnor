@@ -59,7 +59,11 @@ data class RealSeason(
 data class RealPerson(
     val name: String = "",
     val role: String = "actor", // actor | director | writer
-    val photo: String = ""
+    val photo: String = "",
+    // Persian name and provider id when the source knows them (Next Movie cast/crew).
+    val nameFa: String = "",
+    val character: String = "",
+    val personId: Int = 0
 ) : Serializable
 
 data class RealEpisode(

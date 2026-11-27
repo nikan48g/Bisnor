@@ -74,6 +74,7 @@ class BisnorApp : Application(), Application.ActivityLifecycleCallbacks, coil.Im
         com.hnn.bisnor.data.repository.SegmentedDownloadManager.init(this)
         com.hnn.bisnor.data.repository.SourcePreferences.init(this)
         com.hnn.bisnor.data.repository.RealMediaRepository.init(this)
+        com.hnn.bisnor.data.repository.PersonIndex.init(this)
         com.hnn.bisnor.util.PersonPhotoResolver.init(this)
 
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)

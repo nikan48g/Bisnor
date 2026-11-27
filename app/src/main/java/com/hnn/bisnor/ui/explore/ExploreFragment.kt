@@ -15,6 +15,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
@@ -23,11 +24,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import com.hnn.bisnor.R
 import com.hnn.bisnor.data.model.RealMedia
+import com.hnn.bisnor.data.repository.PersonIndex
 import com.hnn.bisnor.data.repository.PlaybackHistoryManager
 import com.hnn.bisnor.data.repository.RealMediaRepository
 import com.hnn.bisnor.databinding.FragmentExploreBinding
+import com.hnn.bisnor.ui.adapter.PersonSearchAdapter
 import com.hnn.bisnor.ui.adapter.RealMediaAdapter
 import com.hnn.bisnor.ui.detail.DetailActivity
+import com.hnn.bisnor.ui.person.PersonActivity
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -38,6 +42,7 @@ class ExploreFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: RealMediaAdapter
+    private lateinit var peopleAdapter: PersonSearchAdapter
     private lateinit var historyManager: PlaybackHistoryManager
     private var searchJob: Job? = null
     private var performJob: Job? = null
@@ -73,6 +78,12 @@ class ExploreFragment : Fragment() {
             GridLayoutManager(requireContext(), resources.getInteger(R.integer.grid_columns_count))
         binding.recyclerSearchResults.adapter = adapter
         binding.recyclerSearchResults.itemAnimator = null
+
+        peopleAdapter = PersonSearchAdapter(emptyList()) { person -> openPerson(person) }
+        binding.recyclerPeopleResults.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.recyclerPeopleResults.adapter = peopleAdapter
+        binding.recyclerPeopleResults.itemAnimator = null
         com.hnn.bisnor.util.HeaderAutoHide.attach(binding.root as android.view.ViewGroup, binding.recyclerSearchResults.parent as android.view.View, listOf(binding.recyclerSearchResults))
 
         binding.etSearch.addTextChangedListener { text ->
@@ -150,11 +161,42 @@ class ExploreFragment : Fragment() {
     }
 
     private fun showLocalResults(query: String) {
-        if (_binding == null || query.isBlank()) return
+        if (_binding == null) return
+        bindPeople(query)
+        if (query.isBlank()) return
         val local = runCatching { RealMediaRepository.localSearch(query) }.getOrDefault(emptyList())
         if (local.isEmpty()) return
         allLoaded = local
         filterList()
+    }
+
+    /** People strip: the local credit index answers on the same keystroke, no request. */
+    private fun bindPeople(query: String) {
+        if (_binding == null) return
+        val people = if (query.isBlank()) emptyList()
+        else runCatching { PersonIndex.search(query, limit = 10) }.getOrDefault(emptyList())
+        peopleAdapter.updateData(people)
+        val visible = people.isNotEmpty()
+        binding.layoutPeopleResults.visibility = if (visible) View.VISIBLE else View.GONE
+        binding.tvPeopleCount.text = if (visible) Tr.s(R.string.people_count, people.size) else ""
+        if (visible && binding.layoutPeopleResults.alpha == 0f) {
+            val shift = 8 * resources.displayMetrics.density
+            binding.layoutPeopleResults.translationY = shift
+            binding.layoutPeopleResults.animate()
+                .alpha(1f).translationY(0f).setDuration(200).start()
+        }
+    }
+
+    private fun openPerson(person: PersonIndex.Entry) {
+        startActivity(
+            Intent(requireContext(), PersonActivity::class.java).apply {
+                putExtra("person_name", person.name)
+                putExtra("person_name_fa", person.nameFa)
+                putExtra("person_role", person.role)
+                putExtra("person_photo", person.photo)
+                putExtra("person_character", person.character)
+            }
+        )
     }
 
     private fun performSearch(query: String) {
@@ -170,6 +212,8 @@ class ExploreFragment : Fragment() {
             if (_binding == null || seq != searchSeq) return@launch
             binding.progressSearch.visibility = View.GONE
             allLoaded = list
+            PersonIndex.rememberAll(list)
+            bindPeople(query)
             filterList()
         }
     }
@@ -240,10 +284,10 @@ class ExploreFragment : Fragment() {
             filterMinImdb > 0f || filterYearRange != Tr.s(R.string.s_c1dfce9)
         binding.tvResultsCount.visibility = if (filtered.isNotEmpty()) View.VISIBLE else View.GONE
         binding.tvResultsCount.text = Tr.s(R.string.s_863ba5c, filtered.size)
-        binding.layoutEmptyResults.visibility =
-            if (filtered.isEmpty() && hasQuery) View.VISIBLE else View.GONE
-        binding.recyclerSearchResults.visibility =
-            if (filtered.isEmpty() && hasQuery) View.INVISIBLE else View.VISIBLE
+        // A query that only matched a person is not an empty result set.
+        val nothingAtAll = filtered.isEmpty() && hasQuery && peopleAdapter.itemCount == 0
+        binding.layoutEmptyResults.visibility = if (nothingAtAll) View.VISIBLE else View.GONE
+        binding.recyclerSearchResults.visibility = if (nothingAtAll) View.INVISIBLE else View.VISIBLE
         binding.tvEmptyTitle.text = Tr.s(R.string.s_c616574)
         binding.tvEmptyDesc.text = Tr.s(R.string.s_dbb0c09, query.ifBlank { Tr.s(R.string.s_667be3f) })
     }

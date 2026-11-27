@@ -3,6 +3,7 @@ package com.hnn.bisnor.data.repository
 import com.hnn.bisnor.data.model.RealEpisode
 import com.hnn.bisnor.data.model.RealGenre
 import com.hnn.bisnor.data.model.RealMedia
+import com.hnn.bisnor.data.model.RealPerson
 import com.hnn.bisnor.data.model.RealSeason
 import com.hnn.bisnor.data.model.RealSource
 import kotlinx.coroutines.Dispatchers
@@ -386,8 +387,74 @@ object NextMovieRepository {
             year = media.year.takeIf { it > 0 } ?: details.optInt("year", 0),
             imdb = media.imdb.takeIf { it > 0 } ?: details.optDouble("imdb_rating", 0.0),
             duration = media.duration ?: details.optString("duration", "").takeIf { it.isNotBlank() && it != "null" },
-            genres = media.genres.ifEmpty { genres }
+            genres = media.genres.ifEmpty { genres },
+            people = mergeCredits(media.people, parseCredits(details))
         )
+    }
+
+    /**
+     * Cast and crew of the details payload. These credits also carry the star id, Persian
+     * name and portrait that the list endpoints never send, which is what the person screen
+     * and the people search row rely on.
+     */
+    private fun parseCredits(details: JSONObject): List<RealPerson> {
+        val people = mutableListOf<RealPerson>()
+
+        fun add(obj: JSONObject?, role: String) {
+            obj ?: return
+            val name = obj.optString("name", "").trim()
+            val nameFa = obj.optString("name_fa", "").trim().takeIf { it != "null" }.orEmpty()
+            if (name.isBlank() && nameFa.isBlank()) return
+            if (people.any { it.name.equals(name, true) && it.role == role }) return
+            people.add(
+                RealPerson(
+                    name = name,
+                    role = role,
+                    photo = obj.optString("image", "").trim().takeIf { it.startsWith("http") }.orEmpty(),
+                    nameFa = nameFa,
+                    character = obj.optString("character", "").trim().takeIf { it != "null" }.orEmpty(),
+                    personId = obj.optInt("id", 0)
+                )
+            )
+        }
+
+        val cast = details.optJSONArray("cast")
+        if (cast != null) {
+            for (i in 0 until minOf(cast.length(), 20)) add(cast.optJSONObject(i), "actor")
+        }
+        val crew = details.optJSONArray("crew")
+        if (crew != null) {
+            for (i in 0 until crew.length()) {
+                val obj = crew.optJSONObject(i) ?: continue
+                val role = when (obj.optString("job", "").lowercase()) {
+                    "director" -> "director"
+                    "writer", "screenplay", "story" -> "writer"
+                    else -> continue
+                }
+                add(obj, role)
+            }
+        }
+        return people
+    }
+
+    private fun mergeCredits(existing: List<RealPerson>, incoming: List<RealPerson>): List<RealPerson> {
+        if (incoming.isEmpty()) return existing
+        val merged = existing.toMutableList()
+        incoming.forEach { person ->
+            val index = merged.indexOfFirst { it.name.equals(person.name, true) && it.role == person.role }
+            if (index >= 0) {
+                val current = merged[index]
+                merged[index] = current.copy(
+                    photo = current.photo.ifBlank { person.photo },
+                    nameFa = current.nameFa.ifBlank { person.nameFa },
+                    character = current.character.ifBlank { person.character },
+                    personId = current.personId.takeIf { it > 0 } ?: person.personId
+                )
+            } else {
+                merged.add(person)
+            }
+        }
+        return merged.take(30)
     }
 
     private fun JSONArray?.toObjectList(): List<JSONObject> {

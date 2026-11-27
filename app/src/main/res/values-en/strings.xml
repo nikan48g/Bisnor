@@ -646,4 +646,11 @@
     <string name="srv_row">Servers</string>
     <string name="srv_row_desc">Automatic or manual streaming server</string>
     <string name="resume_short">At %1$s</string>
+    <string name="people_results_title">People</string>
+    <string name="people_count">%1$d people</string>
+    <string name="person_works_count">%1$d works</string>
+    <string name="person_empty_title">No works yet</string>
+    <string name="person_empty_desc">Nothing by this person was found in the current sources.</string>
+    <string name="person_error_title">Could not connect</string>
+    <string name="person_retry">Try again</string>
 </resources>

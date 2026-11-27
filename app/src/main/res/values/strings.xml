@@ -646,4 +646,11 @@
     <string name="srv_row">سرورها</string>
     <string name="srv_row_desc">انتخاب خودکار یا دستی سرور پخش</string>
     <string name="resume_short">تا %1$s</string>
+    <string name="people_results_title">افراد</string>
+    <string name="people_count">%1$d نفر</string>
+    <string name="person_works_count">%1$d اثر</string>
+    <string name="person_empty_title">هنوز اثری ثبت نشده</string>
+    <string name="person_empty_desc">برای این شخص در منابع فعلی اثری پیدا نشد.</string>
+    <string name="person_error_title">ارتباط برقرار نشد</string>
+    <string name="person_retry">تلاش دوباره</string>
 </resources>

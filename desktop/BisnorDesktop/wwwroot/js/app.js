@@ -878,7 +878,7 @@ class BisnorApp {
 
         card.innerHTML = `
             <div class="card-poster-box">
-                <img src="${media.image || media.cover || fallbackSvg}" 
+                <img src="${this.imageUrl(media.image || media.cover || fallbackSvg)}" 
                      alt="${media.title}" 
                      loading="lazy" 
                      onerror="this.onerror=null; this.src='${fallbackSvg}';">
@@ -922,7 +922,7 @@ class BisnorApp {
                     window.getPosterFallbackSvg(hero.title, genreTitle, hero.year, (hero.imdb || 8.0).toFixed(1)) : 
                     "assets/logo.png";
 
-                heroCard.style.backgroundImage = `url('${hero.cover || hero.image || heroFallback}')`;
+                heroCard.style.backgroundImage = `url('${this.imageUrl(hero.cover || hero.image || heroFallback)}')`;
                 heroCard.innerHTML = `
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-info-wrap">
@@ -1148,9 +1148,9 @@ class BisnorApp {
         const photo = document.createElement("span");
         photo.className = "person-photo";
         photo.textContent = person.name.slice(0, 1);
-        if (person.photo) photo.style.backgroundImage = `url("${person.photo.replace(/"/g, "%22")}")`;
+        if (person.photo) photo.style.backgroundImage = `url("${this.imageUrl(person.photo).replace(/"/g, "%22")}")`;
         else window.mediaService.resolvePersonPhoto(person).then(url => {
-            if (url && button.isConnected) photo.style.backgroundImage = `url("${url.replace(/"/g, "%22")}")`;
+            if (url && button.isConnected) photo.style.backgroundImage = `url("${this.imageUrl(url).replace(/"/g, "%22")}")`;
         });
         const role = document.createElement("span");
         role.className = "person-role";
@@ -1194,11 +1194,11 @@ class BisnorApp {
             "assets/logo.png";
 
         if (coverEl) {
-            coverEl.src = media.cover || media.image || fallbackSvg;
+            coverEl.src = this.imageUrl(media.cover || media.image || fallbackSvg);
             coverEl.onerror = () => { coverEl.src = fallbackSvg; };
         }
         if (posterEl) {
-            posterEl.src = media.image || media.cover || fallbackSvg;
+            posterEl.src = this.imageUrl(media.image || media.cover || fallbackSvg);
             posterEl.onerror = () => { posterEl.src = fallbackSvg; };
         }
 
@@ -1301,9 +1301,9 @@ class BisnorApp {
         const photo = document.getElementById("person-profile-photo");
         photo.textContent = (person.name || "?").slice(0, 1);
         const photoUrl = person.photo || known.photo || "";
-        photo.style.backgroundImage = photoUrl ? `url("${photoUrl.replace(/"/g, "%22")}")` : "";
+        photo.style.backgroundImage = photoUrl ? `url("${this.imageUrl(photoUrl).replace(/"/g, "%22")}")` : "";
         if (!photoUrl) window.mediaService.resolvePersonPhoto(person).then(url => {
-            if (url && this.activePerson === person) photo.style.backgroundImage = `url("${url.replace(/"/g, "%22")}")`;
+            if (url && this.activePerson === person) photo.style.backgroundImage = `url("${this.imageUrl(url).replace(/"/g, "%22")}")`;
         });
         this.updatePersonFollowButton();
         this.openOverlay("modal-person");
@@ -1657,6 +1657,25 @@ class BisnorApp {
     }
 
     // --- Player Management ---
+    /**
+     * Poster and cast photos live on the same Iranian hosts as the catalogue.
+     * The WebView sends them through the system proxy, which usually cannot
+     * reach those hosts, so route them over the shell's loopback relay too.
+     */
+    imageUrl(url) {
+        if (!url) return url;
+        const base = window.BISNOR_MEDIA_BASE;
+        if (!base) return url;
+        try {
+            const parsed = new URL(url, location.href);
+            const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+            const domestic = ["server-hi-speed-iran.info", "hostinnegar.com", "windowsdiba.info"];
+            return domestic.includes(host) ? `${base}?u=${encodeURIComponent(parsed.href)}` : url;
+        } catch (_) {
+            return url;
+        }
+    }
+
     /**
      * IranFlix serves every stream over plain http while the PWA and the desktop
      * shell run on https, where browsers drop the request as mixed content. The

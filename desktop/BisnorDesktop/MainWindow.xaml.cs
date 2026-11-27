@@ -28,12 +28,25 @@ public partial class MainWindow : Window
         Timeout = TimeSpan.FromSeconds(15)
     };
 
+    // The Iranian catalogue hosts are unreachable through the usual VPN/proxy
+    // endpoints (they time out), so try them directly first and only fall back
+    // to the system proxy when a direct request fails.
+    private readonly HttpClient _iranflixDirectClient = new(new HttpClientHandler
+    {
+        AllowAutoRedirect = true,
+        UseProxy = false
+    })
+    {
+        Timeout = TimeSpan.FromSeconds(15)
+    };
+
     private MediaRelay? _mediaRelay;
 
     public MainWindow()
     {
         var appVersion = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "5.1.1";
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd($"Mozilla/5.0 (Windows NT 10.0; Win64; x64) BisnorDesktop/{appVersion}");
+        _iranflixDirectClient.DefaultRequestHeaders.UserAgent.ParseAdd($"Mozilla/5.0 (Windows NT 10.0; Win64; x64) BisnorDesktop/{appVersion}");
         InitializeComponent();
 
         try
@@ -207,28 +220,35 @@ public partial class MainWindow : Window
         // Ensure endpoint ends with / for Iranflix API
         var normalizedEndpoint = endpoint.EndsWith("/") ? endpoint : endpoint + "/";
 
-        foreach (var server in IranflixServers)
+        // Direct first (Iranian hosts often time out behind a VPN proxy), then the
+        // system-proxied client for users outside Iran who need the tunnel.
+        foreach (var client in new[] { _iranflixDirectClient, _httpClient })
         {
-            try
+            foreach (var server in IranflixServers)
             {
-                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(6));
-                var cleanServer = server.TrimEnd('/');
-                var fullUrl = $"{cleanServer}{normalizedEndpoint}".Replace("{API_KEY}", ApiKey);
-                var response = await _httpClient.GetAsync(fullUrl, cts.Token);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    resultJson = await response.Content.ReadAsStringAsync(cts.Token);
-                    if (!string.IsNullOrWhiteSpace(resultJson) && (resultJson.TrimStart().StartsWith("[") || resultJson.TrimStart().StartsWith("{")))
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(6));
+                    var cleanServer = server.TrimEnd('/');
+                    var fullUrl = $"{cleanServer}{normalizedEndpoint}".Replace("{API_KEY}", ApiKey);
+                    var response = await client.GetAsync(fullUrl, cts.Token);
+                    if (response.IsSuccessStatusCode)
                     {
-                        break;
+                        resultJson = await response.Content.ReadAsStringAsync(cts.Token);
+                        if (!string.IsNullOrWhiteSpace(resultJson) && (resultJson.TrimStart().StartsWith("[") || resultJson.TrimStart().StartsWith("{")))
+                        {
+                            break;
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    lastEx = ex;
+                    Debug.WriteLine($"[IranflixFetchError] {server} => {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                lastEx = ex;
-                Debug.WriteLine($"[IranflixFetchError] {server} => {ex.Message}");
-            }
+
+            if (resultJson != null) break;
         }
 
         try
